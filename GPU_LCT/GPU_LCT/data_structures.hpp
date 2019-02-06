@@ -5,8 +5,8 @@
 
 struct SymEdge
 {
-	SymEdge* nxt;
-	SymEdge* rot;
+	SymEdge* nxt = nullptr;
+	SymEdge* rot = nullptr;
 
 	int vertex;
 	int edge;
