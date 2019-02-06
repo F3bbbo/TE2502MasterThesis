@@ -18,7 +18,7 @@ public:
 private:
 	std::vector<std::pair<glm::vec2, int>> m_vertices; // Each vertice keeps track of how many times it is referenced
 	std::vector<std::pair<glm::ivec2, std::vector<int>>> m_edges; // Edges keeps track of the constraints it represents
-	std::vector<std::pair<glm::ivec3, glm::ivec3>> m_faces;
+	std::vector<glm::ivec3> m_faces; // Indices to vertices that makes up each face
 };
 
 #endif
