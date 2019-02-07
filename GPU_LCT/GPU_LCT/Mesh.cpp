@@ -87,12 +87,12 @@ std::vector<VertexRef> const & Mesh::get_vertex_list()
 	return m_vertices;
 }
 
-std::vector<EdgeConstraints> const & Mesh::get_edge_list()
+std::vector<Edge> const & Mesh::get_edge_list()
 {
 	return m_edges;
 }
 
-std::vector<glm::ivec3> const & Mesh::get_face_list()
+std::vector<Face> const & Mesh::get_face_list()
 {
 	return m_faces;
 }

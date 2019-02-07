@@ -44,7 +44,7 @@ void Drawable::construct_GL_objects(Mesh& mesh)
 
 	if (m_mode == EDGE || m_mode == BOTH)
 	{
-		std::vector<EdgeConstraints> const&  mesh_edges = mesh.get_edge_list();
+		std::vector<Edge> const&  mesh_edges = mesh.get_edge_list();
 		std::vector<glm::ivec2> edges_indices;
 
 		for (auto& edge : mesh_edges)
@@ -57,11 +57,11 @@ void Drawable::construct_GL_objects(Mesh& mesh)
 
 	if (m_mode == FACE || m_mode == BOTH)
 	{
-		std::vector<glm::ivec3> const&  mesh_faces = mesh.get_face_list();
+		std::vector<Face> const&  mesh_faces = mesh.get_face_list();
 		std::vector<glm::ivec3> face_indices;
 
 		for (auto& face : mesh_faces)
-			face_indices.push_back(face);
+			face_indices.push_back(face.vert_i);
 
 		glGenBuffers(1, &m_EBO_edges);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_edges);

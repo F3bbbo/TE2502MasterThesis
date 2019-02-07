@@ -33,8 +33,8 @@ public:
 	~Mesh();
 	void Initialize_as_quad(glm::vec2 scale, glm::vec2 translate);
 	std::vector<VertexRef> const& get_vertex_list();
-	std::vector<EdgeConstraints> const& get_edge_list();
-	std::vector<glm::ivec3> const& get_face_list();
+	std::vector<Edge> const& get_edge_list();
+	std::vector<Face> const& get_face_list();
 private:
 	std::vector<VertexRef> m_vertices; // Each vertice keeps track of how many times it is referenced
 	std::vector<Edge> m_edges; // Edges keeps track of the constraints it represents
