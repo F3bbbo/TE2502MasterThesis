@@ -20,3 +20,8 @@ Ori orientation(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3)
 	if (val == 0) return COLINEAR;
 	return (val > 0) ? CLOCKWISE : COUNTER_CLOCKWISE;
 }
+
+glm::vec2 tri_centroid(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3)
+{
+	return (p1 + p2 + p3) / 3.0f;
+}
