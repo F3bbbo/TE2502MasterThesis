@@ -13,10 +13,16 @@ struct VertexRef
 	int ref_counter;
 };
 
-struct EdgeConstraints
+struct Edge
 {
 	glm::ivec2 edge;
 	std::vector<int> constraint_ref;
+};
+
+struct Face
+{
+	glm::ivec3 vert_i;
+	unsigned int explored = 0; //number indicating last iteration being explored
 };
 
 class Mesh
@@ -31,8 +37,8 @@ public:
 	std::vector<glm::ivec3> const& get_face_list();
 private:
 	std::vector<VertexRef> m_vertices; // Each vertice keeps track of how many times it is referenced
-	std::vector<EdgeConstraints> m_edges; // Edges keeps track of the constraints it represents
-	std::vector<glm::ivec3> m_faces; // Indices to vertices that makes up each face
+	std::vector<Edge> m_edges; // Edges keeps track of the constraints it represents
+	std::vector<Face> m_faces; // Indices to vertices that makes up each face
 };
 
 #endif

@@ -14,18 +14,18 @@ void Mesh::Initialize_as_quad(glm::vec2 scale = glm::vec2{ 1.f, 1.f }, glm::vec2
 	m_vertices = { {{-1.f, 1.f}, 0}, {{-1.f, -1.f}, 0}, {{1.f, -1.f}, 0}, {{1.f, 1.f}, 0} };
 	for (auto& vertex : m_vertices) vertex.vertice = vertex.vertice * scale + translate;
 	m_edges = { {{0, 1}, {}} , {{1, 2}, {}}, {{2, 3}, {}} , {{3, 0}, {}}, {{3, 1}, {}} };
-	m_faces = { {0, 1, 3}, {3, 1, 2} };
+	m_faces = { {{0, 1, 3}, 0}, {{3, 1, 2}, 0} };
 
 	std::vector<glm::ivec3> triangle_edges;
 	for (auto& face : m_faces)
 	{
-		glm::ivec3 edge_indexes = {-1, -1, -1};
+		glm::ivec3 edge_indexes = { -1, -1, -1 };
 
 		// For each edge in the face
 		for (int face_edge = 0; face_edge < 3; face_edge++)
 		{
 			// Get the vertex indices for that edge from the face
-			glm::ivec2 curr_edge = {face[face_edge], face[(face_edge + 1) % 3]};
+			glm::ivec2 curr_edge = { face.vert_i[face_edge], face.vert_i[(face_edge + 1) % 3] };
 
 			// For all edges in our m_edges list, check if they match. If they do not match swap the elements and see if they match
 			for (size_t edge_id = 0; edge_id < m_edges.size(); edge_id++)
@@ -52,7 +52,7 @@ void Mesh::Initialize_as_quad(glm::vec2 scale = glm::vec2{ 1.f, 1.f }, glm::vec2
 			tri_sym_edges[edge_id] = new SymEdge();
 			tri_sym_edges[edge_id]->face = face_id;
 			tri_sym_edges[edge_id]->edge = triangle_edges[face_id][edge_id];
-			tri_sym_edges[edge_id]->vertex = m_faces[face_id][edge_id];
+			tri_sym_edges[edge_id]->vertex = m_faces[face_id].vert_i[edge_id];
 		}
 
 		tri_sym_edges[0]->nxt = tri_sym_edges[1];
