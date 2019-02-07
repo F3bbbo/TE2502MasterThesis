@@ -12,7 +12,7 @@ void Mesh::Initialize_as_quad(glm::vec2 scale = glm::vec2{ 1.f, 1.f }, glm::vec2
 {
 	// First vertex is top left for openGL, remaining order is ccw
 	m_vertices = { {{-1.f, 1.f}, 0}, {{-1.f, -1.f}, 0}, {{1.f, -1.f}, 0}, {{1.f, 1.f}, 0} };
-	for (auto& vertex : m_vertices) vertex.first = vertex.first * scale + translate;
+	for (auto& vertex : m_vertices) vertex.vertice = vertex.vertice * scale + translate;
 	m_edges = { {{0, 1}, {}} , {{1, 2}, {}}, {{2, 3}, {}} , {{3, 0}, {}}, {{3, 1}, {}} };
 	m_faces = { {0, 1, 3}, {3, 1, 2} };
 
@@ -30,7 +30,7 @@ void Mesh::Initialize_as_quad(glm::vec2 scale = glm::vec2{ 1.f, 1.f }, glm::vec2
 			// For all edges in our m_edges list, check if they match. If they do not match swap the elements and see if they match
 			for (size_t edge_id = 0; edge_id < m_edges.size(); edge_id++)
 			{
-				if ((curr_edge.x == m_edges[edge_id].first.x && curr_edge.y == m_edges[edge_id].first.y) || (curr_edge.x == m_edges[edge_id].first.y && curr_edge.y == m_edges[edge_id].first.x))
+				if ((curr_edge.x == m_edges[edge_id].edge.x && curr_edge.y == m_edges[edge_id].edge.y) || (curr_edge.x == m_edges[edge_id].edge.y && curr_edge.y == m_edges[edge_id].edge.x))
 				{
 					edge_indexes[face_edge] = edge_id;
 					break;
