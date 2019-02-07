@@ -44,6 +44,9 @@ public:
 	Mesh();
 	~Mesh();
 	void Initialize_as_quad(glm::vec2 scale, glm::vec2 translate);
+	std::vector<VertexRef> const& get_vertex_list();
+	std::vector<Edge> const& get_edge_list();
+	std::vector<Face> const& get_face_list();
 	std::array<glm::vec2, 2> get_edge(int index);
 	std::array<glm::vec2, 3> get_triangle(int index);
 private:

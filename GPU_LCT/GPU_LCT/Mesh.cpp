@@ -83,6 +83,21 @@ void Mesh::Initialize_as_quad(glm::vec2 scale = glm::vec2{ 1.f, 1.f }, glm::vec2
 	first = sym_edges[0];
 }
 
+std::vector<VertexRef> const & Mesh::get_vertex_list()
+{
+	return m_vertices;
+}
+
+std::vector<Edge> const & Mesh::get_edge_list()
+{
+	return m_edges;
+}
+
+std::vector<Face> const & Mesh::get_face_list()
+{
+	return m_faces;
+}
+
 std::array<glm::vec2, 2> Mesh::get_edge(int index)
 {
 	std::array<glm::vec2, 2> ret;
