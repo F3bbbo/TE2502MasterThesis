@@ -163,15 +163,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Drawable.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Pipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="data_structures.hpp" />
+    <ClInclude Include="Drawable.h" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Pipeline.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="debug_fragment_shader.glsl" />
+    <None Include="debug_vertex_shader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
