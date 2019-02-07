@@ -11,5 +11,6 @@ struct SymEdge
 	int vertex;
 	int edge;
 	int face;
+	SymEdge* sym() { return this->nxt->rot; };
 };
 #endif

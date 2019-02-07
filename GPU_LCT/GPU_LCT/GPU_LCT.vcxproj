@@ -170,6 +170,7 @@
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="trig_functions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="data_structures.hpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="trig_functions.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="debug_fragment_shader.glsl" />

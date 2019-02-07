@@ -1,4 +1,5 @@
 #include "Mesh.hpp"
+#include "trig_functions.hpp"
 
 Mesh::Mesh()
 {
@@ -78,7 +79,7 @@ void Mesh::Initialize_as_quad(glm::vec2 scale = glm::vec2{ 1.f, 1.f }, glm::vec2
 			}
 		}
 	}
-	
+
 	first = sym_edges[0];
 }
 
@@ -95,4 +96,74 @@ std::vector<Edge> const & Mesh::get_edge_list()
 std::vector<Face> const & Mesh::get_face_list()
 {
 	return m_faces;
+}
+
+std::array<glm::vec2, 2> Mesh::get_edge(int index)
+{
+	std::array<glm::vec2, 2> ret;
+	ret[0] = m_vertices[m_edges[index].edge[0]].vertice;
+	ret[1] = m_vertices[m_edges[index].edge[1]].vertice;
+	return ret;
+}
+
+std::array<glm::vec2, 3> Mesh::get_triangle(int index)
+{
+	std::array<glm::vec2, 3> ret;
+	ret[0] = m_vertices[m_faces[index].vert_i[0]].vertice;
+	ret[1] = m_vertices[m_faces[index].vert_i[1]].vertice;
+	ret[2] = m_vertices[m_faces[index].vert_i[2]].vertice;
+	return ret;
+}
+
+LocateRes Mesh::Locate_point(glm::vec2 p)
+{
+	return Oriented_walk(first, p);
+}
+
+
+LocateRes Mesh::Oriented_walk(SymEdge* start_edge, glm::vec2 p)
+{
+	m_iter_id++;
+	SymEdge* current_edge = start_edge;
+	LocateRes res;
+	SymEdge* next_edge = start_edge;
+	// Standard walk mode
+	while (next_edge != nullptr)
+	{
+		current_edge = next_edge;
+		next_edge = nullptr;
+		// find which edge to proceed with
+		auto tri_v = get_triangle(current_edge->face);
+		glm::vec2 tri_c = tri_centroid(tri_v[0], tri_v[1], tri_v[2]);
+
+		for (unsigned int i = 0; i < 3; i++)
+		{
+			//check if edge segment and middle triangle to point segment intersects
+			auto edge_v = get_edge(current_edge->edge);
+			if (line_seg_intersection_ccw(edge_v[0], edge_v[1], tri_c, p)) {
+				// Check that the next face has not yet been explored in current walk
+				int next_face_i = current_edge->sym()->face;
+				if (m_faces[next_face_i].explored != m_iter_id) {
+					next_edge = current_edge;
+					break;
+				}
+			}
+			current_edge = current_edge->nxt;
+		}
+	}
+
+	// Epsilon based walk mode
+	while (res.hit_index == -1)
+	{
+		// if next_edge is nullptr we should investigate if current triangle
+		if (next_edge == nullptr) {
+
+		}
+		else {
+
+		}
+
+	}
+
+	return res;
 }
