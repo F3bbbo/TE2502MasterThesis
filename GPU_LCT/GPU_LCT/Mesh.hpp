@@ -25,7 +25,7 @@ struct Face
 	unsigned int explored = 0; //number indicating last iteration being explored
 };
 
-enum LocateType {
+enum class LocateType {
 	VERTEX,
 	EDGE,
 	FACE,
@@ -34,7 +34,7 @@ enum LocateType {
 
 struct LocateRes {
 	int hit_index = -1;
-	LocateType type = NONE;
+	LocateType type = LocateType::NONE;
 };
 
 class Mesh
