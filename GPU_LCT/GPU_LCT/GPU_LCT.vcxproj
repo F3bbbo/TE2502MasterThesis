@@ -167,11 +167,13 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="trig_functions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="data_structures.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="trig_functions.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
