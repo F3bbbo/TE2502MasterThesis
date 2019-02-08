@@ -15,12 +15,6 @@ bool Pipeline::is_valid()
 	return m_valid;
 }
 
-int Pipeline::add_drawable(Drawable && object)
-{
-	m_drawables[counter] = std::move(object);
-	return counter++;
-}
-
 void Pipeline::compile_shaders(ShaderPath&& input)
 {
 	m_program = glCreateProgram();

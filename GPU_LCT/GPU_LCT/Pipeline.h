@@ -21,12 +21,19 @@ public:
 	Pipeline(ShaderPath&& input);
 	~Pipeline();
 	bool is_valid();
-	int add_drawable(Drawable&& object);
-private:
-	int counter = 0;
+	virtual void draw() = 0;
+
+	template <typename Object>
+	int add_drawable(Object&& object)
+	{
+		m_drawables[counter] = std::make_unique<Object>(object);
+		return counter++;
+	};
+protected:
 	void compile_shaders(ShaderPath&& input);
 
-	std::map<int, Drawable> m_drawables;
+	int counter = 0;
+	std::map<int, std::unique_ptr<Drawable>> m_drawables;
 	GLuint m_program = 0;
 	bool m_valid = false;
 };

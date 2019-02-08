@@ -163,20 +163,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DebugObject.cpp" />
+    <ClCompile Include="DebugPipeline.cpp" />
     <ClCompile Include="Drawable.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="Log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="pch.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="trig_functions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="data_structures.hpp" />
+    <ClInclude Include="DebugObject.hpp" />
+    <ClInclude Include="DebugPipeline.hpp" />
     <ClInclude Include="Drawable.h" />
+    <ClInclude Include="Log.hpp" />
     <ClInclude Include="Mesh.hpp" />
-    <ClInclude Include="pch.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="trig_functions.hpp" />
