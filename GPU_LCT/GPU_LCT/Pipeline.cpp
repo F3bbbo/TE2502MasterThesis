@@ -1,9 +1,8 @@
 #include "Pipeline.h"
 
 
-Pipeline::Pipeline(ShaderPath&& input)
+Pipeline::Pipeline()
 {
-	compile_shaders(std::move(input));
 }
 
 Pipeline::~Pipeline()
@@ -15,9 +14,17 @@ bool Pipeline::is_valid()
 	return m_valid;
 }
 
-void Pipeline::compile_shaders(ShaderPath&& input)
+void Pipeline::add_pipeline(int type, ShaderPath && input)
 {
-	m_program = glCreateProgram();
+	compile_shaders(type, std::move(input));
+}
+
+void Pipeline::compile_shaders(int type, ShaderPath&& input)
+{
+	if (m_passes[type] != 0)
+		glDeleteProgram(m_passes[type]);
+
+	m_passes[type] = glCreateProgram();
 	char infoLog[512];
 	int success;
 	int shader_object;
@@ -45,15 +52,15 @@ void Pipeline::compile_shaders(ShaderPath&& input)
 			glGetShaderInfoLog(shader_object, 512, NULL, infoLog);
 			std::cout << "Shader compile failed\n" << infoLog << '\n';
 		}
-		glAttachShader(m_program, shader_object);
+		glAttachShader(m_passes[type], shader_object);
 		glDeleteShader(shader_object);
 	}
 
-	glLinkProgram(m_program);
+	glLinkProgram(m_passes[type]);
 	// check for linking errors
-	glGetProgramiv(m_program, GL_LINK_STATUS, &success);
+	glGetProgramiv(m_passes[type], GL_LINK_STATUS, &success);
 	if (!success) {
-		glGetProgramInfoLog(m_program, 512, NULL, infoLog);
+		glGetProgramInfoLog(m_passes[type], 512, NULL, infoLog);
 		std::cout << "Program linking failed\n" << infoLog << '\n';
 	}
 	else

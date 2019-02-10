@@ -13,7 +13,7 @@ public:
 	Drawable(DRAW_MODE mode);
 	Drawable();
 	~Drawable();
-	virtual void draw() = 0;
+	virtual void bind_VAO() = 0;
 protected:
 	virtual void construct_GL_objects(Mesh& mesh) = 0;
 	DRAW_MODE m_mode = FACE;

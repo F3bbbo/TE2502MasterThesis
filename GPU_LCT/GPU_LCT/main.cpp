@@ -9,6 +9,9 @@
 #include <GLFW/glfw3.h>
 #include "Log.hpp"
 
+// TODO:
+	// Wrap all OpenGL wrappers into a render class
+
 void checkError();
 
 void processInput(GLFWwindow *window)
@@ -40,14 +43,15 @@ int main()
 	Mesh m;
 	m.Initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
 
-	DebugObject drawable(m, BOTH, { 1.0f, 0.5f, 0.2f, });
+	DebugObject drawable(m, BOTH, { 1.0f, 0.5f, 0.2f, }, { 0.75f, 0.f, 0.f, });
 
 	ShaderPath debug_draw_path;
 	debug_draw_path[VS] = "debug_vertex_shader.glsl";
 	debug_draw_path[FS] = "debug_fragment_shader.glsl";
 
-	DebugPipeline debug_draw(std::move(debug_draw_path));
-	debug_draw.add_drawable(std::move(drawable));
+	DebugPipeline debug_pass;
+	debug_pass.add_pipeline(DebugPipeline::DEBUG_PASS, std::move(debug_draw_path));
+	debug_pass.add_drawable(std::move(drawable));
 
 	// render loop
 	while (!glfwWindowShouldClose(window))
@@ -59,7 +63,7 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		debug_draw.draw();
+		debug_pass.draw();
 		checkError();
 
 		// check and call events and swap the buffers

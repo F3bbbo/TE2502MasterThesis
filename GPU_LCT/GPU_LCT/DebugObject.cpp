@@ -1,8 +1,11 @@
 #include "DebugObject.hpp"
 #include "Log.hpp"
 
+DebugObject::DebugObject()
+{
+}
 
-DebugObject::DebugObject(Mesh& mesh, DRAW_MODE mode, glm::vec3 color) : Drawable(mode), m_color(color)
+DebugObject::DebugObject(Mesh& mesh, DRAW_MODE mode, glm::vec3 face_color, glm::vec3 edge_color) : Drawable(mode), m_face_color(face_color), m_edge_color(edge_color)
 {
 	construct_GL_objects(mesh);
 }
@@ -12,26 +15,51 @@ DebugObject::~DebugObject()
 {
 }
 
-void DebugObject::draw()
+void DebugObject::bind_VAO()
 {
 	glBindVertexArray(m_VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	
+}
+
+void DebugObject::draw_object(GLuint color_location)
+{
 	if (m_mode == FACE || m_mode == BOTH)
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_faces);
+		glUniform3f(color_location, m_face_color.r, m_face_color.g, m_face_color.b);
 		glDrawElements(GL_TRIANGLES, m_num_faces, GL_UNSIGNED_INT, 0);
 	}
 	if (m_mode == EDGE || m_mode == BOTH)
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_edges);
+		glUniform3f(color_location, m_edge_color.r, m_edge_color.g, m_edge_color.b);
 		glDrawElements(GL_LINES, m_num_edges, GL_UNSIGNED_INT, 0);
 	}
 }
 
-void DebugObject::set_color(glm::vec3 && color)
+bool DebugObject::is_valid()
 {
-	m_color = std::move(color);
+	return m_VBO != 0;
+}
+
+void DebugObject::set_edge_color(glm::vec3 && color)
+{
+	m_edge_color = std::move(color);
+}
+
+void DebugObject::set_face_color(glm::vec3 && color)
+{
+	m_face_color = std::move(color);
+}
+
+glm::vec3 const & DebugObject::get_edge_color()
+{
+	return m_edge_color;
+}
+
+glm::vec3 const & DebugObject::get_face_color()
+{
+	return m_face_color;
 }
 
 void DebugObject::construct_GL_objects(Mesh& mesh)

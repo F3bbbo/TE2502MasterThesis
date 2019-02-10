@@ -3,13 +3,21 @@
 #define DEBUGPIPELINE_HPP
 
 #include "Pipeline.h"
+#include "DebugObject.hpp"
+
+#include <map>
 
 class DebugPipeline : public Pipeline
 {
 public:
-	DebugPipeline(ShaderPath&& input);
+	enum DebugPasses {DEBUG_PASS};
+	DebugPipeline();
 	void draw();
+	int add_drawable(DebugObject&& object);
 	~DebugPipeline();
+private:
+	int counter = 0;
+	std::map<int, DebugObject> m_debug_objects; // change to map if this doens't work
 };
 
 #endif

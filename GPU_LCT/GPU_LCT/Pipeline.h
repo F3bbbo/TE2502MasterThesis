@@ -15,26 +15,21 @@ enum Shader
 };
 
 using ShaderPath = std::map<Shader, const char*>;
+
 class Pipeline
 {
 public:
-	Pipeline(ShaderPath&& input);
+	Pipeline();
 	~Pipeline();
+	
 	bool is_valid();
+	void add_pipeline(int type, ShaderPath&& input);
+	
 	virtual void draw() = 0;
-
-	template <typename Object>
-	int add_drawable(Object&& object)
-	{
-		m_drawables[counter] = std::make_unique<Object>(object);
-		return counter++;
-	};
 protected:
-	void compile_shaders(ShaderPath&& input);
+	void compile_shaders(int type, ShaderPath&& input);
 
-	int counter = 0;
-	std::map<int, std::unique_ptr<Drawable>> m_drawables;
-	GLuint m_program = 0;
+	std::map<int, GLuint> m_passes;
 	bool m_valid = false;
 };
 
