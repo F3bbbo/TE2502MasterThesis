@@ -10,6 +10,9 @@ int main()
 
 	Mesh m;
 	m.Initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
+	m.Locate_point({ 0.9f, 0.1f });
+	m.Locate_point({ 1.0f, 1.0f });
+	m.Locate_point({ 0.f, 0.f });
 
 	DebugObject thingerino(m, DRAW_ALL);
 	thingerino.set_point_thiccness(10.f);
