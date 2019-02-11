@@ -24,7 +24,7 @@ Renderer::~Renderer()
 
 void Renderer::run()
 {
-	while (!glfwWindowShouldClose(m_window))
+	if (!glfwWindowShouldClose(m_window))
 	{
 		processInput();
 
@@ -38,6 +38,8 @@ void Renderer::run()
 		glfwPollEvents();
 		glfwSwapBuffers(m_window);
 	}
+	else
+		shut_down = true;
 }
 
 void Renderer::check_error()

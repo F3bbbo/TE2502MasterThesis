@@ -2,7 +2,7 @@
 
 
 
-Drawable::Drawable(DRAW_MODE mode) : m_mode(mode)
+Drawable::Drawable(DRAW_TYPES mode) : m_mode(mode)
 {
 }
 

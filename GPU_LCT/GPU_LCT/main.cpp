@@ -5,13 +5,18 @@
 
 int main()
 {
+	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer;
 
 	Mesh m;
 	m.Initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
 
-	DebugObject thingerino(m, BOTH, { 1.0f, 0.5f, 0.2f, }, { 1.f, 0.246201f, 0.201556f, });
-	thingerino.set_line_thiccness(5.f);
+	DebugObject thingerino(m, DRAW_ALL);
+	thingerino.set_point_thiccness(10.f);
+	thingerino.set_edge_thiccness(5.f);
+	thingerino.set_point_color({ 1.f, 0.672443f, 0.201556f });
+	thingerino.set_edge_color({ 1.f, 0.246201f, 0.201556f });
+	thingerino.set_face_color({ 1.0f, 0.5f, 0.2f });
 
 	ShaderPath debug_draw_path;
 	debug_draw_path[VS] = "debug_vertex_shader.glsl";
@@ -22,8 +27,11 @@ int main()
 	debug_pass.add_drawable(std::move(thingerino));
 
 	renderer.add_pipeline(std::move(debug_pass));
-	renderer.run();
 
+	while (!renderer.shut_down)
+	{
+		renderer.run();
+	}
 	return 0;
 }
 

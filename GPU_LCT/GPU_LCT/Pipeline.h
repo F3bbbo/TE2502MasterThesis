@@ -1,4 +1,5 @@
 #pragma once
+
 #ifndef PIPELINE_HPP
 #define PIPELINE_HPP
 
@@ -33,6 +34,5 @@ protected:
 	std::map<int, GLuint> m_passes;
 	bool m_valid = false;
 };
-
 #endif
 
