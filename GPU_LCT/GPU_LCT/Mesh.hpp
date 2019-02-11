@@ -29,11 +29,13 @@ enum class LocateType {
 	VERTEX,
 	EDGE,
 	FACE,
+	NEXT,
 	NONE
 };
 
 struct LocateRes {
 	int hit_index = -1;
+	SymEdge* sym_edge = nullptr;
 	LocateType type = LocateType::NONE;
 };
 
@@ -49,13 +51,17 @@ public:
 	std::vector<Face> const& get_face_list();
 	std::array<glm::vec2, 2> get_edge(int index);
 	std::array<glm::vec2, 3> get_triangle(int index);
+	LocateRes Locate_point(glm::vec2 p);
 private:
 	std::vector<VertexRef> m_vertices; // Each vertice keeps track of how many times it is referenced
 	std::vector<Edge> m_edges; // Edges keeps track of the constraints it represents
 	std::vector<Face> m_faces; // Indices to vertices that makes up each face
-	unsigned int m_iter_id = 0; //Number indication which iteration id the mesh is currently at
-	LocateRes Locate_point(glm::vec2 p);
-	LocateRes Oriented_walk(SymEdge* start_edge, glm::vec2 p);
+	unsigned long int m_iter_id = 0; //Number indication which iteration id the mesh is currently at
+	void next_iter();
+
+	LocateRes Oriented_walk(SymEdge* start_edge, const glm::vec2& p);
+	LocateRes Standard_walk(SymEdge* start_edge, const glm::vec2& p);
+	LocateRes Epsilon_walk(SymEdge* current_edge, const glm::vec2& p);
 };
 
 #endif

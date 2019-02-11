@@ -115,19 +115,26 @@ std::array<glm::vec2, 3> Mesh::get_triangle(int index)
 	return ret;
 }
 
+
+void Mesh::next_iter()
+{
+	m_iter_id++;
+}
+
 LocateRes Mesh::Locate_point(glm::vec2 p)
 {
 	return Oriented_walk(first, p);
 }
 
 
-LocateRes Mesh::Oriented_walk(SymEdge* start_edge, glm::vec2 p)
+LocateRes Mesh::Oriented_walk(SymEdge* start_edge, const glm::vec2& p)
 {
-	m_iter_id++;
+
 	SymEdge* current_edge = start_edge;
 	LocateRes res;
 	SymEdge* next_edge = start_edge;
 	// Standard walk mode
+	next_iter();
 	while (next_edge != nullptr)
 	{
 		current_edge = next_edge;
@@ -138,14 +145,20 @@ LocateRes Mesh::Oriented_walk(SymEdge* start_edge, glm::vec2 p)
 
 		for (unsigned int i = 0; i < 3; i++)
 		{
-			//check if edge segment and middle triangle to point segment intersects
-			auto edge_v = get_edge(current_edge->edge);
-			if (line_seg_intersection_ccw(edge_v[0], edge_v[1], tri_c, p)) {
-				// Check that the next face has not yet been explored in current walk
-				int next_face_i = current_edge->sym()->face;
-				if (m_faces[next_face_i].explored != m_iter_id) {
-					next_edge = current_edge;
-					break;
+			//check if current sym_edge has an opposing sym_edge
+			if (current_edge->sym() != nullptr)
+			{
+
+				//check if edge segment and middle triangle to point segment intersects
+				auto edge_v = get_edge(current_edge->edge);
+				if (line_seg_intersection_ccw(edge_v[0], edge_v[1], tri_c, p)) {
+					// Check that the next face has not yet been explored in current walk
+					int next_face_i = current_edge->sym()->face;
+					if (m_faces[next_face_i].explored != m_iter_id) {
+						next_edge = current_edge->sym();
+						m_faces[next_face_i].explored = m_iter_id;
+						break;
+					}
 				}
 			}
 			current_edge = current_edge->nxt;
@@ -153,17 +166,79 @@ LocateRes Mesh::Oriented_walk(SymEdge* start_edge, glm::vec2 p)
 	}
 
 	// Epsilon based walk mode
-	while (res.hit_index == -1)
+
+	res.type = LocateType::NEXT;
+	res.sym_edge = current_edge;
+	next_iter();
+	while (res.type == LocateType::NEXT)
 	{
-		// if next_edge is nullptr we should investigate if current triangle
-		if (next_edge == nullptr) {
-
-		}
-		else {
-
-		}
+		res = Epsilon_walk(res.sym_edge, p);
 
 	}
 
+	return res;
+}
+
+LocateRes Mesh::Standard_walk(SymEdge * current_edge, const glm::vec2 & p)
+{
+	LocateRes res;
+	SymEdge * curr_edge = current_edge;
+	//next_edge = nullptr;
+	// find which edge to proceed with
+	auto tri_v = get_triangle(curr_edge->face);
+	glm::vec2 tri_c = tri_centroid(tri_v[0], tri_v[1], tri_v[2]);
+	// set res to current triangle, because if no edge are found it is inside current triangle
+	res.hit_index = current_edge->face;
+	res.sym_edge = current_edge;
+	res.type = LocateType::FACE;
+	for (unsigned int i = 0; i < 3; i++)
+	{
+		//check if edge segment and middle triangle to point segment intersects
+		auto edge_v = get_edge(curr_edge->edge);
+		if (line_seg_intersection_ccw(edge_v[0], edge_v[1], tri_c, p)) {
+			// Check that the next face has not yet been explored in current walk
+			int next_face_i = curr_edge->sym()->face;
+			if (m_faces[next_face_i].explored != m_iter_id) {
+				res.sym_edge = curr_edge->sym();
+				res.hit_index = next_face_i;
+				res.type = LocateType::NEXT;
+				m_faces[next_face_i].explored = m_iter_id;
+				break;
+			}
+			else {
+				res.type = LocateType::NONE;
+			}
+		}
+		curr_edge = curr_edge->nxt;
+	}
+	return res;
+}
+
+LocateRes Mesh::Epsilon_walk(SymEdge * current_edge, const glm::vec2 & p)
+{
+	LocateRes res;
+
+	// loop through edges of triangle to check if point is on any of the edges
+	for (unsigned int i = 0; i < 3; i++) {
+		//check against edge vertex
+		if (point_equal(p, m_vertices[current_edge->vertex].vertice)) {
+			res.hit_index = current_edge->vertex;
+			res.sym_edge = current_edge;
+			res.type = LocateType::VERTEX;
+			return res;
+		}
+		//check against edge
+		auto seg = get_edge(current_edge->edge);
+		if (point_segment_test(p, seg[0], seg[1])) {
+			res.hit_index = current_edge->edge;
+			res.sym_edge = current_edge;
+			res.type = LocateType::EDGE;
+			return res;
+		}
+		current_edge = current_edge->nxt;
+	}
+
+	// do standard walk to check if point is inside triangle otherwise we need to investigate another triangle
+	res = Standard_walk(current_edge, p);
 	return res;
 }
