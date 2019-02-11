@@ -193,23 +193,28 @@ LocateRes Mesh::Standard_walk(SymEdge * current_edge, const glm::vec2 & p)
 	res.type = LocateType::FACE;
 	for (unsigned int i = 0; i < 3; i++)
 	{
-		//check if edge segment and middle triangle to point segment intersects
-		auto edge_v = get_edge(curr_edge->edge);
-		if (line_seg_intersection_ccw(edge_v[0], edge_v[1], tri_c, p)) {
-			// Check that the next face has not yet been explored in current walk
-			int next_face_i = curr_edge->sym()->face;
-			if (m_faces[next_face_i].explored != m_iter_id) {
-				res.sym_edge = curr_edge->sym();
-				res.hit_index = next_face_i;
-				res.type = LocateType::NEXT;
-				m_faces[next_face_i].explored = m_iter_id;
-				break;
-			}
-			else {
-				res.type = LocateType::NONE;
+		//check if current sym_edge has an opposing sym_edge
+		if (current_edge->sym() != nullptr)
+		{
+			//check if edge segment and middle triangle to point segment intersects
+			auto edge_v = get_edge(curr_edge->edge);
+			if (line_seg_intersection_ccw(edge_v[0], edge_v[1], tri_c, p)) {
+				// Check that the next face has not yet been explored in current walk
+				int next_face_i = curr_edge->sym()->face;
+				if (m_faces[next_face_i].explored != m_iter_id) {
+					res.sym_edge = curr_edge->sym();
+					res.hit_index = next_face_i;
+					res.type = LocateType::NEXT;
+					m_faces[next_face_i].explored = m_iter_id;
+					break;
+				}
+				else {
+					res.type = LocateType::NONE;
+				}
 			}
 		}
 		curr_edge = curr_edge->nxt;
+
 	}
 	return res;
 }
