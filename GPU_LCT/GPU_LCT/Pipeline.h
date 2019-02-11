@@ -3,7 +3,7 @@
 #define PIPELINE_HPP
 
 #include <glad/glad.h>
-#include "Drawable.h"
+#include "Log.hpp"
 #include <map>
 #include <string>
 #include <iostream>
@@ -23,8 +23,9 @@ public:
 	~Pipeline();
 	
 	bool is_valid();
-	void add_pipeline(int type, ShaderPath&& input);
+	void add_pass(int type, ShaderPath&& input);
 	
+	virtual bool is_compatible(int type) = 0;
 	virtual void draw() = 0;
 protected:
 	void compile_shaders(int type, ShaderPath&& input);

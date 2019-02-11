@@ -13,6 +13,8 @@ public:
 	glm::vec3 const& get_edge_color();
 	glm::vec3 const& get_face_color();
 
+	void set_line_thiccness(float thiccness);
+
 	DebugObject();
 	DebugObject(Mesh& mesh, DRAW_MODE mode, glm::vec3 face_color, glm::vec3 edge_color);
 	~DebugObject();
@@ -31,6 +33,8 @@ private:
 
 	glm::vec3 m_face_color = {1.f, 1.f, 1.f};
 	glm::vec3 m_edge_color = {0.f, 0.f, 0.f};
+
+	float m_edge_thiccness = 1.f;
 };
 
 #endif

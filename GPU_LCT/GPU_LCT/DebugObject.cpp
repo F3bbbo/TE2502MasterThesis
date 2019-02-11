@@ -31,6 +31,7 @@ void DebugObject::draw_object(GLuint color_location)
 	}
 	if (m_mode == EDGE || m_mode == BOTH)
 	{
+		glLineWidth(m_edge_thiccness);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_edges);
 		glUniform3f(color_location, m_edge_color.r, m_edge_color.g, m_edge_color.b);
 		glDrawElements(GL_LINES, m_num_edges, GL_UNSIGNED_INT, 0);
@@ -60,6 +61,11 @@ glm::vec3 const & DebugObject::get_edge_color()
 glm::vec3 const & DebugObject::get_face_color()
 {
 	return m_face_color;
+}
+
+void DebugObject::set_line_thiccness(float thiccness)
+{
+	m_edge_thiccness = thiccness;
 }
 
 void DebugObject::construct_GL_objects(Mesh& mesh)

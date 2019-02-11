@@ -14,9 +14,12 @@ bool Pipeline::is_valid()
 	return m_valid;
 }
 
-void Pipeline::add_pipeline(int type, ShaderPath && input)
+void Pipeline::add_pass(int type, ShaderPath && input)
 {
-	compile_shaders(type, std::move(input));
+	if (is_compatible(type))
+		compile_shaders(type, std::move(input));
+	else
+		LOG_T(CRITICAL, "Could not attach the given pipeline!");
 }
 
 void Pipeline::compile_shaders(int type, ShaderPath&& input)

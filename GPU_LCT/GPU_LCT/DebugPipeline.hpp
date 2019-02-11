@@ -14,6 +14,7 @@ public:
 	DebugPipeline();
 	void draw();
 	int add_drawable(DebugObject&& object);
+	bool is_compatible(int type);
 	~DebugPipeline();
 private:
 	int counter = 0;

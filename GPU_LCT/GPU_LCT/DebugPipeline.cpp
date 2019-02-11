@@ -26,6 +26,12 @@ int DebugPipeline::add_drawable(DebugObject&& object)
 		return -1;
 }
 
+bool DebugPipeline::is_compatible(int type)
+{
+	DebugPasses pass = static_cast<DebugPasses>(type);
+	return pass == DEBUG_PASS;
+}
+
 DebugPipeline::~DebugPipeline()
 {
 }
