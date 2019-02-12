@@ -116,6 +116,11 @@ std::array<glm::vec2, 3> Mesh::get_triangle(int index)
 	return ret;
 }
 
+glm::vec2 Mesh::get_vertex(int index)
+{
+	return m_vertices[index].vertice;
+}
+
 
 void Mesh::next_iter()
 {
@@ -307,3 +312,84 @@ int Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 
 	return vertex_index;
 }
+
+void Mesh::flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices)
+{
+	while (edge_indices.size() > 0)
+	{
+		SymEdge* sym_edge = edge_indices.top();
+		edge_indices.pop();
+
+		if (m_edges[sym_edge->edge].constraint_ref.size() == 0 && !is_delaunay(point, sym_edge))
+		{
+			edge_indices.push(sym_edge->sym()->nxt);
+			edge_indices.push(edge_indices.top()->nxt);
+			
+			// Flip SymEdge
+			SymEdge* e1 = sym_edge->nxt;
+			SymEdge* e2 = e1->nxt;
+			SymEdge* e3 = sym_edge->sym()->nxt;
+			SymEdge* e4 = e3->nxt;
+
+			int face1_id = sym_edge->face;
+			int face2_id = sym_edge->sym()->face;
+
+			e1->nxt = sym_edge;
+			e1->rot = e4->sym();
+			e1->face = face1_id;
+
+			e2->nxt = e3;
+			e2->rot = sym_edge;
+			e2->face = face2_id;
+
+			e3->nxt = sym_edge->sym();
+			e3->rot = e2->sym();
+			e3->face = face2_id;
+
+			e4->nxt = e1;
+			e4->rot = sym_edge->sym();
+			e4->face = face1_id;
+
+			sym_edge->nxt = e4;
+			sym_edge->rot = e1->sym();
+			sym_edge->vertex;
+			sym_edge->edge;
+			sym_edge->face = face1_id;;
+
+			sym_edge->sym()->nxt = e2;
+			sym_edge->sym()->rot = e3->sym();
+
+
+		}
+	}
+}
+
+bool Mesh::is_delaunay(SymEdge* point, SymEdge* edge)
+{
+	if (point->sym() != nullptr)
+	{
+		SymEdge* other = point->sym()->nxt->nxt;
+		glm::mat4x4 mat;
+
+		auto face_vertices = get_triangle(point->face);
+		
+		for (int i = 0; i < 3; i++)
+		{
+			mat[0][i] = face_vertices[i].x;
+			mat[1][i] = face_vertices[i].y;
+			mat[2][i] = mat[0][i] * mat[0][i] + mat[1][i] * mat[1][i];
+			mat[3][i] = 1;
+		}
+
+		auto point = get_vertex(other->vertex);
+		mat[0][3] = point.x;
+		mat[1][3] = point.y;
+		mat[2][3] = mat[0][3] * mat[0][3] + mat[1][3] * mat[1][3];
+		mat[3][3] = 1;
+
+		if (glm::determinant(mat) > 0)
+			return false;
+	}
+	return true;
+}
+

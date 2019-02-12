@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <array>
+#include <stack>
 #include <glm/glm.hpp>
 
 #include "data_structures.hpp"
@@ -51,6 +52,7 @@ public:
 	std::vector<Face> const& get_face_list();
 	std::array<glm::vec2, 2> get_edge(int index);
 	std::array<glm::vec2, 3> get_triangle(int index);
+	glm::vec2 get_vertex(int index);
 	LocateRes Locate_point(glm::vec2 p);
 	int Insert_point_in_face(glm::vec2 p, SymEdge* e);
 private:
@@ -67,6 +69,9 @@ private:
 	// returns index to the vertex that was inserted
 	int Insert_point_in_edge(glm::vec2 p, SymEdge* e);
 
+
+	void flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices);
+	bool is_delaunay(SymEdge* point, SymEdge* edge);
 };
 
 #endif
