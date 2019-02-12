@@ -129,53 +129,22 @@ LocateRes Mesh::Locate_point(glm::vec2 p)
 
 LocateRes Mesh::Oriented_walk(SymEdge* start_edge, const glm::vec2& p)
 {
-
-	//SymEdge* current_edge = start_edge;
 	LocateRes res;
-	//SymEdge* next_edge = start_edge;
 	res.sym_edge = start_edge;
 	// Standard walk mode
 	next_iter();
 	while (res.type == LocateType::NEXT)
 	{
 		res = Standard_walk(res.sym_edge, p);
-		//current_edge = next_edge;
-		//next_edge = nullptr;
-		// find which edge to proceed with
-		//auto tri_v = get_triangle(current_edge->face);
-		//glm::vec2 tri_c = tri_centroid(tri_v[0], tri_v[1], tri_v[2]);
-
-		//for (unsigned int i = 0; i < 3; i++)
-		//{
-		//	//check if current sym_edge has an opposing sym_edge
-		//	if (current_edge->sym() != nullptr)
-		//	{
-
-		//		//check if edge segment and middle triangle to point segment intersects
-		//		auto edge_v = get_edge(current_edge->edge);
-		//		if (line_seg_intersection_ccw(edge_v[0], edge_v[1], tri_c, p)) {
-		//			// Check that the next face has not yet been explored in current walk
-		//			int next_face_i = current_edge->sym()->face;
-		//			if (m_faces[next_face_i].explored != m_iter_id) {
-		//				next_edge = current_edge->sym();
-		//				m_faces[next_face_i].explored = m_iter_id;
-		//				break;
-		//			}
-		//		}
-		//	}
-		//	current_edge = current_edge->nxt;
-		//}
 	}
 
 	// Epsilon based walk mode
 
 	res.type = LocateType::NEXT;
-	//res.sym_edge = current_edge;
 	next_iter();
 	while (res.type == LocateType::NEXT)
 	{
 		res = Epsilon_walk(res.sym_edge, p);
-
 	}
 
 	return res;
