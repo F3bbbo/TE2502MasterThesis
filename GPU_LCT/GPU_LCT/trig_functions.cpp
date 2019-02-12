@@ -58,3 +58,11 @@ bool point_triangle_test(glm::vec2 p1, glm::vec2 t1, glm::vec2 t2, glm::vec2 t3,
 
 	return false;
 }
+
+glm::vec2 point_segment_projection(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2)
+{
+	glm::vec2 seg_dir = glm::normalize(s2 - s1);
+	glm::vec2 tmp = p1 - s1;
+	float dist = glm::dot(seg_dir, tmp);
+	return s1 + seg_dir * dist;
+}
