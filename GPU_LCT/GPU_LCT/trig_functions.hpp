@@ -22,4 +22,6 @@ bool point_segment_test(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2, float epsi = E
 
 bool point_triangle_test(glm::vec2 p1, glm::vec2 t1, glm::vec2 t2, glm::vec2 t3, float epsi = EPSILON);
 
+glm::vec2 point_segment_projection(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2);
+
 #endif

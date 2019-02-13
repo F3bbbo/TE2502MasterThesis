@@ -52,6 +52,7 @@ public:
 	std::array<glm::vec2, 2> get_edge(int index);
 	std::array<glm::vec2, 3> get_triangle(int index);
 	LocateRes Locate_point(glm::vec2 p);
+	int Insert_point_in_face(glm::vec2 p, SymEdge* e);
 private:
 	std::vector<VertexRef> m_vertices; // Each vertice keeps track of how many times it is referenced
 	std::vector<Edge> m_edges; // Edges keeps track of the constraints it represents
@@ -62,6 +63,10 @@ private:
 	LocateRes Oriented_walk(SymEdge* start_edge, const glm::vec2& p);
 	LocateRes Standard_walk(SymEdge* start_edge, const glm::vec2& p);
 	LocateRes Epsilon_walk(SymEdge* current_edge, const glm::vec2& p);
+
+	// returns index to the vertex that was inserted
+	int Insert_point_in_edge(glm::vec2 p, SymEdge* e);
+
 };
 
 #endif
