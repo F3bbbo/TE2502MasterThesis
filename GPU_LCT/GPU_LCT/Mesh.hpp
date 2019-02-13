@@ -54,6 +54,8 @@ public:
 	std::array<glm::vec2, 3> get_triangle(int index);
 	glm::vec2 get_vertex(int index);
 	LocateRes Locate_point(glm::vec2 p);
+	// returns index to the vertex that was inserted
+	int Insert_point_in_edge(glm::vec2 p, SymEdge* e);
 	int Insert_point_in_face(glm::vec2 p, SymEdge* e);
 private:
 	std::vector<VertexRef> m_vertices; // Each vertice keeps track of how many times it is referenced
@@ -66,8 +68,7 @@ private:
 	LocateRes Standard_walk(SymEdge* start_edge, const glm::vec2& p);
 	LocateRes Epsilon_walk(SymEdge* current_edge, const glm::vec2& p);
 
-	// returns index to the vertex that was inserted
-	int Insert_point_in_edge(glm::vec2 p, SymEdge* e);
+
 
 
 	void flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices);

@@ -235,7 +235,85 @@ int Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 	// copy crep list
 	auto orig_crep = m_edges[e->edge].constraint_ref;
 	// insert vertex  in both  faces
+	std::vector<SymEdge*> orig_quad;
+	std::vector<SymEdge*> orig_sym;
+	SymEdge* curr_e = e;
+	// Add the orignal edges from the first triangle
+	for (unsigned int i = 0; i < 2; i++) {
+		curr_e = curr_e->nxt;
+		orig_quad.push_back(curr_e);
+		orig_sym.push_back(curr_e->sym());
+	}
+	// Add the orignal edges from the second triangle if there is one
+	curr_e = e->sym();
+	if (curr_e != nullptr) {
+		for (unsigned int i = 0; i < 2; i++) {
+			curr_e = curr_e->nxt;
+			orig_quad.push_back(curr_e);
+			orig_sym.push_back(curr_e->sym());
+		}
+	}
+	else {
+		orig_quad.push_back(e);
+		orig_sym.push_back(e->rot);
+	}
 
+	// Create new triangles
+	for (unsigned int i = 0; i < orig_quad.size(); i++)
+	{
+		curr_e = orig_quad[i];
+		// next edge in original triangle
+		int next_id = (i + 1) % orig_quad.size();
+		// create first edge of new triangle
+		SymEdge* tmp = new SymEdge();
+		tmp->vertex = orig_quad[next_id]->vertex;
+		orig_quad[i]->nxt = tmp;
+		curr_e = orig_quad[i]->nxt;
+		// create second edge of new triangle
+		tmp = new SymEdge();
+		tmp->vertex = vertex_index;
+		tmp->nxt = orig_quad[i];
+		curr_e->nxt = tmp;
+		// add face to edges
+		int face_index = m_faces.size();
+		Face face;
+		face.vert_i[0] = orig_quad[i]->vertex;
+		face.vert_i[1] = orig_quad[i]->nxt->vertex;
+		face.vert_i[2] = orig_quad[i]->nxt->nxt->vertex;
+		orig_quad[i]->face = face_index;
+		orig_quad[i]->nxt->face = face_index;
+		orig_quad[i]->nxt->nxt->face = face_index;
+		m_faces.push_back(face);
+	}
+	std::stack<SymEdge*> flip_stack;
+	// connect the new triangles together
+	if (orig_quad.size() == 3) {
+
+	}
+	else {
+		for (unsigned int i = 0; i < orig_quad.size(); i++)
+		{
+			// next and previous edge in original triangle
+			int next_id = (i + 1) % orig_quad.size();
+			//int prev_id = (i - 1) % orig_face.size();
+			// get next edge of current face
+			auto edge = orig_quad[i]->nxt;
+			// opposing edge
+			auto edge_sym = orig_quad[next_id]->nxt->nxt;
+			// add edge to edge list
+			int edge_index = m_edges.size();
+			m_edges.push_back({ {edge->vertex, edge_sym->vertex}, {} });
+			edge->edge = edge_index;
+			edge_sym->edge = edge_index;
+			// connect sym of the edges
+			edge->nxt->rot = edge_sym;
+			edge_sym->nxt->rot = edge;
+			// connect orignal edge with its sym
+			orig_quad[i]->nxt->rot = orig_sym[i];
+			// add edge to stack
+			flip_stack.push(edge_sym);
+		}
+	}
 
 
 	return vertex_index;
@@ -325,7 +403,7 @@ void Mesh::flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices)
 		{
 			edge_indices.push(sym_edge->sym()->nxt);
 			edge_indices.push(edge_indices.top()->nxt);
-			
+
 			// Flip SymEdge
 			SymEdge* e1 = sym_edge->nxt;
 			SymEdge* e2 = e1->nxt;
@@ -380,7 +458,7 @@ bool Mesh::is_delaunay(SymEdge* point, SymEdge* edge)
 		glm::mat4x4 mat;
 
 		std::array<glm::vec2, 3> face_vertices = get_triangle(point->face);
-		
+
 		for (int i = 0; i < 3; i++)
 		{
 			mat[0][i] = face_vertices[i].x;
