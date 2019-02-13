@@ -242,11 +242,13 @@ int Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 	m_vertices.push_back({ p, 0 });
 	// insert vertex into face
 	std::array<SymEdge*, 3> orig_face;
+	std::array<SymEdge*, 3> orig_sym;
 	SymEdge* curr_e = e;
 	//save edges of the original triangle
 	for (unsigned int i = 0; i < orig_face.size(); i++)
 	{
 		orig_face[i] = curr_e;
+		orig_sym[i] = curr_e->sym();
 		curr_e = curr_e->nxt;
 	}
 	// create the new triangles
@@ -294,6 +296,8 @@ int Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 		// connect sym of the edges
 		edge->nxt->rot = edge_o;
 		edge_o->nxt->rot = edge;
+		// connect orignal edge with its sym
+		orig_face[i]->nxt->rot = orig_sym[i];
 	}
 
 	return vertex_index;
