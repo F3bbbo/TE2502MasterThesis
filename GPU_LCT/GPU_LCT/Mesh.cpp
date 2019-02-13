@@ -1,5 +1,6 @@
 #include "Mesh.hpp"
 #include "trig_functions.hpp"
+#include <stack>
 
 Mesh::Mesh()
 {
@@ -278,6 +279,7 @@ int Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 		orig_face[i]->nxt->nxt->face = face_index;
 		m_faces.push_back(face);
 	}
+	std::stack<SymEdge*> flip_stack;
 	// connect the new triangles together
 	for (unsigned int i = 0; i < orig_face.size(); i++)
 	{
@@ -287,18 +289,21 @@ int Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 		// get next edge of current face
 		auto edge = orig_face[i]->nxt;
 		// opposing edge
-		auto edge_o = orig_face[next_id]->nxt->nxt;
+		auto edge_sym = orig_face[next_id]->nxt->nxt;
 		// add edge to edge list
 		int edge_index = m_edges.size();
-		m_edges.push_back({ {edge->vertex, edge_o->vertex}, {} });
+		m_edges.push_back({ {edge->vertex, edge_sym->vertex}, {} });
 		edge->edge = edge_index;
-		edge_o->edge = edge_index;
+		edge_sym->edge = edge_index;
 		// connect sym of the edges
-		edge->nxt->rot = edge_o;
-		edge_o->nxt->rot = edge;
+		edge->nxt->rot = edge_sym;
+		edge_sym->nxt->rot = edge;
 		// connect orignal edge with its sym
 		orig_face[i]->nxt->rot = orig_sym[i];
+		// add edge to stack
+		flip_stack.push(edge_sym);
 	}
+
 
 	return vertex_index;
 }
