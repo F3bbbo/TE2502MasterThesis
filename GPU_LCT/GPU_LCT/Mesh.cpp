@@ -332,11 +332,16 @@ void Mesh::flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices)
 			SymEdge* e3 = sym_edge_sym->nxt;
 			SymEdge* e4 = e3->nxt;
 
+			SymEdge* e1_sym = e1->sym();
+			SymEdge* e2_sym = e2->sym();
+			SymEdge* e3_sym = e3->sym();
+			SymEdge* e4_sym = e4->sym();
+
 			int face_id[2] = { sym_edge->face, sym_edge_sym->face };
 
 			// Change all links and indices
 			e1->nxt = sym_edge;
-			e1->rot = e4->sym();
+			e1->rot = e4_sym;
 			e1->face = face_id[0];
 
 			e2->nxt = e3;
@@ -344,7 +349,7 @@ void Mesh::flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices)
 			e2->face = face_id[1];
 
 			e3->nxt = sym_edge_sym;
-			e3->rot = e2->sym();
+			e3->rot = e2_sym;
 			e3->face = face_id[1];
 
 			e4->nxt = e1;
@@ -352,11 +357,11 @@ void Mesh::flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices)
 			e4->face = face_id[0];
 
 			sym_edge->nxt = e4;
-			sym_edge->rot = e1->sym();
+			sym_edge->rot = e1_sym;
 			sym_edge->vertex = e2->vertex;
 			sym_edge->face = face_id[0];
 
-			sym_edge_sym->rot = e3->sym();
+			sym_edge_sym->rot = e3_sym;
 			sym_edge_sym->nxt = e2;
 			sym_edge_sym->vertex = e4->vertex;
 			sym_edge_sym->face = face_id[1];
