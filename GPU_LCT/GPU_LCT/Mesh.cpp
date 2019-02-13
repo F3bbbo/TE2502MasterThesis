@@ -166,7 +166,7 @@ LocateRes Mesh::Standard_walk(SymEdge * current_edge, const glm::vec2 & p)
 	for (unsigned int i = 0; i < 3; i++)
 	{
 		//check if current sym_edge has an opposing sym_edge
-		if (current_edge->sym() != nullptr)
+		if (curr_edge->sym() != nullptr)
 		{
 			//check if edge segment and middle triangle to point segment intersects
 			auto edge_v = get_edge(curr_edge->edge);
