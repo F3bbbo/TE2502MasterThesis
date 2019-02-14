@@ -317,6 +317,9 @@ int Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 		orig_face[1]->nxt->edge = edge_i;
 		// Delete old symedge TODO: also removed the old edge
 		delete orig_e;
+		//add edges to flip stack
+		flip_stack.push(orig_face[0]);
+		flip_stack.push(orig_face[1]);
 	}
 	else {
 		for (unsigned int i = 0; i < orig_face.size(); i++)
@@ -346,6 +349,7 @@ int Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 		delete orig_e_sym;
 	}
 
+	flip_edges(std::move(flip_stack));
 
 	return vertex_index;
 }
