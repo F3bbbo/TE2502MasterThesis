@@ -228,6 +228,10 @@ LocateRes Mesh::Epsilon_walk(SymEdge * current_edge, const glm::vec2 & p)
 
 int Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 {
+	// save original e and e_sym to delete them later
+	SymEdge* orig_e = e;
+	SymEdge* orig_e_sym = e->sym();
+
 	//project p onto edge e and add it to the vertices
 	auto edge = get_edge(e->edge);
 	int vertex_index = m_vertices.size();
@@ -235,13 +239,13 @@ int Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 	// copy crep list
 	auto orig_crep = m_edges[e->edge].constraint_ref;
 	// insert vertex  in both  faces
-	std::vector<SymEdge*> orig_quad;
+	std::vector<SymEdge*> orig_face;
 	std::vector<SymEdge*> orig_sym;
 	SymEdge* curr_e = e;
 	// Add the orignal edges from the first triangle
 	for (unsigned int i = 0; i < 2; i++) {
 		curr_e = curr_e->nxt;
-		orig_quad.push_back(curr_e);
+		orig_face.push_back(curr_e);
 		orig_sym.push_back(curr_e->sym());
 	}
 	// Add the orignal edges from the second triangle if there is one
@@ -249,66 +253,97 @@ int Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 	if (curr_e != nullptr) {
 		for (unsigned int i = 0; i < 2; i++) {
 			curr_e = curr_e->nxt;
-			orig_quad.push_back(curr_e);
+			orig_face.push_back(curr_e);
 			orig_sym.push_back(curr_e->sym());
 		}
 	}
 	else {
-		orig_quad.push_back(e);
+		orig_face.push_back(e);
 		orig_sym.push_back(e->rot);
 	}
 
 	// Create new triangles
-	for (unsigned int i = 0; i < orig_quad.size(); i++)
+	for (unsigned int i = 0; i < orig_face.size(); i++)
 	{
-		curr_e = orig_quad[i];
+		curr_e = orig_face[i];
 		// next edge in original triangle
-		int next_id = (i + 1) % orig_quad.size();
+		int next_id = (i + 1) % orig_face.size();
 		// create first edge of new triangle
 		SymEdge* tmp = new SymEdge();
-		tmp->vertex = orig_quad[next_id]->vertex;
-		orig_quad[i]->nxt = tmp;
-		curr_e = orig_quad[i]->nxt;
+		tmp->vertex = orig_face[next_id]->vertex;
+		orig_face[i]->nxt = tmp;
+		curr_e = orig_face[i]->nxt;
 		// create second edge of new triangle
 		tmp = new SymEdge();
 		tmp->vertex = vertex_index;
-		tmp->nxt = orig_quad[i];
+		tmp->nxt = orig_face[i];
 		curr_e->nxt = tmp;
 		// add face to edges
 		int face_index = m_faces.size();
 		Face face;
-		face.vert_i[0] = orig_quad[i]->vertex;
-		face.vert_i[1] = orig_quad[i]->nxt->vertex;
-		face.vert_i[2] = orig_quad[i]->nxt->nxt->vertex;
-		orig_quad[i]->face = face_index;
-		orig_quad[i]->nxt->face = face_index;
-		orig_quad[i]->nxt->nxt->face = face_index;
+		face.vert_i[0] = orig_face[i]->vertex;
+		face.vert_i[1] = orig_face[i]->nxt->vertex;
+		face.vert_i[2] = orig_face[i]->nxt->nxt->vertex;
+		orig_face[i]->face = face_index;
+		orig_face[i]->nxt->face = face_index;
+		orig_face[i]->nxt->nxt->face = face_index;
 		m_faces.push_back(face);
 	}
 	std::stack<SymEdge*> flip_stack;
 	// connect the new triangles together
-
-	for (unsigned int i = 0; i < orig_quad.size(); i++)
+	// check if it is a outer corner edge
+	if (orig_face.size() < 4)
 	{
-		// next and previous edge in original triangle
-		int next_id = (i + 1) % orig_quad.size();
-		//int prev_id = (i - 1) % orig_face.size();
-		// get next edge of current face
-		auto edge = orig_quad[i]->nxt;
-		// opposing edge
-		auto edge_sym = orig_quad[next_id]->nxt->nxt;
-		// add edge to edge list
-		int edge_index = m_edges.size();
-		m_edges.push_back({ {edge->vertex, edge_sym->vertex}, {} });
-		edge->edge = edge_index;
-		edge_sym->edge = edge_index;
-		// connect sym of the edges
-		edge->nxt->rot = edge_sym;
-		edge_sym->nxt->rot = edge;
-		// connect orignal edge with its sym
-		orig_quad[i]->nxt->rot = orig_sym[i];
-		// add edge to stack
-		flip_stack.push(edge_sym);
+		//first new triangle connections
+		orig_face[0]->nxt->rot = orig_sym[0];
+		orig_face[0]->nxt->nxt->rot = orig_face[1]->nxt->nxt;
+
+		// second new triangle connections
+		orig_face[1]->nxt->rot = orig_sym[1];
+		orig_face[1]->rot = orig_face[1]->nxt;
+		// create edges in m_edge list
+		// tri 1 single edge
+		int edge_i = m_edges.size();
+		m_edges.push_back({ { orig_face[0]->vertex, orig_face[0]->nxt->nxt->vertex}, orig_crep });
+		orig_face[0]->nxt->nxt->edge = edge_i;
+		edge_i++;
+		// shared edge
+		m_edges.push_back({ {orig_face[0]->nxt->vertex, orig_face[0]->nxt->sym()->vertex}, {} });
+		orig_face[0]->nxt->edge = edge_i;
+		orig_face[0]->nxt->nxt->rot->edge = edge_i;
+		edge_i++;
+		// tri 2 single edge
+		m_edges.push_back({ {orig_face[1]->nxt->vertex, orig_face[1]->nxt->nxt->vertex}, orig_crep });
+		orig_face[1]->nxt->edge = edge_i;
+		// Delete old symedge TODO: also removed the old edge
+		delete orig_e;
+	}
+	else {
+		for (unsigned int i = 0; i < orig_face.size(); i++)
+		{
+			// next and previous edge in original triangle
+			int next_id = (i + 1) % orig_face.size();
+			//int prev_id = (i - 1) % orig_face.size();
+			// get next edge of current face
+			auto edge = orig_face[i]->nxt;
+			// opposing edge
+			auto edge_sym = orig_face[next_id]->nxt->nxt;
+			// add edge to edge list
+			int edge_index = m_edges.size();
+			m_edges.push_back({ {edge->vertex, edge_sym->vertex}, {} });
+			edge->edge = edge_index;
+			edge_sym->edge = edge_index;
+			// connect sym of the edges
+			edge->nxt->rot = edge_sym;
+			edge_sym->nxt->rot = edge;
+			// connect orignal edge with its sym
+			orig_face[i]->nxt->rot = orig_sym[i];
+			// add edge to stack
+			flip_stack.push(edge_sym);
+		}
+		// Delete old symedges TODO: also removed the old edge
+		delete orig_e;
+		delete orig_e_sym;
 	}
 
 
