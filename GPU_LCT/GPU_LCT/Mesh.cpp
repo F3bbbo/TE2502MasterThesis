@@ -383,11 +383,11 @@ int Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 		flip_stack.push(orig_face[i]);
 	}
 
-	flip_edges(orig_face[0]->nxt->nxt, std::move(flip_stack));
+	flip_edges(std::move(flip_stack));
 	return vertex_index;
 }
 
-void Mesh::flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices)
+void Mesh::flip_edges(std::stack<SymEdge*>&& edge_indices)
 {
 	while (edge_indices.size() > 0)
 	{
@@ -395,12 +395,12 @@ void Mesh::flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices)
 		edge_indices.pop();
 		SymEdge* sym_edge_sym = sym_edge->sym();
 
-		if (m_edges[sym_edge->edge].constraint_ref.size() == 0 && !is_delaunay(point, sym_edge))
+		if (m_edges[sym_edge->edge].constraint_ref.size() == 0 && !is_delaunay(sym_edge))
 		{
 			edge_indices.push(sym_edge_sym->nxt);
 			edge_indices.push(edge_indices.top()->nxt);
 
-			// Flip SymEdge
+			// Flip SymEdge begins here
 			SymEdge* e1 = sym_edge->nxt;
 			SymEdge* e2 = e1->nxt;
 			SymEdge* e3 = sym_edge_sym->nxt;
@@ -440,6 +440,7 @@ void Mesh::flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices)
 			sym_edge_sym->vertex = e4->vertex;
 			sym_edge_sym->face = face_id[1];
 
+			// Only one face index changes during a flip for each face
 			for (int i = 0; i < 3; i++)
 			{
 				if (e3->vertex == m_faces[face_id[0]].vert_i[i])
@@ -458,7 +459,7 @@ void Mesh::flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices)
 	}
 }
 
-bool Mesh::is_delaunay(SymEdge* point, SymEdge* edge)
+bool Mesh::is_delaunay(SymEdge* edge)
 {
 	if (edge->sym() != nullptr)
 	{

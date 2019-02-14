@@ -68,11 +68,8 @@ private:
 	LocateRes Standard_walk(SymEdge* start_edge, const glm::vec2& p);
 	LocateRes Epsilon_walk(SymEdge* current_edge, const glm::vec2& p);
 
-
-
-
-	void flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices);
-	bool is_delaunay(SymEdge* point, SymEdge* edge);
+	void flip_edges(std::stack<SymEdge*>&& edge_indices);
+	bool is_delaunay(SymEdge* edge);
 };
 
 #endif
