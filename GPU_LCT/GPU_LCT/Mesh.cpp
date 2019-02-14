@@ -383,7 +383,7 @@ int Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 		flip_stack.push(orig_face[i]);
 	}
 
-	flip_edges(e, std::move(flip_stack));
+	flip_edges(orig_face[0]->nxt->nxt, std::move(flip_stack));
 	return vertex_index;
 }
 
@@ -397,7 +397,7 @@ void Mesh::flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices)
 
 		if (m_edges[sym_edge->edge].constraint_ref.size() == 0 && !is_delaunay(point, sym_edge))
 		{
-			edge_indices.push(sym_edge->sym()->nxt);
+			edge_indices.push(sym_edge_sym->nxt);
 			edge_indices.push(edge_indices.top()->nxt);
 
 			// Flip SymEdge
@@ -435,13 +435,25 @@ void Mesh::flip_edges(SymEdge* point, std::stack<SymEdge*>&& edge_indices)
 			sym_edge->vertex = e2->vertex;
 			sym_edge->face = face_id[0];
 
-			sym_edge_sym->rot = e3_sym;
 			sym_edge_sym->nxt = e2;
+			sym_edge_sym->rot = e3_sym;
 			sym_edge_sym->vertex = e4->vertex;
 			sym_edge_sym->face = face_id[1];
 
+			for (int i = 0; i < 3; i++)
+			{
+				if (e3->vertex == m_faces[face_id[0]].vert_i[i])
+					m_faces[face_id[0]].vert_i[i] = e4->vertex;
+			}
+
+			for (int i = 0; i < 3; i++)
+			{
+				if (e1->vertex == m_faces[face_id[1]].vert_i[i])
+					m_faces[face_id[1]].vert_i[i] = e2->vertex;
+			}
+
 			// Create the new edge
-			m_edges[sym_edge->edge].edge = { sym_edge->vertex, sym_edge->sym()->vertex };
+			m_edges[sym_edge->edge].edge = { sym_edge->vertex, sym_edge_sym->vertex };
 		}
 	}
 }
@@ -453,7 +465,7 @@ bool Mesh::is_delaunay(SymEdge* point, SymEdge* edge)
 		SymEdge* other = edge->sym()->nxt->nxt;
 		glm::mat4x4 mat;
 
-		std::array<glm::vec2, 3> face_vertices = get_triangle(point->face);
+		std::array<glm::vec2, 3> face_vertices = get_triangle(edge->face);
 
 		for (int i = 0; i < 3; i++)
 		{
