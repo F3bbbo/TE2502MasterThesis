@@ -426,6 +426,23 @@ int Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 	return vertex_index;
 }
 
+void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
+{
+	std::vector<int> vertex_list;
+	for (glm::vec2 point : points)
+	{
+		LocateRes lr = Locate_point(point);
+		if (lr.type == LocateType::FACE)
+			vertex_list.push_back(Insert_point_in_face(point, lr.sym_edge));
+		else if (lr.type == LocateType::EDGE)
+			vertex_list.push_back(Insert_point_in_edge(point, lr.sym_edge));
+		else if (lr.type == LocateType::VERTEX)
+			vertex_list.push_back(lr.sym_edge->vertex);
+	}
+	for (int vertex = 0; vertex < vertex_list.size() - 2; vertex++)
+		insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);
+}
+
 void Mesh::flip_edges(std::stack<SymEdge*>&& edge_indices)
 {
 	while (edge_indices.size() > 0)
@@ -525,5 +542,9 @@ bool Mesh::is_delaunay(SymEdge* edge)
 			return false;
 	}
 	return true;
+}
+
+void Mesh::insert_segment(int v1, int v2, int cref)
+{
 }
 

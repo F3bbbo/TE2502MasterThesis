@@ -57,6 +57,8 @@ public:
 	// returns index to the vertex that was inserted
 	int Insert_point_in_edge(glm::vec2 p, SymEdge* e);
 	int Insert_point_in_face(glm::vec2 p, SymEdge* e);
+
+	void insert_constraint(std::vector<glm::vec2>&& points, int cref);
 private:
 	std::vector<VertexRef> m_vertices; // Each vertice keeps track of how many times it is referenced
 	std::vector<Edge> m_edges; // Edges keeps track of the constraints it represents
@@ -70,6 +72,8 @@ private:
 
 	void flip_edges(std::stack<SymEdge*>&& edge_indices);
 	bool is_delaunay(SymEdge* edge);
+
+	void insert_segment(int v1, int v2, int cref);
 };
 
 #endif
