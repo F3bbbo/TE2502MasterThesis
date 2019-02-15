@@ -234,8 +234,7 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 
 	//project p onto edge e and add it to the vertices
 	auto edge = get_edge(e->edge);
-	int vertex_index = m_vertices.size();
-	m_vertices.push_back({ point_segment_projection(p, edge[0], edge[1]), 0 });
+	int vertex_index = add_vert(point_segment_projection(p, edge[0], edge[1]));
 	// copy crep list
 	auto orig_crep = m_edges[e->edge].constraint_ref;
 	// insert vertex  in both  faces
@@ -262,8 +261,12 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 		orig_sym.push_back(e->rot);
 	}
 
+	unsigned int num_new_tri = orig_face.size();
+	if (num_new_tri < 4)
+		num_new_tri = 2;
+
 	// Create new triangles
-	for (unsigned int i = 0; i < orig_face.size(); i++)
+	for (unsigned int i = 0; i < num_new_tri; i++)
 	{
 		curr_e = orig_face[i];
 		// next edge in original triangle
@@ -279,15 +282,10 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 		tmp->nxt = orig_face[i];
 		curr_e->nxt = tmp;
 		// add face to edges
-		int face_index = m_faces.size();
-		Face face;
-		face.vert_i[0] = orig_face[i]->vertex;
-		face.vert_i[1] = orig_face[i]->nxt->vertex;
-		face.vert_i[2] = orig_face[i]->nxt->nxt->vertex;
+		int face_index = add_face({ orig_face[i]->vertex, orig_face[i]->nxt->vertex, orig_face[i]->nxt->nxt->vertex });
 		orig_face[i]->face = face_index;
 		orig_face[i]->nxt->face = face_index;
 		orig_face[i]->nxt->nxt->face = face_index;
-		m_faces.push_back(face);
 	}
 	std::stack<SymEdge*> flip_stack;
 	// connect the new triangles together
@@ -303,19 +301,20 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 		orig_face[1]->rot = orig_face[1]->nxt;
 		// create edges in m_edge list
 		// tri 1 single edge
-		int edge_i = m_edges.size();
-		m_edges.push_back({ { orig_face[0]->vertex, orig_face[0]->nxt->nxt->vertex}, orig_crep });
+		int edge_i = add_edge({ { orig_face[0]->vertex, orig_face[0]->nxt->nxt->vertex}, orig_crep });
 		orig_face[0]->nxt->nxt->edge = edge_i;
-		edge_i++;
+		//edge_i++;
 		// shared edge
-		m_edges.push_back({ {orig_face[0]->nxt->vertex, orig_face[0]->nxt->sym()->vertex}, {} });
+		edge_i = add_edge({ {orig_face[0]->nxt->vertex, orig_face[0]->nxt->sym()->vertex}, {} });
 		orig_face[0]->nxt->edge = edge_i;
 		orig_face[0]->nxt->nxt->rot->edge = edge_i;
-		edge_i++;
+		//edge_i++;
 		// tri 2 single edge
-		m_edges.push_back({ {orig_face[1]->nxt->vertex, orig_face[1]->nxt->nxt->vertex}, orig_crep });
+		edge_i = add_edge({ {orig_face[1]->nxt->vertex, orig_face[1]->nxt->nxt->vertex}, orig_crep });
 		orig_face[1]->nxt->edge = edge_i;
-		// Delete old symedge TODO: also removed the old edge
+		// Delete old symedge TODO: also removed the old edge and face
+		remove_edge(orig_e->edge);
+		remove_face(orig_e->face);
 		delete orig_e;
 		//add edges to flip stack
 		flip_stack.push(orig_face[0]);
@@ -333,7 +332,7 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 			auto edge_sym = orig_face[next_id]->nxt->nxt;
 			// add edge to edge list
 			int edge_index = m_edges.size();
-			m_edges.push_back({ {edge->vertex, edge_sym->vertex}, {} });
+			add_edge({ edge->vertex, edge_sym->vertex });
 			edge->edge = edge_index;
 			edge_sym->edge = edge_index;
 			// connect sym of the edges
@@ -344,8 +343,11 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 			// add edge to stack
 			flip_stack.push(edge_sym);
 		}
-		// Delete old symedges TODO: also removed the old edge
+		// Delete old symedges TODO: also removed the old edge and face
+		remove_edge(orig_e->edge);
+		remove_face(orig_e->face);
 		delete orig_e;
+		remove_face(orig_e_sym->face);
 		delete orig_e_sym;
 	}
 
@@ -358,8 +360,7 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 {
 	// add points to vertex list
-	int vertex_index = m_vertices.size();
-	m_vertices.push_back({ p, 0 });
+	int vertex_index = add_vert(p);
 	// insert vertex into face
 	std::array<SymEdge*, 3> orig_face;
 	std::array<SymEdge*, 3> orig_sym;
@@ -371,6 +372,8 @@ SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 		orig_sym[i] = curr_e->sym();
 		curr_e = curr_e->nxt;
 	}
+	// remove old face;
+	remove_face(curr_e->face);
 	// create the new triangles
 	for (unsigned int i = 0; i < orig_face.size(); i++)
 	{
@@ -388,15 +391,10 @@ SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 		tmp->nxt = orig_face[i];
 		curr_e->nxt = tmp;
 		// add face to edges
-		int face_index = m_faces.size();
-		Face face;
-		face.vert_i[0] = orig_face[i]->vertex;
-		face.vert_i[1] = orig_face[i]->nxt->vertex;
-		face.vert_i[2] = orig_face[i]->nxt->nxt->vertex;
+		int face_index = add_face({ orig_face[i]->vertex,orig_face[i]->nxt->vertex, orig_face[i]->nxt->nxt->vertex });
 		orig_face[i]->face = face_index;
 		orig_face[i]->nxt->face = face_index;
 		orig_face[i]->nxt->nxt->face = face_index;
-		m_faces.push_back(face);
 	}
 	std::stack<SymEdge*> flip_stack;
 	// connect the new triangles together
@@ -410,8 +408,7 @@ SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 		// opposing edge
 		auto edge_sym = orig_face[next_id]->nxt->nxt;
 		// add edge to edge list
-		int edge_index = m_edges.size();
-		m_edges.push_back({ {edge->vertex, edge_sym->vertex}, {} });
+		int edge_index = add_edge({ edge->vertex, edge_sym->vertex });
 		edge->edge = edge_index;
 		edge_sym->edge = edge_index;
 		// connect sym of the edges
@@ -548,5 +545,79 @@ bool Mesh::is_delaunay(SymEdge* edge)
 
 void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 {
+}
+
+int Mesh::add_vert(glm::vec2 v)
+{
+	int index;
+	if (m_free_verts.empty()) {
+		index = m_vertices.size();
+		m_vertices.push_back({ v, 0 });
+	}
+	else {
+		index = m_free_verts.front();
+		m_free_verts.pop();
+		m_vertices[index].ref_counter = 0;
+		m_vertices[index].vertice = v;
+	}
+	return index;
+}
+
+void Mesh::remove_vert(int index)
+{
+	if (m_vertices[index].ref_counter <= 1) {
+		m_free_verts.push(index);
+	}
+	else {
+		m_vertices[index].ref_counter--;
+	}
+}
+
+int Mesh::add_edge(glm::ivec2 e)
+{
+	return add_edge({ e, {} });
+}
+
+int Mesh::add_edge(Edge e)
+{
+	int index;
+	if (m_free_edges.empty()) {
+		index = m_edges.size();
+		m_edges.push_back(e);
+	}
+	else {
+		index = m_free_edges.front();
+		m_free_edges.pop();
+		m_edges[index].constraint_ref = e.constraint_ref;
+		m_edges[index].edge = e.edge;
+	}
+	return index;
+}
+
+void Mesh::remove_edge(int index)
+{
+	m_free_edges.push(index);
+}
+
+int Mesh::add_face(glm::ivec3 f)
+{
+	int index;
+	if (m_free_faces.empty()) {
+		index = m_faces.size();
+		m_faces.push_back({ f, 0 });
+	}
+	else {
+		index = m_free_faces.front();
+		m_free_faces.pop();
+		m_faces[index].vert_i = f;
+		m_faces[index].explored = 0;
+
+	}
+	return index;
+}
+
+void Mesh::remove_face(int index)
+{
+	m_free_faces.push(index);
 }
 

@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include <stack>
+#include <queue>
 #include <glm/glm.hpp>
 
 #include "data_structures.hpp"
@@ -61,8 +62,11 @@ public:
 	void insert_constraint(std::vector<glm::vec2>&& points, int cref);
 private:
 	std::vector<VertexRef> m_vertices; // Each vertice keeps track of how many times it is referenced
+	std::queue<int> m_free_verts;
 	std::vector<Edge> m_edges; // Edges keeps track of the constraints it represents
+	std::queue<int> m_free_edges;
 	std::vector<Face> m_faces; // Indices to vertices that makes up each face
+	std::queue<int> m_free_faces;
 	unsigned long int m_iter_id = 0; //Number indication which iteration id the mesh is currently at
 	void next_iter();
 
@@ -74,6 +78,15 @@ private:
 	bool is_delaunay(SymEdge* edge);
 
 	void insert_segment(SymEdge* v1, SymEdge* v2, int cref);
+
+	// functions to insert and remove objects from the struct vectors
+	int add_vert(glm::vec2 v);
+	void remove_vert(int index);
+	int add_edge(glm::ivec2 e);
+	int add_edge(Edge e);
+	void remove_edge(int index);
+	int add_face(glm::ivec3 f);
+	void remove_face(int index);
 };
 
 #endif
