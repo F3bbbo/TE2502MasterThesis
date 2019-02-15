@@ -262,8 +262,17 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 	}
 
 	unsigned int num_new_tri = orig_face.size();
+	// check which case it is then remove the old structures 
+	// and set the correct number of new triangles
 	if (num_new_tri < 4)
+	{
 		num_new_tri = 2;
+	}
+	else {
+		remove_face(orig_e_sym->face);
+	}
+	remove_face(orig_e->face);
+	remove_edge(orig_e->edge);
 
 	// Create new triangles
 	for (unsigned int i = 0; i < num_new_tri; i++)
@@ -312,9 +321,7 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 		// tri 2 single edge
 		edge_i = add_edge({ {orig_face[1]->nxt->vertex, orig_face[1]->nxt->nxt->vertex}, orig_crep });
 		orig_face[1]->nxt->edge = edge_i;
-		// Delete old symedge TODO: also removed the old edge and face
-		remove_edge(orig_e->edge);
-		remove_face(orig_e->face);
+		// Delete old symedge 
 		delete orig_e;
 		//add edges to flip stack
 		flip_stack.push(orig_face[0]);
@@ -343,11 +350,8 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 			// add edge to stack
 			flip_stack.push(edge_sym);
 		}
-		// Delete old symedges TODO: also removed the old edge and face
-		remove_edge(orig_e->edge);
-		remove_face(orig_e->face);
+		// Delete old symedges
 		delete orig_e;
-		remove_face(orig_e_sym->face);
 		delete orig_e_sym;
 	}
 
