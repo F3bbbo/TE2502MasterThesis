@@ -55,8 +55,8 @@ public:
 	glm::vec2 get_vertex(int index);
 	LocateRes Locate_point(glm::vec2 p);
 	// returns index to the vertex that was inserted
-	int Insert_point_in_edge(glm::vec2 p, SymEdge* e);
-	int Insert_point_in_face(glm::vec2 p, SymEdge* e);
+	SymEdge* Insert_point_in_edge(glm::vec2 p, SymEdge* e);
+	SymEdge* Insert_point_in_face(glm::vec2 p, SymEdge* e);
 
 	void insert_constraint(std::vector<glm::vec2>&& points, int cref);
 private:
@@ -73,7 +73,7 @@ private:
 	void flip_edges(std::stack<SymEdge*>&& edge_indices);
 	bool is_delaunay(SymEdge* edge);
 
-	void insert_segment(int v1, int v2, int cref);
+	void insert_segment(SymEdge* v1, SymEdge* v2, int cref);
 };
 
 #endif

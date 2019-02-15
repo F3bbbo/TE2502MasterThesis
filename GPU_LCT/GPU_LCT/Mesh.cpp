@@ -226,7 +226,7 @@ LocateRes Mesh::Epsilon_walk(SymEdge * current_edge, const glm::vec2 & p)
 	return res;
 }
 
-int Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
+SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 {
 	// save original e and e_sym to delete them later
 	SymEdge* orig_e = e;
@@ -350,11 +350,12 @@ int Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 	}
 
 	flip_edges(std::move(flip_stack));
-
-	return vertex_index;
+	//return the edge that has the new point as vertex 
+	//and is the first one when rotating ccw
+	return orig_face[0]->nxt->nxt;
 }
 
-int Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
+SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 {
 	// add points to vertex list
 	int vertex_index = m_vertices.size();
@@ -423,12 +424,13 @@ int Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 	}
 
 	flip_edges(std::move(flip_stack));
-	return vertex_index;
+	//return an edge that has the new point as vertex 
+	return orig_face[0]->nxt->nxt;
 }
 
 void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 {
-	std::vector<int> vertex_list;
+	std::vector<SymEdge*> vertex_list;
 	for (glm::vec2 point : points)
 	{
 		LocateRes lr = Locate_point(point);
@@ -437,7 +439,7 @@ void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 		else if (lr.type == LocateType::EDGE)
 			vertex_list.push_back(Insert_point_in_edge(point, lr.sym_edge));
 		else if (lr.type == LocateType::VERTEX)
-			vertex_list.push_back(lr.sym_edge->vertex);
+			vertex_list.push_back(lr.sym_edge);
 	}
 	for (int vertex = 0; vertex < vertex_list.size() - 2; vertex++)
 		insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);
@@ -544,7 +546,7 @@ bool Mesh::is_delaunay(SymEdge* edge)
 	return true;
 }
 
-void Mesh::insert_segment(int v1, int v2, int cref)
+void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 {
 }
 
