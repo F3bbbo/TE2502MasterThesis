@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 
 #include "data_structures.hpp"
-
+#include "Log.hpp"
 struct VertexRef
 {
 	glm::vec2 vertice;
@@ -78,6 +78,8 @@ private:
 	bool is_delaunay(SymEdge* edge);
 
 	void insert_segment(SymEdge* v1, SymEdge* v2, int cref);
+	std::vector<SymEdge*> get_intersecting_edge_list(SymEdge* v1, SymEdge* v2);
+	bool face_contains_vertex(int vertex, int face);
 
 	// functions to insert and remove objects from the struct vectors
 	int add_vert(glm::vec2 v);

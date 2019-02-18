@@ -66,3 +66,26 @@ glm::vec2 point_segment_projection(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2)
 	float dist = glm::dot(seg_dir, tmp);
 	return s1 + seg_dir * dist;
 }
+
+float line_length(glm::vec2 line)
+{
+	return glm::sqrt(line.x * line.x + line.y * line.y);
+}
+
+glm::vec2 line_line_intersection_point(glm::vec2 u, glm::vec2 v, glm::vec2 w, glm::vec2 z)
+{
+	// http://demonstrations.wolfram.com/IntersectionOfTwoLinesUsingVectors/
+	if (glm::dot(w - u, z - v) < 0.f)
+	{
+		auto tmp = u;
+		u = w;
+		w = tmp;
+	}
+
+
+	float alpha = glm::acos(glm::dot(w - u, z - v));
+	glm::vec2 uv = v - u;
+	float beta = glm::acos(glm::dot(uv, w - u));
+
+	return v + line_length(uv) * ((sin(alpha) * (z - v)) / (sin(beta) * line_length(z - v)));
+}

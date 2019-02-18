@@ -442,7 +442,7 @@ void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 		else if (lr.type == LocateType::VERTEX)
 			vertex_list.push_back(lr.sym_edge);
 	}
-	for (int vertex = 0; vertex < vertex_list.size() - 2; vertex++)
+	for (int vertex = 0; vertex < vertex_list.size() - 1; vertex++)
 		insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);
 }
 
@@ -549,6 +549,83 @@ bool Mesh::is_delaunay(SymEdge* edge)
 
 void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 {
+	std::vector<SymEdge*> edge_list = get_intersecting_edge_list(v1, v2);
+	LOG(std::to_string(edge_list.size()));
+
+	for (auto edge : edge_list)
+	{
+		// TODO: Enable this check for when we are finished with the insertion
+
+		/*if (m_edges[edge->edge].constraint_ref.size() > 0)
+		{*/
+			auto edge_index = m_edges[edge->edge].edge;
+			auto intersection_point = line_line_intersection_point(m_vertices[edge_index.x].vertice, m_vertices[v1->vertex].vertice, m_vertices[edge_index.y].vertice, m_vertices[v2->vertex].vertice);
+			Insert_point_in_edge(intersection_point, edge);
+		/*}*/
+	}
+}
+
+std::vector<SymEdge*> Mesh::get_intersecting_edge_list(SymEdge* v1, SymEdge* v2)
+{
+	SymEdge* triangle = v1;
+	std::array<glm::vec2, 2> contraint_edge = { m_vertices[v1->vertex].vertice, m_vertices[v2->vertex].vertice };
+	std::vector<SymEdge*> edge_list;
+	// find the local starting triangle
+	while (true)
+	{
+		if (face_contains_vertex(v2->vertex, triangle->face) || triangle->rot == v1 || triangle->rot == nullptr)
+			return edge_list; // should be empty
+
+		// If not at endpoint, check to which edge we should walk
+		std::array<glm::vec2, 2> other_edge = get_edge(triangle->nxt->edge);
+		if (line_seg_intersection_ccw(contraint_edge[0], contraint_edge[1], other_edge[0], other_edge[1]))
+		{
+			edge_list.push_back(triangle->nxt);
+			triangle = triangle->nxt->sym()->nxt;
+			break;
+		}
+		triangle = triangle->rot;
+	}
+
+	// walk towards the constraint endpoins while gathering the intersected edges, stop if we reach the triangle that contains the segment endpoint
+	while (triangle != nullptr)
+	{
+		// Check if we have arrived to a triangle that contains the segment endpoint
+		if (face_contains_vertex(v2->vertex, triangle->face))
+			break;
+
+		int checks = 0;
+		while (checks < 3)
+		{
+			// Checks if the segment intersects a vertex
+			if (point_segment_test(m_vertices[triangle->vertex].vertice, contraint_edge[0], contraint_edge[1]))
+			{
+				triangle = triangle->rot->nxt;
+				break;
+			}
+
+			// Checks if the segment intersects an edge
+			std::array<glm::vec2, 2> other_edge = get_edge(triangle->edge);
+			if (line_seg_intersection_ccw(contraint_edge[0], contraint_edge[1], other_edge[0], other_edge[1]))
+			{
+				edge_list.push_back(triangle);
+				triangle = triangle->sym();
+				break;
+			}
+
+			triangle = triangle->nxt;
+			checks++;
+		}
+	}
+	return edge_list;
+}
+
+bool Mesh::face_contains_vertex(int vertex, int face)
+{
+	if (m_faces[face].vert_i[0] == vertex || m_faces[face].vert_i[1] == vertex || m_faces[face].vert_i[2] == vertex)
+		return true;
+	else
+		return false;
 }
 
 int Mesh::add_vert(glm::vec2 v)
