@@ -89,3 +89,19 @@ glm::vec2 line_line_intersection_point(glm::vec2 u, glm::vec2 v, glm::vec2 w, gl
 
 	return v + line_length(uv) * ((sin(alpha) * (z - v)) / (sin(beta) * line_length(z - v)));
 }
+
+bool point_in_circle(std::array<glm::vec2, 4> points)
+{
+	glm::mat4x4 mat;
+	for (int i = 0; i < points.size(); i++)
+	{
+		mat[0][i] = points[i].x;
+		mat[1][i] = points[i].y;
+		mat[2][i] = mat[0][i] * mat[0][i] + mat[1][i] * mat[1][i];
+		mat[3][i] = 1.f;
+	}
+
+	if (glm::determinant(mat) > 0)
+		return true;
+	return false;
+}

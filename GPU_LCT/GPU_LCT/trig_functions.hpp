@@ -3,6 +3,7 @@
 #define TRIG_FUNCTIONS_HPP
 #include<glm/vec2.hpp>
 #define EPSILON 0.00005
+#include <array>
 
 bool line_seg_intersection_ccw(glm::vec2 p1, glm::vec2 q1, glm::vec2 p2, glm::vec2 q2);
 
@@ -27,5 +28,9 @@ glm::vec2 point_segment_projection(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2);
 float line_length(glm::vec2 line);
 
 glm::vec2 line_line_intersection_point(glm::vec2 u, glm::vec2 v, glm::vec2 w, glm::vec2 z);
+
+// the three first points belong to the triangle and are ccw
+// the last point is the point being tested
+bool point_in_circle(std::array<glm::vec2, 4 > points);
 
 #endif
