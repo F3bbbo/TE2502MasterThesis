@@ -630,6 +630,16 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 			top_face_points.push_back(edge_list[ei]->sym()->nxt->nxt);
 			std::reverse(top_face_points.begin(), top_face_points.end());
 
+			// store symedges that forms a face
+			non_tringulated_faces.push_back(std::move(bottom_face_points));
+			non_tringulated_faces.push_back(std::move(top_face_points));
+
+			for (auto symedge : bottom_face_points)
+				symedge = symedge->sym();
+			for (auto symedge : top_face_points)
+				symedge = symedge->sym();
+
+			// store the symedges sym that forms a face
 			non_tringulated_faces.push_back(std::move(bottom_face_points));
 			non_tringulated_faces.push_back(std::move(top_face_points));
 
@@ -662,27 +672,40 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 	}
 
 	// step 3
-
-	/*for (vertex_list_index = 0; vertex_list_index < vertex_list.size() - 1; vertex_list_index++)
+	for (vertex_list_index = 0; vertex_list_index < vertex_list.size() - 1; vertex_list_index++)
 	{
 		bool connected = false;
 		SymEdge* edge = vertex_list[vertex_list_index];
 		while (edge->rot != vertex_list[vertex_list_index])
 		{
-			if (edge->sym()->vertex == vertex_list[vertex_list_index + 1]->vertex)
+			if (edge_contains_vertex(vertex_list[vertex_list_index + 1]->vertex, edge->edge))
 			{
 				connected = true;
 				break;
 			}
+			edge = edge->rot;
 		}
 
 		if (connected)
 			m_edges[edge->edge].constraint_ref.push_back(cref);
 		else
 		{
+			// top
+			SymEdge* ab = new SymEdge();
+			ab->vertex = vertex_list[vertex_list_index]->vertex;
+			ab->edge = add_edge({ vertex_list[vertex_list_index]->vertex, vertex_list[vertex_list_index + 1]->vertex });
+			// magic function that retringulates
 
+			// bottom
+			SymEdge* ba = new SymEdge();
+			ba->vertex = vertex_list[vertex_list_index + 1]->vertex;
+			ba->edge = ab->edge;
+
+			// magic function that retringulates
+
+			// fix sym()
 		}
-	}*/
+	}
 }
 
 std::vector<SymEdge*> Mesh::get_intersecting_edge_list(SymEdge* v1, SymEdge* v2)
@@ -743,6 +766,14 @@ std::vector<SymEdge*> Mesh::get_intersecting_edge_list(SymEdge* v1, SymEdge* v2)
 bool Mesh::face_contains_vertex(int vertex, int face)
 {
 	if (m_faces[face].vert_i[0] == vertex || m_faces[face].vert_i[1] == vertex || m_faces[face].vert_i[2] == vertex)
+		return true;
+	else
+		return false;
+}
+
+bool Mesh::edge_contains_vertex(int vertex, int edge)
+{
+	if (m_edges[edge].edge[0] == vertex || m_edges[edge].edge[1] == vertex)
 		return true;
 	else
 		return false;
