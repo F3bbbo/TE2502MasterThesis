@@ -81,6 +81,9 @@ private:
 	std::vector<SymEdge*> get_intersecting_edge_list(SymEdge* v1, SymEdge* v2);
 	bool face_contains_vertex(int vertex, int face);
 
+	// returns the 
+	SymEdge* triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, int start_i, int end_i, SymEdge* edge_ab);
+
 	// functions to insert and remove objects from the struct vectors
 	int add_vert(glm::vec2 v);
 	void remove_vert(int index);
