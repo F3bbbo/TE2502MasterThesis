@@ -82,7 +82,7 @@ private:
 	bool face_contains_vertex(int vertex, int face);
 
 	// returns the 
-	SymEdge* triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, int start_i, int end_i, SymEdge* edge_ab);
+	void triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, int start_i, int end_i, SymEdge* edge_ab);
 
 	// functions to insert and remove objects from the struct vectors
 	int add_vert(glm::vec2 v);

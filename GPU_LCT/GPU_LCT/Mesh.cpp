@@ -628,7 +628,7 @@ bool Mesh::face_contains_vertex(int vertex, int face)
 		return false;
 }
 
-SymEdge * Mesh::triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, int start_i, int end_i, SymEdge* edge_ab)
+void Mesh::triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, int start_i, int end_i, SymEdge* edge_ab)
 {
 	int list_size = end_i - start_i + 1;
 	if (list_size > 3)
@@ -645,32 +645,55 @@ SymEdge * Mesh::triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** s
 				c = i;
 			}
 		}
-		//create the new symedges of the new triangle
-		SymEdge* edge_1 = new SymEdge();
-		edge_1->vertex = points[end_i]->vertex;
-		edge_1->edge = add_edge({ points[start_i]->vertex, points[c]->vertex });
-		SymEdge* edge_2 = new SymEdge();
-		edge_1->vertex = points[c]->vertex;
-		edge_1->edge = add_edge({ points[c]->vertex, points[end_i]->vertex });
+		SymEdge* edge_1;
+		SymEdge* edge_2;
+		SymEdge* edge_1_sym;
+		SymEdge* edge_2_sym;
+		// check if edge_1 is an outer edge of the untriangulated area
+		if (c - start_i < 2)
+		{
+			edge_1 = points[start_i];
+			edge_1_sym = syms[start_i];
+		}
+		else {
+			//create the new symedges of the new triangle
+			edge_1 = new SymEdge();
+			edge_1->vertex = points[end_i]->vertex;
+			edge_1->edge = add_edge({ points[start_i]->vertex, points[c]->vertex });
+			// create symedge of next recursive call
+			edge_1_sym = new SymEdge();
+			// continue the recursive retriangulation
+			triangulate_pseudopolygon_delaunay(points, syms, start_i, c, edge_1_sym);
+		}
+		// check if edge_2 is an outer edge of the untriangulated area
+		if (end_i - c < 2)
+		{
+			edge_2 = points[c];
+			edge_2_sym = syms[c];
+		}
+		else {
+			//create the new symedges of the new triangle
+			edge_2 = new SymEdge();
+			edge_2->vertex = points[c]->vertex;
+			edge_2->edge = add_edge({ points[c]->vertex, points[end_i]->vertex });
+			// create symedge of next recursive call
+			edge_2_sym = new SymEdge();
+			// continue the recursive retriangulation
+			triangulate_pseudopolygon_delaunay(points, syms, c, end_i, edge_2_sym);
+		}
 		// connect the symedges of the new triangle
 		int face_i = add_face({ edge_ab->vertex, edge_1->vertex, edge_2->vertex });
 		edge_ab->face = face_i;
 		edge_1->face = face_i;
 		edge_2->face = face_i;
-
 		// connect the triangle with its new neighbor symedges
-		SymEdge* edge_1_sym = new SymEdge();
 		edge_1->nxt->rot = edge_1_sym;
-		SymEdge* edge_2_sym = new SymEdge();
 		edge_2->nxt->rot = edge_2_sym;
-
-		// continue the recursive retriangulation
-		triangulate_pseudopolygon_delaunay(points, syms, start_i, c, edge_1_sym);
-		triangulate_pseudopolygon_delaunay(points, syms, c, end_i, edge_2_sym);
-
 		// connect the neighbour triangles with the new triangle
-		edge_1_sym->nxt->rot = edge_1;
-		edge_2_sym->nxt->rot = edge_2;
+		if (edge_1_sym != nullptr)
+			edge_1_sym->nxt->rot = edge_1;
+		if (edge_2_sym != nullptr)
+			edge_2_sym->nxt->rot = edge_2;
 	}
 	else if (list_size == 3) {
 		// combine symedges together to a face
@@ -686,7 +709,7 @@ SymEdge * Mesh::triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** s
 		points[start_i]->nxt->rot = syms[start_i];
 		points[start_i + 1]->nxt->rot = syms[start_i + 1];
 	}
-	return nullptr;
+	return;
 }
 
 int Mesh::add_vert(glm::vec2 v)
