@@ -355,10 +355,11 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 		delete orig_e_sym;
 	}
 
-	flip_edges(std::move(flip_stack));
-	//return the edge that has the new point as vertex 
+	SymEdge* ret_edge = orig_face[0]->nxt->nxt;
+    flip_edges(std::move(flip_stack));
+    //return an edge that has the new point as vertex
 	//and is the first one when rotating ccw
-	return orig_face[0]->nxt->nxt;
+    return ret_edge;
 }
 
 SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
@@ -424,9 +425,10 @@ SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 		flip_stack.push(orig_face[i]);
 	}
 
-	flip_edges(std::move(flip_stack));
-	//return an edge that has the new point as vertex 
-	return orig_face[0]->nxt->nxt;
+	SymEdge* ret_edge = orig_face[0]->nxt->nxt;
+    flip_edges(std::move(flip_stack));
+    //return an edge that has the new point as vertex 
+    return ret_edge;
 }
 
 void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
