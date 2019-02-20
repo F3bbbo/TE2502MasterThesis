@@ -444,7 +444,7 @@ void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 		else if (lr.type == LocateType::VERTEX)
 			vertex_list.push_back(lr.sym_edge);
 	}
-	for (int vertex = 0; vertex < vertex_list.size() - 1; vertex++)
+	for (size_t vertex = 0; vertex < vertex_list.size() - 1; vertex++)
 		insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);
 }
 
@@ -554,6 +554,9 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 	// Step 1
 	std::vector<SymEdge*> edge_list = get_intersecting_edge_list(v1, v2);
 
+	if (edge_list.size() == 0)
+		return;
+
 	std::vector<SymEdge*> vertex_list;
 	vertex_list.push_back(v1);
 	// For each intersected edge we want to, 1. insert points where contraints cross and 2. get a list of all the vertices that intersects the new constrained edge, that includes existing points.
@@ -580,11 +583,12 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 	std::vector<std::vector<SymEdge*>> non_tringulated_faces;
 	std::vector<SymEdge*> top_face_points;
 	std::vector<SymEdge*> bottom_face_points;
-	int vertex_list_index = 0;
+	size_t vertex_list_index = 1;
 	// edge_list now only contains uncontrained edges
-	top_face_points.push_back(v1->nxt->nxt);
-	bottom_face_points.push_back(v1);
-	for (int ei = 0; ei < edge_list.size(); ei++)
+	top_face_points.push_back(edge_list[0]->nxt->nxt);
+	top_face_points.push_back(edge_list[0]->nxt);
+	bottom_face_points.push_back(edge_list[0]->nxt->nxt);
+	for (size_t ei = 0; ei < edge_list.size(); ei++)
 	{
 		if (edge_list[ei]->nxt->sym()->vertex == top_face_points.back()->vertex)
 			top_face_points.push_back(edge_list[ei]->nxt);
@@ -592,16 +596,23 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 		if (edge_list[ei]->nxt->nxt->vertex == bottom_face_points.back()->sym()->vertex)
 			bottom_face_points.push_back(edge_list[ei]->nxt->nxt);
 
+		// remove face to the left of the symedge
+		remove_face(edge_list[ei]->face);
+
 		// Check if the opposite face contains the next segment point
 		if (face_contains_vertex(vertex_list[vertex_list_index]->vertex, edge_list[ei]->sym()->face))
 		{
 			// Insert the last points
 			bottom_face_points.push_back(edge_list[ei]->sym()->nxt);
+			bottom_face_points.push_back(edge_list[ei]->sym()->nxt->nxt);
 			top_face_points.push_back(edge_list[ei]->sym()->nxt->nxt);
 			std::reverse(top_face_points.begin(), top_face_points.end());
 
 			non_tringulated_faces.push_back(std::move(bottom_face_points));
 			non_tringulated_faces.push_back(std::move(top_face_points));
+
+			// remove face to the right of the symedge
+			remove_face(edge_list[ei]->sym()->face);
 
 			vertex_list_index++;
 			if (vertex_list_index == vertex_list.size() - 1 && ei == edge_list.size() - 1)
@@ -615,9 +626,41 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 					bottom_face_points.push_back(edge_list[ei + 1]->nxt->nxt);
 					break;
 				}
+				vertex_list_index++;
 			}
+			remove_face(edge_list[ei]->sym()->face);
 		}
 	}
+
+	// the faces that are contains the soon to be removed the edges are removed above.
+	for (size_t ei = 0; ei < edge_list.size(); ei++)
+	{
+		remove_edge(edge_list[ei]->edge);
+		delete edge_list[ei];
+	}
+
+	// step 3
+
+	/*for (vertex_list_index = 0; vertex_list_index < vertex_list.size() - 1; vertex_list_index++)
+	{
+		bool connected = false;
+		SymEdge* edge = vertex_list[vertex_list_index];
+		while (edge->rot != vertex_list[vertex_list_index])
+		{
+			if (edge->sym()->vertex == vertex_list[vertex_list_index + 1]->vertex)
+			{
+				connected = true;
+				break;
+			}
+		}
+
+		if (connected)
+			m_edges[edge->edge].constraint_ref.push_back(cref);
+		else
+		{
+
+		}
+	}*/
 }
 
 std::vector<SymEdge*> Mesh::get_intersecting_edge_list(SymEdge* v1, SymEdge* v2)
