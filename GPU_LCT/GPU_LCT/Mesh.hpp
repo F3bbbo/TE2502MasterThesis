@@ -4,10 +4,11 @@
 #include <vector>
 #include <array>
 #include <stack>
-#include <queue>
+#include <deque>
 #include <glm/glm.hpp>
 
 #include "data_structures.hpp"
+#include "trig_functions.hpp"
 #include "Log.hpp"
 struct VertexRef
 {
@@ -48,9 +49,9 @@ public:
 	Mesh();
 	~Mesh();
 	void Initialize_as_quad(glm::vec2 scale, glm::vec2 translate);
-	std::vector<VertexRef> const& get_vertex_list();
-	std::vector<Edge> const& get_edge_list();
-	std::vector<Face> const& get_face_list();
+	std::vector<VertexRef> get_vertex_list();
+	std::vector<Edge> get_edge_list();
+	std::vector<Face> get_face_list();
 	std::array<glm::vec2, 2> get_edge(int index);
 	std::array<glm::vec2, 3> get_triangle(int index);
 	glm::vec2 get_vertex(int index);
@@ -62,11 +63,11 @@ public:
 	void insert_constraint(std::vector<glm::vec2>&& points, int cref);
 private:
 	std::vector<VertexRef> m_vertices; // Each vertice keeps track of how many times it is referenced
-	std::queue<int> m_free_verts;
+	std::deque<int> m_free_verts;
 	std::vector<Edge> m_edges; // Edges keeps track of the constraints it represents
-	std::queue<int> m_free_edges;
+	std::deque<int> m_free_edges;
 	std::vector<Face> m_faces; // Indices to vertices that makes up each face
-	std::queue<int> m_free_faces;
+	std::deque<int> m_free_faces;
 	unsigned long int m_iter_id = 0; //Number indication which iteration id the mesh is currently at
 	void next_iter();
 

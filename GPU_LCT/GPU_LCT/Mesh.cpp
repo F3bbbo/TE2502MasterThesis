@@ -1,6 +1,4 @@
 #include "Mesh.hpp"
-#include "trig_functions.hpp"
-#include <stack>
 
 Mesh::Mesh()
 {
@@ -84,19 +82,43 @@ void Mesh::Initialize_as_quad(glm::vec2 scale = glm::vec2{ 1.f, 1.f }, glm::vec2
 	first = sym_edges[0];
 }
 
-std::vector<VertexRef> const & Mesh::get_vertex_list()
+std::vector<VertexRef> Mesh::get_vertex_list()
 {
 	return m_vertices;
 }
 
-std::vector<Edge> const & Mesh::get_edge_list()
+std::vector<Edge> Mesh::get_edge_list()
 {
-	return m_edges;
+	if (m_free_edges.size() == 0)
+		return m_edges;
+	else
+	{
+		std::vector<Edge> edges;
+		for (size_t ei = 0; ei < m_edges.size(); ei++)
+		{
+			auto it = std::find(m_free_edges.begin(), m_free_edges.end(), (int)ei); // The cast from unsigned to signed can be a problem if we have more than 2,147,483,647 edges .... or something like that
+			if (it == m_free_edges.end())
+				edges.push_back(m_edges[ei]);
+		}
+		return edges;
+	}
 }
 
-std::vector<Face> const & Mesh::get_face_list()
+std::vector<Face> Mesh::get_face_list()
 {
-	return m_faces;
+	if (m_free_faces.size() == 0)
+		return m_faces;
+	else
+	{
+		std::vector<Face> faces;
+		for (size_t fi = 0; fi < m_faces.size(); fi++)
+		{
+			auto it = std::find(m_free_faces.begin(), m_free_faces.end(), (int)fi); // The cast from unsigned to signed can be a problem if we have more than 2,147,483,647 edges .... or something like that
+			if (it == m_free_faces.end())
+				faces.push_back(m_faces[fi]);
+		}
+		return faces;
+	}
 }
 
 std::array<glm::vec2, 2> Mesh::get_edge(int index)
@@ -819,7 +841,7 @@ int Mesh::add_vert(glm::vec2 v)
 	}
 	else {
 		index = m_free_verts.front();
-		m_free_verts.pop();
+		m_free_verts.pop_front();
 		m_vertices[index].ref_counter = 0;
 		m_vertices[index].vertice = v;
 	}
@@ -829,7 +851,7 @@ int Mesh::add_vert(glm::vec2 v)
 void Mesh::remove_vert(int index)
 {
 	if (m_vertices[index].ref_counter <= 1) {
-		m_free_verts.push(index);
+		m_free_verts.push_back(index);
 	}
 	else {
 		m_vertices[index].ref_counter--;
@@ -850,7 +872,7 @@ int Mesh::add_edge(Edge e)
 	}
 	else {
 		index = m_free_edges.front();
-		m_free_edges.pop();
+		m_free_edges.pop_front();
 		m_edges[index].constraint_ref = e.constraint_ref;
 		m_edges[index].edge = e.edge;
 	}
@@ -859,7 +881,7 @@ int Mesh::add_edge(Edge e)
 
 void Mesh::remove_edge(int index)
 {
-	m_free_edges.push(index);
+	m_free_edges.push_back(index);
 }
 
 int Mesh::add_face(glm::ivec3 f)
@@ -871,7 +893,7 @@ int Mesh::add_face(glm::ivec3 f)
 	}
 	else {
 		index = m_free_faces.front();
-		m_free_faces.pop();
+		m_free_faces.pop_front();
 		m_faces[index].vert_i = f;
 		m_faces[index].explored = 0;
 
@@ -881,6 +903,6 @@ int Mesh::add_face(glm::ivec3 f)
 
 void Mesh::remove_face(int index)
 {
-	m_free_faces.push(index);
+	m_free_faces.push_back(index);
 }
 
