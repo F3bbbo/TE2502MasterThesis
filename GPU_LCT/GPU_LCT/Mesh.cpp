@@ -549,19 +549,72 @@ bool Mesh::is_delaunay(SymEdge* edge)
 
 void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 {
+	// Step 1
 	std::vector<SymEdge*> edge_list = get_intersecting_edge_list(v1, v2);
-	LOG(std::to_string(edge_list.size()));
 
-	for (auto edge : edge_list)
+	std::vector<SymEdge*> vertex_list;
+	vertex_list.push_back(v1);
+	// For each intersected edge we want to, 1. insert points where contraints cross and 2. get a list of all the vertices that intersects the new constrained edge, that includes existing points.
+	for (std::vector<SymEdge*>::iterator edge_it = edge_list.begin(); edge_it != edge_list.end(); edge_it++ )
 	{
-		// TODO: Enable this check for when we are finished with the insertion
+		if (m_edges[(*edge_it)->edge].constraint_ref.size() > 0)
+		{
+			glm::ivec2 edge_index = m_edges[(*edge_it)->edge].edge;
+			glm::vec2 intersection_point = line_line_intersection_point(m_vertices[edge_index.x].vertice, m_vertices[v1->vertex].vertice, m_vertices[edge_index.y].vertice, m_vertices[v2->vertex].vertice);
+			LocateRes point_location = Locate_point(intersection_point);
+			if (point_location.type == LocateType::EDGE)
+			{
+				// If we insert a new point the old edge becomes invalid and needs to be removed
+				vertex_list.push_back(Insert_point_in_edge(intersection_point, (*edge_it)));
+				edge_it = edge_list.erase(edge_it);
+			}
+			else if (point_location.type == LocateType::VERTEX)
+				vertex_list.push_back(point_location.sym_edge);
+		}
+	}
+	vertex_list.push_back(v2);
 
-		/*if (m_edges[edge->edge].constraint_ref.size() > 0)
-		{*/
-			auto edge_index = m_edges[edge->edge].edge;
-			auto intersection_point = line_line_intersection_point(m_vertices[edge_index.x].vertice, m_vertices[v1->vertex].vertice, m_vertices[edge_index.y].vertice, m_vertices[v2->vertex].vertice);
-			Insert_point_in_edge(intersection_point, edge);
-		/*}*/
+	// Step 2
+	std::vector<std::vector<SymEdge*>> non_tringulated_faces;
+	std::vector<SymEdge*> top_face_points;
+	std::vector<SymEdge*> bottom_face_points;
+	int vertex_list_index = 0;
+	// edge_list now only contains uncontrained edges
+	top_face_points.push_back(v1->nxt->nxt);
+	bottom_face_points.push_back(v1);
+	for (int ei = 0; ei < edge_list.size(); ei++)
+	{
+		if (edge_list[ei]->nxt->sym()->vertex == top_face_points.back()->vertex)
+			top_face_points.push_back(edge_list[ei]->nxt);
+		
+		if (edge_list[ei]->nxt->nxt->vertex == bottom_face_points.back()->sym()->vertex)
+			bottom_face_points.push_back(edge_list[ei]->nxt->nxt);
+
+		// Check if the opposite face contains the next segment point
+		if (face_contains_vertex(vertex_list[vertex_list_index]->vertex, edge_list[ei]->sym()->face))
+		{
+			// Insert the last points
+			bottom_face_points.push_back(edge_list[ei]->sym()->nxt);
+			top_face_points.push_back(edge_list[ei]->sym()->nxt->nxt);
+			std::reverse(top_face_points.begin(), top_face_points.end());
+
+			non_tringulated_faces.push_back(std::move(bottom_face_points));
+			non_tringulated_faces.push_back(std::move(top_face_points));
+
+			vertex_list_index++;
+			if (vertex_list_index == vertex_list.size() - 1 && ei == edge_list.size() - 1)
+				break; // we have reached the last segment point and checked all intersected edges, we are done.
+
+			while (vertex_list_index < vertex_list.size() - 1)
+			{
+				if (face_contains_vertex(vertex_list[vertex_list_index]->vertex, edge_list[ei + 1]->face))
+				{
+					top_face_points.push_back(edge_list[ei + 1]->nxt);
+					bottom_face_points.push_back(edge_list[ei + 1]->nxt->nxt);
+					break;
+				}
+			}
+		}
 	}
 }
 
