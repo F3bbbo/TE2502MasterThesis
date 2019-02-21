@@ -1,6 +1,4 @@
 #include "Mesh.hpp"
-#include "trig_functions.hpp"
-#include <stack>
 
 Mesh::Mesh()
 {
@@ -84,19 +82,43 @@ void Mesh::Initialize_as_quad(glm::vec2 scale = glm::vec2{ 1.f, 1.f }, glm::vec2
 	first = sym_edges[0];
 }
 
-std::vector<VertexRef> const & Mesh::get_vertex_list()
+std::vector<VertexRef> Mesh::get_vertex_list()
 {
 	return m_vertices;
 }
 
-std::vector<Edge> const & Mesh::get_edge_list()
+std::vector<Edge> Mesh::get_edge_list()
 {
-	return m_edges;
+	if (m_free_edges.size() == 0)
+		return m_edges;
+	else
+	{
+		std::vector<Edge> edges;
+		for (size_t ei = 0; ei < m_edges.size(); ei++)
+		{
+			auto it = std::find(m_free_edges.begin(), m_free_edges.end(), (int)ei); // The cast from unsigned to signed can be a problem if we have more than 2,147,483,647 edges .... or something like that
+			if (it == m_free_edges.end())
+				edges.push_back(m_edges[ei]);
+		}
+		return edges;
+	}
 }
 
-std::vector<Face> const & Mesh::get_face_list()
+std::vector<Face> Mesh::get_face_list()
 {
-	return m_faces;
+	if (m_free_faces.size() == 0)
+		return m_faces;
+	else
+	{
+		std::vector<Face> faces;
+		for (size_t fi = 0; fi < m_faces.size(); fi++)
+		{
+			auto it = std::find(m_free_faces.begin(), m_free_faces.end(), (int)fi); // The cast from unsigned to signed can be a problem if we have more than 2,147,483,647 edges .... or something like that
+			if (it == m_free_faces.end())
+				faces.push_back(m_faces[fi]);
+		}
+		return faces;
+	}
 }
 
 std::array<glm::vec2, 2> Mesh::get_edge(int index)
@@ -355,10 +377,11 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 		delete orig_e_sym;
 	}
 
-	flip_edges(std::move(flip_stack));
-	//return the edge that has the new point as vertex 
+	SymEdge* ret_edge = orig_face[0]->nxt->nxt;
+    flip_edges(std::move(flip_stack));
+    //return an edge that has the new point as vertex
 	//and is the first one when rotating ccw
-	return orig_face[0]->nxt->nxt;
+    return ret_edge;
 }
 
 SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
@@ -424,9 +447,10 @@ SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 		flip_stack.push(orig_face[i]);
 	}
 
-	flip_edges(std::move(flip_stack));
-	//return an edge that has the new point as vertex 
-	return orig_face[0]->nxt->nxt;
+	SymEdge* ret_edge = orig_face[0]->nxt->nxt;
+    flip_edges(std::move(flip_stack));
+    //return an edge that has the new point as vertex 
+    return ret_edge;
 }
 
 void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
@@ -442,7 +466,7 @@ void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 		else if (lr.type == LocateType::VERTEX)
 			vertex_list.push_back(lr.sym_edge);
 	}
-	for (int vertex = 0; vertex < vertex_list.size() - 1; vertex++)
+	for (size_t vertex = 0; vertex < vertex_list.size() - 1; vertex++)
 		insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);
 }
 
@@ -549,19 +573,146 @@ bool Mesh::is_delaunay(SymEdge* edge)
 
 void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 {
+	// Step 1
 	std::vector<SymEdge*> edge_list = get_intersecting_edge_list(v1, v2);
-	LOG(std::to_string(edge_list.size()));
 
-	for (auto edge : edge_list)
+	if (edge_list.size() == 0)
+		return;
+
+	std::vector<SymEdge*> vertex_list;
+	vertex_list.push_back(v1);
+	// For each intersected edge we want to, 1. insert points where contraints cross and 2. get a list of all the vertices that intersects the new constrained edge, that includes existing points.
+	for (std::vector<SymEdge*>::iterator edge_it = edge_list.begin(); edge_it != edge_list.end(); edge_it++ )
 	{
-		// TODO: Enable this check for when we are finished with the insertion
+		if (m_edges[(*edge_it)->edge].constraint_ref.size() > 0)
+		{
+			glm::ivec2 edge_index = m_edges[(*edge_it)->edge].edge;
+			glm::vec2 intersection_point = line_line_intersection_point(m_vertices[edge_index.x].vertice, m_vertices[v1->vertex].vertice, m_vertices[edge_index.y].vertice, m_vertices[v2->vertex].vertice);
+			LocateRes point_location = Locate_point(intersection_point);
+			if (point_location.type == LocateType::EDGE)
+			{
+				// If we insert a new point the old edge becomes invalid and needs to be removed
+				vertex_list.push_back(Insert_point_in_edge(intersection_point, (*edge_it)));
+				edge_it = edge_list.erase(edge_it);
+			}
+			else if (point_location.type == LocateType::VERTEX)
+				vertex_list.push_back(point_location.sym_edge);
+		}
+	}
+	vertex_list.push_back(v2);
 
-		/*if (m_edges[edge->edge].constraint_ref.size() > 0)
-		{*/
-		auto edge_index = m_edges[edge->edge].edge;
-		auto intersection_point = line_line_intersection_point(m_vertices[edge_index.x].vertice, m_vertices[v1->vertex].vertice, m_vertices[edge_index.y].vertice, m_vertices[v2->vertex].vertice);
-		Insert_point_in_edge(intersection_point, edge);
-		/*}*/
+	// Step 2
+	std::vector<std::vector<SymEdge*>> non_tringulated_faces;
+	std::vector<SymEdge*> top_face_points;
+	std::vector<SymEdge*> bottom_face_points;
+	size_t vertex_list_index = 1;
+	// edge_list now only contains uncontrained edges
+	top_face_points.push_back(edge_list[0]->nxt->nxt);
+	top_face_points.push_back(edge_list[0]->nxt);
+	bottom_face_points.push_back(edge_list[0]->nxt->nxt);
+	for (size_t ei = 0; ei < edge_list.size(); ei++)
+	{
+		if (edge_list[ei]->nxt->sym()->vertex == top_face_points.back()->vertex)
+			top_face_points.push_back(edge_list[ei]->nxt);
+		
+		if (edge_list[ei]->nxt->nxt->vertex == bottom_face_points.back()->sym()->vertex)
+			bottom_face_points.push_back(edge_list[ei]->nxt->nxt);
+
+		// remove face to the left of the symedge
+		remove_face(edge_list[ei]->face);
+
+		// Check if the opposite face contains the next segment point
+		if (face_contains_vertex(vertex_list[vertex_list_index]->vertex, edge_list[ei]->sym()->face))
+		{
+			// Insert the last points
+			bottom_face_points.push_back(edge_list[ei]->sym()->nxt);
+			bottom_face_points.push_back(edge_list[ei]->sym()->nxt->nxt);
+			top_face_points.push_back(edge_list[ei]->sym()->nxt->nxt);
+			std::reverse(top_face_points.begin(), top_face_points.end());
+
+			// store symedges that forms a face
+			non_tringulated_faces.push_back(std::move(bottom_face_points));
+			std::vector<SymEdge*> bottom_face_points_syms;
+			bottom_face_points_syms.reserve(non_tringulated_faces.back().size());
+			for (auto symedge : non_tringulated_faces.back())
+				bottom_face_points_syms.push_back(symedge->sym());
+			non_tringulated_faces.push_back(std::move(bottom_face_points_syms));
+
+
+			non_tringulated_faces.push_back(std::move(top_face_points));
+			std::vector<SymEdge*> top_face_points_syms;
+			top_face_points_syms.reserve(non_tringulated_faces.back().size());
+			for (auto symedge : non_tringulated_faces.back())
+				top_face_points_syms.push_back(symedge->sym());
+			non_tringulated_faces.push_back(std::move(top_face_points_syms));
+
+			// remove face to the right of the symedge
+			remove_face(edge_list[ei]->sym()->face);
+
+			vertex_list_index++;
+			if (vertex_list_index == vertex_list.size() - 1 && ei == edge_list.size() - 1)
+				break; // we have reached the last segment point and checked all intersected edges, we are done.
+
+			while (vertex_list_index < vertex_list.size() - 1)
+			{
+				if (face_contains_vertex(vertex_list[vertex_list_index]->vertex, edge_list[ei + 1]->face))
+				{
+					top_face_points.push_back(edge_list[ei + 1]->nxt);
+					bottom_face_points.push_back(edge_list[ei + 1]->nxt->nxt);
+					break;
+				}
+				vertex_list_index++;
+			}
+			//remove_face(edge_list[ei]->sym()->face);
+		}
+	}
+
+	// the faces that are contains the soon to be removed the edges are removed above.
+	for (size_t ei = 0; ei < edge_list.size(); ei++)
+	{
+		remove_edge(edge_list[ei]->edge);
+		delete edge_list[ei];
+	}
+
+	// step 3
+	for (vertex_list_index = 0; vertex_list_index < vertex_list.size() - 1; vertex_list_index++)
+	{
+		bool connected = false;
+		SymEdge* edge = vertex_list[vertex_list_index];
+		while (edge->rot != vertex_list[vertex_list_index])
+		{
+			if (edge_contains_vertex(vertex_list[vertex_list_index + 1]->vertex, edge->edge))
+			{
+				connected = true;
+				break;
+			}
+			edge = edge->rot;
+		}
+
+		if (connected)
+			m_edges[edge->edge].constraint_ref.push_back(cref);
+		else
+		{
+			// bottom
+			SymEdge* ba = new SymEdge();
+			ba->vertex = vertex_list[vertex_list_index + 1]->vertex;
+			ba->edge = add_edge({ vertex_list[vertex_list_index]->vertex, vertex_list[vertex_list_index + 1]->vertex });
+			triangulate_pseudopolygon_delaunay(
+				non_tringulated_faces[vertex_list_index * 4].data(),
+				non_tringulated_faces[vertex_list_index * 4 + 1].data(),
+				0, non_tringulated_faces[vertex_list_index * 4].size() - 1, ba);
+
+			// top
+			SymEdge* ab = new SymEdge();
+			ab->vertex = vertex_list[vertex_list_index]->vertex;
+			ab->edge = ba->edge;
+			triangulate_pseudopolygon_delaunay(
+				non_tringulated_faces[vertex_list_index * 4 + 2].data(),
+				non_tringulated_faces[vertex_list_index * 4 + 3].data(),
+				0, non_tringulated_faces[vertex_list_index * 4 + 2].size() - 1, ab);
+
+			// fix sym()
+		}
 	}
 }
 
@@ -623,6 +774,14 @@ std::vector<SymEdge*> Mesh::get_intersecting_edge_list(SymEdge* v1, SymEdge* v2)
 bool Mesh::face_contains_vertex(int vertex, int face)
 {
 	if (m_faces[face].vert_i[0] == vertex || m_faces[face].vert_i[1] == vertex || m_faces[face].vert_i[2] == vertex)
+		return true;
+	else
+		return false;
+}
+
+bool Mesh::edge_contains_vertex(int vertex, int edge)
+{
+	if (m_edges[edge].edge[0] == vertex || m_edges[edge].edge[1] == vertex)
 		return true;
 	else
 		return false;
@@ -725,7 +884,7 @@ int Mesh::add_vert(glm::vec2 v)
 	}
 	else {
 		index = m_free_verts.front();
-		m_free_verts.pop();
+		m_free_verts.pop_front();
 		m_vertices[index].ref_counter = 0;
 		m_vertices[index].vertice = v;
 	}
@@ -735,7 +894,7 @@ int Mesh::add_vert(glm::vec2 v)
 void Mesh::remove_vert(int index)
 {
 	if (m_vertices[index].ref_counter <= 1) {
-		m_free_verts.push(index);
+		m_free_verts.push_back(index);
 	}
 	else {
 		m_vertices[index].ref_counter--;
@@ -756,7 +915,7 @@ int Mesh::add_edge(Edge e)
 	}
 	else {
 		index = m_free_edges.front();
-		m_free_edges.pop();
+		m_free_edges.pop_front();
 		m_edges[index].constraint_ref = e.constraint_ref;
 		m_edges[index].edge = e.edge;
 	}
@@ -765,7 +924,7 @@ int Mesh::add_edge(Edge e)
 
 void Mesh::remove_edge(int index)
 {
-	m_free_edges.push(index);
+	m_free_edges.push_back(index);
 }
 
 int Mesh::add_face(glm::ivec3 f)
@@ -777,7 +936,7 @@ int Mesh::add_face(glm::ivec3 f)
 	}
 	else {
 		index = m_free_faces.front();
-		m_free_faces.pop();
+		m_free_faces.pop_front();
 		m_faces[index].vert_i = f;
 		m_faces[index].explored = 0;
 
@@ -787,6 +946,5 @@ int Mesh::add_face(glm::ivec3 f)
 
 void Mesh::remove_face(int index)
 {
-	m_free_faces.push(index);
+	m_free_faces.push_back(index);
 }
-
