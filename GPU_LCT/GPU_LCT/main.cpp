@@ -10,7 +10,7 @@ int main()
 
 	Mesh m;
 	m.Initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
-	/*glm::vec2 point = { 0.4f, -0.4f };
+	glm::vec2 point = { 0.4f, -0.4f };
 	LocateRes lr = m.Locate_point(point);
 	m.Insert_point_in_face(point, lr.sym_edge);
 	point = { -0.2f, 0.1f };
@@ -20,15 +20,15 @@ int main()
 	lr = m.Locate_point(point);
 	m.Insert_point_in_face(point, lr.sym_edge);
 
-	point = { 0.f, 0.0f };
-	lr = m.Locate_point(point);
-	m.Insert_point_in_edge(point, lr.sym_edge);
+	//point = { 0.f, 0.0f };
+	//lr = m.Locate_point(point);
+	//m.Insert_point_in_edge(point, lr.sym_edge);
 
 	point = { 0.f, -0.5f };
 	lr = m.Locate_point(point);
-	m.Insert_point_in_edge(point, lr.sym_edge);*/
+	m.Insert_point_in_edge(point, lr.sym_edge);
 
-	std::vector<glm::vec2> points = { {-0.4f, 0.f}, {0.2f, 0.f} };
+	std::vector<glm::vec2> points = { {-0.5f, -0.5f}, {0.5f, 0.5f} };
 
 	m.insert_constraint(std::move(points), 0);
 

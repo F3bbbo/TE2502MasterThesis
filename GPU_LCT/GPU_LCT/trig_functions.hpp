@@ -27,7 +27,7 @@ glm::vec2 point_segment_projection(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2);
 
 float line_length(glm::vec2 line);
 
-glm::vec2 line_line_intersection_point(glm::vec2 u, glm::vec2 v, glm::vec2 w, glm::vec2 z);
+glm::vec2 line_line_intersection_point(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 d, float epsi = EPSILON);
 
 // the three first points belong to the triangle and are ccw
 // the last point is the point being tested

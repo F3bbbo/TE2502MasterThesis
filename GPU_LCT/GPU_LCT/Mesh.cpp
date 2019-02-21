@@ -227,6 +227,13 @@ LocateRes Mesh::Epsilon_walk(SymEdge * current_edge, const glm::vec2 & p)
 	for (unsigned int i = 0; i < 3; i++) {
 		//check against edge vertex
 		if (point_equal(p, m_vertices[current_edge->vertex].vertice)) {
+			// find the symedge that can be rotated to find all the other symedges with the same vertex
+			SymEdge* start_edge = current_edge;
+			while (current_edge->sym() != nullptr) {
+				current_edge = current_edge->sym()->nxt;
+				if (current_edge == start_edge)
+					break;
+			}
 			res.hit_index = current_edge->vertex;
 			res.sym_edge = current_edge;
 			res.type = LocateType::VERTEX;
@@ -466,22 +473,24 @@ void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 		else if (lr.type == LocateType::VERTEX)
 			vertex_list.push_back(lr.sym_edge);
 	}
-	for (size_t vertex = 0; vertex < vertex_list.size() - 1; vertex++)
-		insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);
+	/*for (size_t vertex = 0; vertex < vertex_list.size() - 1; vertex++)
+		insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);*/
 }
 
 void Mesh::flip_edges(std::stack<SymEdge*>&& edge_indices)
 {
 	while (edge_indices.size() > 0)
 	{
-		SymEdge* sym_edge = edge_indices.top();
+		SymEdge* sym_edge = edge_indices.top()->nxt->sym();
 		edge_indices.pop();
+		if (sym_edge == nullptr)
+			continue;
 		SymEdge* sym_edge_sym = sym_edge->sym();
 
 		if (m_edges[sym_edge->edge].constraint_ref.size() == 0 && !is_delaunay(sym_edge))
 		{
-			edge_indices.push(sym_edge_sym->nxt);
-			edge_indices.push(edge_indices.top()->nxt);
+			edge_indices.push(sym_edge->nxt);
+			edge_indices.push(sym_edge->nxt->nxt);
 
 			// Flip SymEdge begins here
 			SymEdge* e1 = sym_edge->nxt;
@@ -587,7 +596,7 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 		if (m_edges[(*edge_it)->edge].constraint_ref.size() > 0)
 		{
 			glm::ivec2 edge_index = m_edges[(*edge_it)->edge].edge;
-			glm::vec2 intersection_point = line_line_intersection_point(m_vertices[edge_index.x].vertice, m_vertices[v1->vertex].vertice, m_vertices[edge_index.y].vertice, m_vertices[v2->vertex].vertice);
+			glm::vec2 intersection_point = line_line_intersection_point(m_vertices[edge_index.x].vertice, m_vertices[edge_index.y].vertice, m_vertices[v1->vertex].vertice, m_vertices[v2->vertex].vertice);
 			LocateRes point_location = Locate_point(intersection_point);
 			if (point_location.type == LocateType::EDGE)
 			{
@@ -612,10 +621,10 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 	bottom_face_points.push_back(edge_list[0]->nxt->nxt);
 	for (size_t ei = 0; ei < edge_list.size(); ei++)
 	{
-		if (edge_list[ei]->nxt->sym()->vertex == top_face_points.back()->vertex)
+		if (edge_list[ei]->nxt->nxt->vertex == top_face_points.back()->vertex)
 			top_face_points.push_back(edge_list[ei]->nxt);
 		
-		if (edge_list[ei]->nxt->nxt->vertex == bottom_face_points.back()->sym()->vertex)
+		if (edge_list[ei]->nxt->nxt->vertex == bottom_face_points.back()->nxt->vertex)
 			bottom_face_points.push_back(edge_list[ei]->nxt->nxt);
 
 		// remove face to the left of the symedge
@@ -679,7 +688,7 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 	{
 		bool connected = false;
 		SymEdge* edge = vertex_list[vertex_list_index];
-		while (edge->rot != vertex_list[vertex_list_index])
+		while (edge != nullptr && edge->rot != vertex_list[vertex_list_index])
 		{
 			if (edge_contains_vertex(vertex_list[vertex_list_index + 1]->vertex, edge->edge))
 			{
@@ -696,7 +705,7 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 			// bottom
 			SymEdge* ba = new SymEdge();
 			ba->vertex = vertex_list[vertex_list_index + 1]->vertex;
-			ba->edge = add_edge({ vertex_list[vertex_list_index]->vertex, vertex_list[vertex_list_index + 1]->vertex });
+			ba->edge = add_edge({ { vertex_list[vertex_list_index]->vertex, vertex_list[vertex_list_index + 1]->vertex }, {cref} });
 			triangulate_pseudopolygon_delaunay(
 				non_tringulated_faces[vertex_list_index * 4].data(),
 				non_tringulated_faces[vertex_list_index * 4 + 1].data(),
@@ -711,7 +720,8 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 				non_tringulated_faces[vertex_list_index * 4 + 3].data(),
 				0, non_tringulated_faces[vertex_list_index * 4 + 2].size() - 1, ab);
 
-			// fix sym()
+			ab->nxt->rot = ba;
+			ba->nxt->rot = ab;
 		}
 	}
 }
@@ -724,7 +734,7 @@ std::vector<SymEdge*> Mesh::get_intersecting_edge_list(SymEdge* v1, SymEdge* v2)
 	// find the local starting triangle
 	while (true)
 	{
-		if (face_contains_vertex(v2->vertex, triangle->face) || triangle->rot == v1 || triangle->rot == nullptr)
+		if (face_contains_vertex(v2->vertex, triangle->face))
 			return edge_list; // should be empty
 
 		// If not at endpoint, check to which edge we should walk
@@ -735,6 +745,10 @@ std::vector<SymEdge*> Mesh::get_intersecting_edge_list(SymEdge* v1, SymEdge* v2)
 			triangle = triangle->nxt->sym()->nxt;
 			break;
 		}
+
+		if (triangle->rot == v1 || triangle->rot == nullptr)
+			return edge_list; // should be empty
+
 		triangle = triangle->rot;
 	}
 
@@ -792,7 +806,7 @@ void Mesh::triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, 
 	int list_size = end_i - start_i + 1;
 	if (list_size > 3)
 	{
-		int c = start_i;
+		int c = start_i + 1;
 		for (unsigned int i = c + 1; i <= end_i; i++) {
 			// Check if other point is inside the circumference of the triangle 
 			// created by the current best point.
@@ -821,6 +835,8 @@ void Mesh::triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, 
 			edge_1->edge = add_edge({ points[start_i]->vertex, points[c]->vertex });
 			// create symedge of next recursive call
 			edge_1_sym = new SymEdge();
+			edge_1_sym->vertex = points[c]->vertex;
+			edge_1_sym->edge = edge_1->edge;
 			// continue the recursive retriangulation
 			triangulate_pseudopolygon_delaunay(points, syms, start_i, c, edge_1_sym);
 		}
@@ -837,10 +853,15 @@ void Mesh::triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, 
 			edge_2->edge = add_edge({ points[c]->vertex, points[end_i]->vertex });
 			// create symedge of next recursive call
 			edge_2_sym = new SymEdge();
+			edge_2_sym->vertex = points[end_i]->vertex;
+			edge_2_sym->edge = edge_2->edge;
 			// continue the recursive retriangulation
 			triangulate_pseudopolygon_delaunay(points, syms, c, end_i, edge_2_sym);
 		}
 		// connect the symedges of the new triangle
+		edge_ab->nxt = edge_1;
+		edge_1->nxt = edge_2;
+		edge_2->nxt = edge_ab;
 		int face_i = add_face({ edge_ab->vertex, edge_1->vertex, edge_2->vertex });
 		edge_ab->face = face_i;
 		edge_1->face = face_i;

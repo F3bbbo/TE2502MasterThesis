@@ -72,22 +72,47 @@ float line_length(glm::vec2 line)
 	return glm::sqrt(line.x * line.x + line.y * line.y);
 }
 
-glm::vec2 line_line_intersection_point(glm::vec2 u, glm::vec2 v, glm::vec2 w, glm::vec2 z)
+glm::vec2 line_line_intersection_point(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 d, float epsi)
 {
-	// http://demonstrations.wolfram.com/IntersectionOfTwoLinesUsingVectors/
-	if (glm::dot(w - u, z - v) < 0.f)
+	// Line AB represented as a1x + b1y = c1 
+	float a1 = b.y - a.y;
+	float b1 = a.x - b.x;
+	float c1 = a1 * a.x + b1 * a.y;
+
+	// Line CD represented as a2x + b2y = c2 
+	float a2 = d.y - c.y;
+	float b2 = c.x - d.x;
+	float c2 = a2 * (c.x) + b2 * (c.y);
+
+	float determinant = a1 * b2 - a2 * b1;
+
+	if ( std::fabs(determinant) < epsi )
 	{
-		auto tmp = u;
-		u = w;
-		w = tmp;
+		// The lines are parallel. This is simplified 
+		// by returning a pair of FLT_MAX 
+		return { FLT_MAX, FLT_MAX };
+	}
+	else
+	{
+		float x = (b2 * c1 - b1 * c2) / determinant;
+		float y = (a1 * c2 - a2 * c1) / determinant;
+		return { x, y };
 	}
 
+	//// http://demonstrations.wolfram.com/IntersectionOfTwoLinesUsingVectors/
+	//if (glm::dot(w - u, z - v) < 0.f)
+	//{
+	//	auto tmp = u;
+	//	u = w;
+	//	w = tmp;
+	//}
 
-	float alpha = glm::acos(glm::dot(w - u, z - v));
-	glm::vec2 uv = v - u;
-	float beta = glm::acos(glm::dot(uv, w - u));
 
-	return v + line_length(uv) * ((sin(alpha) * (z - v)) / (sin(beta) * line_length(z - v)));
+	//float beta = glm::acos(glm::dot(w - u, z - v));
+	//glm::vec2 uv = v - u;
+	//float alpha = glm::acos(glm::dot(uv, z - v));
+
+	//return v + line_length(uv) * ((sin(alpha) * (z - v)) / (sin(beta) * line_length(z - v)));
 }
 
 bool point_in_circle(std::array<glm::vec2, 4> points)
