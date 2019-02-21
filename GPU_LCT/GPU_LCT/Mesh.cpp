@@ -558,9 +558,9 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 
 		/*if (m_edges[edge->edge].constraint_ref.size() > 0)
 		{*/
-			auto edge_index = m_edges[edge->edge].edge;
-			auto intersection_point = line_line_intersection_point(m_vertices[edge_index.x].vertice, m_vertices[v1->vertex].vertice, m_vertices[edge_index.y].vertice, m_vertices[v2->vertex].vertice);
-			Insert_point_in_edge(intersection_point, edge);
+		auto edge_index = m_edges[edge->edge].edge;
+		auto intersection_point = line_line_intersection_point(m_vertices[edge_index.x].vertice, m_vertices[v1->vertex].vertice, m_vertices[edge_index.y].vertice, m_vertices[v2->vertex].vertice);
+		Insert_point_in_edge(intersection_point, edge);
 		/*}*/
 	}
 }
@@ -708,6 +708,10 @@ void Mesh::triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, 
 		//fix sym to outer symedges
 		points[start_i]->nxt->rot = syms[start_i];
 		points[start_i + 1]->nxt->rot = syms[start_i + 1];
+		if (syms[start_i] != nullptr)
+			syms[start_i]->nxt->rot = points[start_i];
+		if (syms[start_i + 1] != nullptr)
+			syms[start_i + 1]->nxt->rot = points[start_i + 1];
 	}
 	return;
 }
