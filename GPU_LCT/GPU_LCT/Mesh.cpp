@@ -353,8 +353,8 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 		// Delete old symedge 
 		delete orig_e;
 		//add edges to flip stack
-		flip_stack.push(orig_face[0]);
-		flip_stack.push(orig_face[1]);
+		flip_stack.push(orig_face[0]->nxt->nxt);
+		flip_stack.push(orig_face[1]->nxt->nxt);
 	}
 	else {
 		for (unsigned int i = 0; i < orig_face.size(); i++)
@@ -451,7 +451,7 @@ SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 		// connect orignal edge with its sym
 		orig_face[i]->nxt->rot = orig_sym[i];
 		// add edge to stack
-		flip_stack.push(orig_face[i]);
+		flip_stack.push(orig_face[i]->nxt->nxt);
 	}
 
 	SymEdge* ret_edge = orig_face[0]->nxt->nxt;
@@ -473,8 +473,8 @@ void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 		else if (lr.type == LocateType::VERTEX)
 			vertex_list.push_back(lr.sym_edge);
 	}
-	/*for (size_t vertex = 0; vertex < vertex_list.size() - 1; vertex++)
-		insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);*/
+	for (size_t vertex = 0; vertex < vertex_list.size() - 1; vertex++)
+		insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);
 }
 
 void Mesh::flip_edges(std::stack<SymEdge*>&& edge_indices)
