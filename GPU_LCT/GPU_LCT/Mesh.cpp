@@ -632,16 +632,19 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 
 			// store symedges that forms a face
 			non_tringulated_faces.push_back(std::move(bottom_face_points));
-			non_tringulated_faces.push_back(std::move(top_face_points));
+			std::vector<SymEdge*> bottom_face_points_syms;
+			bottom_face_points_syms.reserve(non_tringulated_faces.back().size());
+			for (auto symedge : non_tringulated_faces.back())
+				bottom_face_points_syms.push_back(symedge->sym());
+			non_tringulated_faces.push_back(std::move(bottom_face_points_syms));
 
-			for (auto symedge : bottom_face_points)
-				symedge = symedge->sym();
-			for (auto symedge : top_face_points)
-				symedge = symedge->sym();
 
-			// store the symedges sym that forms a face
-			non_tringulated_faces.push_back(std::move(bottom_face_points));
 			non_tringulated_faces.push_back(std::move(top_face_points));
+			std::vector<SymEdge*> top_face_points_syms;
+			top_face_points_syms.reserve(non_tringulated_faces.back().size());
+			for (auto symedge : non_tringulated_faces.back())
+				top_face_points_syms.push_back(symedge->sym());
+			non_tringulated_faces.push_back(std::move(top_face_points_syms));
 
 			// remove face to the right of the symedge
 			remove_face(edge_list[ei]->sym()->face);
@@ -660,7 +663,7 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 				}
 				vertex_list_index++;
 			}
-			remove_face(edge_list[ei]->sym()->face);
+			//remove_face(edge_list[ei]->sym()->face);
 		}
 	}
 
@@ -690,18 +693,23 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 			m_edges[edge->edge].constraint_ref.push_back(cref);
 		else
 		{
-			// top
-			SymEdge* ab = new SymEdge();
-			ab->vertex = vertex_list[vertex_list_index]->vertex;
-			ab->edge = add_edge({ vertex_list[vertex_list_index]->vertex, vertex_list[vertex_list_index + 1]->vertex });
-			// magic function that retringulates
-
 			// bottom
 			SymEdge* ba = new SymEdge();
 			ba->vertex = vertex_list[vertex_list_index + 1]->vertex;
-			ba->edge = ab->edge;
+			ba->edge = add_edge({ vertex_list[vertex_list_index]->vertex, vertex_list[vertex_list_index + 1]->vertex });
+			triangulate_pseudopolygon_delaunay(
+				non_tringulated_faces[vertex_list_index * 4].data(),
+				non_tringulated_faces[vertex_list_index * 4 + 1].data(),
+				0, non_tringulated_faces[vertex_list_index * 4].size() - 1, ba);
 
-			// magic function that retringulates
+			// top
+			SymEdge* ab = new SymEdge();
+			ab->vertex = vertex_list[vertex_list_index]->vertex;
+			ab->edge = ba->edge;
+			triangulate_pseudopolygon_delaunay(
+				non_tringulated_faces[vertex_list_index * 4 + 2].data(),
+				non_tringulated_faces[vertex_list_index * 4 + 3].data(),
+				0, non_tringulated_faces[vertex_list_index * 4 + 2].size() - 1, ab);
 
 			// fix sym()
 		}
