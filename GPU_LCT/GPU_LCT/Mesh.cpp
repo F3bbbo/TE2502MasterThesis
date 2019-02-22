@@ -353,8 +353,8 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 		// Delete old symedge 
 		delete orig_e;
 		//add edges to flip stack
-		flip_stack.push(orig_face[0]->nxt->nxt);
-		flip_stack.push(orig_face[1]->nxt->nxt);
+		flip_stack.push(orig_face[0]);
+		flip_stack.push(orig_face[1]);
 	}
 	else {
 		for (unsigned int i = 0; i < orig_face.size(); i++)
@@ -377,7 +377,7 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 			// connect orignal edge with its sym
 			orig_face[i]->nxt->rot = orig_sym[i];
 			// add edge to stack
-			flip_stack.push(edge_sym);
+			flip_stack.push(orig_face[i]);
 		}
 		// Delete old symedges
 		delete orig_e;
@@ -385,10 +385,10 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 	}
 
 	SymEdge* ret_edge = orig_face[0]->nxt->nxt;
-    flip_edges(std::move(flip_stack));
-    //return an edge that has the new point as vertex
+	flip_edges(std::move(flip_stack));
+	//return an edge that has the new point as vertex
 	//and is the first one when rotating ccw
-    return ret_edge;
+	return ret_edge;
 }
 
 SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
@@ -451,13 +451,13 @@ SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
 		// connect orignal edge with its sym
 		orig_face[i]->nxt->rot = orig_sym[i];
 		// add edge to stack
-		flip_stack.push(orig_face[i]->nxt->nxt);
+		flip_stack.push(orig_face[i]);
 	}
 
 	SymEdge* ret_edge = orig_face[0]->nxt->nxt;
-    flip_edges(std::move(flip_stack));
-    //return an edge that has the new point as vertex 
-    return ret_edge;
+	flip_edges(std::move(flip_stack));
+	//return an edge that has the new point as vertex 
+	return ret_edge;
 }
 
 void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
@@ -473,24 +473,24 @@ void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 		else if (lr.type == LocateType::VERTEX)
 			vertex_list.push_back(lr.sym_edge);
 	}
-	for (size_t vertex = 0; vertex < vertex_list.size() - 1; vertex++)
-		insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);
+	//for (size_t vertex = 0; vertex < vertex_list.size() - 1; vertex++)
+	//	insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);
 }
 
 void Mesh::flip_edges(std::stack<SymEdge*>&& edge_indices)
 {
 	while (edge_indices.size() > 0)
 	{
-		SymEdge* sym_edge = edge_indices.top()->nxt->sym();
+		SymEdge* sym_edge = edge_indices.top();
 		edge_indices.pop();
-		if (sym_edge == nullptr)
-			continue;
 		SymEdge* sym_edge_sym = sym_edge->sym();
+		if (sym_edge_sym == nullptr)
+			continue;
 
 		if (m_edges[sym_edge->edge].constraint_ref.size() == 0 && !is_delaunay(sym_edge))
 		{
-			edge_indices.push(sym_edge->nxt);
-			edge_indices.push(sym_edge->nxt->nxt);
+			edge_indices.push(sym_edge_sym->nxt);
+			edge_indices.push(sym_edge_sym->nxt->nxt);
 
 			// Flip SymEdge begins here
 			SymEdge* e1 = sym_edge->nxt;
@@ -591,7 +591,7 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 	std::vector<SymEdge*> vertex_list;
 	vertex_list.push_back(v1);
 	// For each intersected edge we want to, 1. insert points where contraints cross and 2. get a list of all the vertices that intersects the new constrained edge, that includes existing points.
-	for (std::vector<SymEdge*>::iterator edge_it = edge_list.begin(); edge_it != edge_list.end(); edge_it++ )
+	for (std::vector<SymEdge*>::iterator edge_it = edge_list.begin(); edge_it != edge_list.end(); edge_it++)
 	{
 		if (m_edges[(*edge_it)->edge].constraint_ref.size() > 0)
 		{
@@ -623,7 +623,7 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 	{
 		if (edge_list[ei]->nxt->nxt->vertex == top_face_points.back()->vertex)
 			top_face_points.push_back(edge_list[ei]->nxt);
-		
+
 		if (edge_list[ei]->nxt->nxt->vertex == bottom_face_points.back()->nxt->vertex)
 			bottom_face_points.push_back(edge_list[ei]->nxt->nxt);
 
