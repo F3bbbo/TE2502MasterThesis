@@ -79,7 +79,7 @@ private:
 	bool is_delaunay(SymEdge* edge);
 
 	void insert_segment(SymEdge* v1, SymEdge* v2, int cref);
-	std::vector<SymEdge*> get_intersecting_edge_list(SymEdge* v1, SymEdge* v2);
+	std::vector<SymEdge*> get_intersecting_edge_list(SymEdge* v1, SymEdge* v2, std::vector<int>& vertex_list);
 	bool face_contains_vertex(int vertex, int face);
 	bool edge_contains_vertex(int vertex, int edge);
 
