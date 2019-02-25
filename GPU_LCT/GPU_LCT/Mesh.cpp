@@ -663,7 +663,8 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 
 				prev_crossed = false;
 			}
-
+			else
+				non_tringulated_faces.push_back({ edge_list[ei - 1] });
 		}
 	}
 
@@ -746,46 +747,37 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 	}
 
 	// step 3
-	for (vertex_list_index = 0; vertex_list_index < crossed_edge_list.size() - 1; vertex_list_index++)
+	while (!non_tringulated_faces.empty())
 	{
-		bool connected = false;
-		SymEdge* edge = crossed_edge_list[vertex_list_index];
-		while (edge != nullptr)
+		auto element = non_tringulated_faces.front();
+		if (element.size() == 1)
 		{
-			if (edge->rot == crossed_edge_list[vertex_list_index])
-				break;
-			if (edge_contains_vertex(crossed_edge_list[vertex_list_index + 1]->vertex, edge->edge))
-			{
-				connected = true;
-				break;
-			}
-			edge = edge->rot;
+			m_edges[element[0]->edge].constraint_ref.push_back(cref);
+			non_tringulated_faces.pop_front();
 		}
-
-		if (connected)
-			m_edges[edge->edge].constraint_ref.push_back(cref);
 		else
 		{
 			// bottom
 			SymEdge* ba = new SymEdge();
-			ba->vertex = crossed_edge_list[vertex_list_index + 1]->vertex;
-			ba->edge = add_edge({ { crossed_edge_list[vertex_list_index]->vertex, crossed_edge_list[vertex_list_index + 1]->vertex }, {cref} });
+			ba->vertex = non_tringulated_faces[0].back()->vertex;
+			ba->edge = add_edge({ { non_tringulated_faces[0].back()->vertex, non_tringulated_faces[0].front()->vertex }, {cref} });
 			triangulate_pseudopolygon_delaunay(
 				non_tringulated_faces[0].data(),
 				non_tringulated_faces[1].data(),
-				0, non_tringulated_faces[vertex_list_index * 4].size() - 1, ba);
+				0, non_tringulated_faces.front().size() - 1, ba);
+
+			non_tringulated_faces.pop_front();
+			non_tringulated_faces.pop_front();
 
 			// top
 			SymEdge* ab = new SymEdge();
-			ab->vertex = crossed_edge_list[vertex_list_index]->vertex;
+			ab->vertex = non_tringulated_faces[0].back()->vertex;
 			ab->edge = ba->edge;
 			triangulate_pseudopolygon_delaunay(
-				non_tringulated_faces[2].data(),
-				non_tringulated_faces[3].data(),
-				0, non_tringulated_faces[vertex_list_index * 4 + 2].size() - 1, ab);
+				non_tringulated_faces[0].data(),
+				non_tringulated_faces[1].data(),
+				0, non_tringulated_faces.front().size() - 1, ab);
 
-			non_tringulated_faces.pop_front();
-			non_tringulated_faces.pop_front();
 			non_tringulated_faces.pop_front();
 			non_tringulated_faces.pop_front();
 
@@ -800,7 +792,7 @@ std::vector<SymEdge*> Mesh::get_intersecting_edge_list(SymEdge* v1, SymEdge* v2,
 	SymEdge* triangle = v1;
 	std::array<glm::vec2, 2> constraint_edge = { m_vertices[v1->vertex].vertice, m_vertices[v2->vertex].vertice };
 	std::vector<SymEdge*> edge_list;
-	// find the local starting triangle
+	
 	while (true)
 	{
 		while (true)
