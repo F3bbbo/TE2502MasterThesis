@@ -22,7 +22,7 @@ public:
 	void set_point_thiccness(float thiccness);
 
 	DebugObject();
-	DebugObject(Mesh& mesh, DRAW_TYPES mode);
+	DebugObject(Mesh& mesh, DRAW_TYPES mode, bool draw_constraints);
 	DebugObject(std::array<glm::vec2, 2> vertices, DRAW_TYPES mode);
 	void update_edge(std::array<glm::vec2, 2> vertices);
 	~DebugObject();
@@ -33,11 +33,13 @@ private:
 
 	GLuint m_VBO = 0;
 	GLuint m_EBO_edges = 0;
+	GLuint m_EBO_cedges = 0;
 	GLuint m_EBO_faces = 0;
 	GLuint m_VAO = 0;
 
 	GLuint m_num_points = 0;
 	GLuint m_num_edges = 0;
+	GLuint m_num_cedges = 0;
 	GLuint m_num_faces = 0;
 
 	glm::vec3 m_point_color = {0.5f, 0.5f, 0.5f};
@@ -46,5 +48,6 @@ private:
 
 	float m_edge_thiccness = 1.f;
 	float m_point_thiccness = 5.f;
+	bool m_draw_constraints = false;
 };
 #endif

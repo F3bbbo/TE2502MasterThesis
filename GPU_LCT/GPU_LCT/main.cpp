@@ -48,7 +48,7 @@ int main()
 	//m.Locate_point({ 0.5f, 0.5f });
 	//m.Locate_point({ 0.f, 0.f });
 
-	DebugObject thingerino(m, DRAW_ALL);
+	DebugObject thingerino(m, DRAW_ALL, true);
 	thingerino.set_point_thiccness(10.f);
 	thingerino.set_edge_thiccness(5.f);
 	thingerino.set_point_color({ 1.f, 0.672443f, 0.201556f });

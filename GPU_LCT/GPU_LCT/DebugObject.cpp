@@ -5,8 +5,9 @@ DebugObject::DebugObject()
 {
 }
 
-DebugObject::DebugObject(Mesh& mesh, DRAW_TYPES mode) : Drawable(mode)
+DebugObject::DebugObject(Mesh& mesh, DRAW_TYPES mode, bool draw_constraints) : Drawable(mode)
 {
+	m_draw_constraints = draw_constraints;
 	construct_GL_objects(mesh);
 }
 
@@ -63,6 +64,14 @@ void DebugObject::draw_object(GLuint color_location)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_edges);
 		glUniform3f(color_location, m_edge_color.r, m_edge_color.g, m_edge_color.b);
 		glDrawElements(GL_LINES, m_num_edges, GL_UNSIGNED_INT, 0);
+
+		if (m_draw_constraints)
+		{
+			glLineWidth(m_edge_thiccness);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_cedges);
+			glUniform3f(color_location, 0.1f, 0.6f, 0.1f);
+			glDrawElements(GL_LINES, m_num_cedges, GL_UNSIGNED_INT, 0);
+		}
 	}
 	if (m_mode == DRAW_POINTS || m_mode == DRAW_ALL)
 	{
@@ -155,6 +164,28 @@ void DebugObject::construct_GL_objects(Mesh& mesh)
 		glGenBuffers(1, &m_EBO_edges);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_edges);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec2) * edges_indices.size(), edges_indices.data(), GL_STATIC_DRAW);
+
+		if (m_draw_constraints)
+		{
+			std::vector<glm::ivec2> constraint_indices;
+
+			for (auto& edge : mesh_edges)
+			{
+				if (edge.constraint_ref.size() > 0)
+					constraint_indices.push_back(edge.edge);
+			}
+
+			m_num_cedges = (GLuint)constraint_indices.size() * 2;
+			if (m_num_cedges > 0)
+			{
+				m_draw_constraints = true;
+				glGenBuffers(1, &m_EBO_cedges);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_cedges);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec2) * constraint_indices.size(), constraint_indices.data(), GL_STATIC_DRAW);
+			}
+			else
+				m_draw_constraints = false;
+		}
 	}
 
 	if (m_mode == DRAW_FACES || m_mode == DRAW_ALL)
