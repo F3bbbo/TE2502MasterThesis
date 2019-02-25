@@ -751,7 +751,7 @@ std::vector<SymEdge*> Mesh::get_intersecting_edge_list(SymEdge* v1, SymEdge* v2,
 			if (glm::dot(glm::normalize(constraint_edge[1] - constraint_edge[0]), glm::normalize(edge[1] - edge[0])) > 1 - EPSILON)
 			{
 				/*vertex_list.push_back(edge_list.size());*/
-				edge_list.push_back(triangle);
+				edge_list.push_back(triangle->rot);
 
 				if (face_contains_vertex(v2->vertex, triangle->face))
 				{
