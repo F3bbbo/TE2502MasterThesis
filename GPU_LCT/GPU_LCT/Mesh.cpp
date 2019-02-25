@@ -368,7 +368,7 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 			auto edge_sym = orig_face[next_id]->nxt->nxt;
 			// add edge to edge list
 			int edge_index = m_edges.size();
-			add_edge({ { edge->vertex, edge_sym->vertex }, (i % 2 == 0) ? orig_crep : std::vector<int>() });
+			add_edge({ { edge->vertex, edge_sym->vertex }, (i % 2 == 1) ? orig_crep : std::vector<int>() });
 			edge->edge = edge_index;
 			edge_sym->edge = edge_index;
 			// connect sym of the edges
@@ -668,75 +668,6 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 				non_tringulated_faces.push_back({ edge_list[ei - 1] });
 		}
 	}
-
-
-	//size_t vertex_list_index = 1;
-	//// edge_list now only contains uncontrained edges
-	//if (edge_list.size() > 0)
-	//{
-	//	top_face_points.push_back(edge_list[0]->nxt->nxt);
-	//	top_face_points.push_back(edge_list[0]->nxt);
-	//	bottom_face_points.push_back(edge_list[0]->nxt->nxt);
-	//}
-	//for (size_t ei = 0; ei < edge_list.size(); ei++)
-	//{
-	//	if (m_edges[edge_list[ei]->edge].constraint_ref.size() > 0)
-	//		continue;
-
-	//	if (edge_list[ei]->nxt->nxt->vertex == top_face_points.back()->vertex)
-	//		top_face_points.push_back(edge_list[ei]->nxt);
-
-	//	if (edge_list[ei]->nxt->nxt->vertex == bottom_face_points.back()->nxt->vertex)
-	//		bottom_face_points.push_back(edge_list[ei]->nxt->nxt);
-
-	//	// remove face to the left of the symedge
-	//	remove_face(edge_list[ei]->face);
-
-	//	// Check if the opposite face contains the next segment point
-	//	if (face_contains_vertex(crossed_edge_list[vertex_list_index]->vertex, edge_list[ei]->sym()->face))
-	//	{
-	//		// Insert the last points
-	//		bottom_face_points.push_back(edge_list[ei]->sym()->nxt);
-	//		bottom_face_points.push_back(edge_list[ei]->sym()->nxt->nxt);
-	//		top_face_points.push_back(edge_list[ei]->sym()->nxt->nxt);
-	//		std::reverse(top_face_points.begin(), top_face_points.end());
-
-	//		// store symedges that forms a face
-	//		non_tringulated_faces.push_back(std::move(bottom_face_points));
-	//		std::vector<SymEdge*> bottom_face_points_syms;
-	//		bottom_face_points_syms.reserve(non_tringulated_faces.back().size());
-	//		for (auto symedge : non_tringulated_faces.back())
-	//			bottom_face_points_syms.push_back(symedge->sym());
-	//		non_tringulated_faces.push_back(std::move(bottom_face_points_syms));
-
-
-	//		non_tringulated_faces.push_back(std::move(top_face_points));
-	//		std::vector<SymEdge*> top_face_points_syms;
-	//		top_face_points_syms.reserve(non_tringulated_faces.back().size());
-	//		for (auto symedge : non_tringulated_faces.back())
-	//			top_face_points_syms.push_back(symedge->sym());
-	//		non_tringulated_faces.push_back(std::move(top_face_points_syms));
-
-	//		// remove face to the right of the symedge
-	//		remove_face(edge_list[ei]->sym()->face);
-
-	//		if (vertex_list_index == crossed_edge_list.size() - 1)
-	//			break; // we have reached the last segment point
-
-	//		while (vertex_list_index < crossed_edge_list.size() - 1)
-	//		{
-	//			if (face_contains_vertex(crossed_edge_list[vertex_list_index]->vertex, edge_list[ei + 1]->face))
-	//			{
-	//				top_face_points.push_back(edge_list[ei + 1]->nxt->nxt);
-	//				top_face_points.push_back(edge_list[ei + 1]->nxt);
-	//				bottom_face_points.push_back(edge_list[ei + 1]->nxt->nxt);
-	//				break;
-	//			}
-	//			vertex_list_index++;
-	//		}
-	//		//remove_face(edge_list[ei]->sym()->face);
-	//	}
-	//}
 
 	for (int cel : crossed_edge_list)
 	{

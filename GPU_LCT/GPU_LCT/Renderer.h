@@ -27,6 +27,7 @@ public:
 	void set_debug_edge(SymEdge* start_edge);
 
 	bool shut_down = false;
+	SymEdge* m_current_edge = nullptr;
 private:
 	void draw_frame();
 	void processInput();
@@ -37,7 +38,6 @@ private:
 
 	// Debug walking variables
 
-	SymEdge* m_current_edge = nullptr;
 	bool m_pressed_r = false;
 	bool m_pressed_n = false;
 };

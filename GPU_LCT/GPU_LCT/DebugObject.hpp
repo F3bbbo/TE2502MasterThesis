@@ -23,6 +23,8 @@ public:
 
 	DebugObject();
 	DebugObject(Mesh& mesh, DRAW_TYPES mode);
+	DebugObject(std::array<glm::vec2, 2> vertices, DRAW_TYPES mode);
+	void update_edge(std::array<glm::vec2, 2> vertices);
 	~DebugObject();
 	void bind_VAO();
 	void draw_object(GLuint color_location);

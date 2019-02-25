@@ -2,6 +2,7 @@
 #include "DebugObject.hpp"
 #include "DebugPipeline.hpp"
 #include "Renderer.h"
+#include <array>
 
 int main()
 {
@@ -32,13 +33,21 @@ int main()
 
 	m.insert_constraint(std::move(points), 0);
 
-	points = { {0.f, -0.2f}, {0.f, 0.2f} };
+	points = { {0.f, -0.4f}, {0.f, 0.4f} };
 
 	m.insert_constraint(std::move(points), 1);
 
-	points = { {0.f, -0.4f}, {0.f, 0.4f} };
+	/*point = {0.f, -0.2f};
+	lr = m.Locate_point(point);
+	m.Insert_point_in_edge(point, lr.sym_edge);
 
-	//m.insert_constraint(std::move(points), 2);
+	point = {0.f, 0.2f};
+	lr = m.Locate_point(point);
+	m.Insert_point_in_edge(point, lr.sym_edge);*/
+
+	points = { { 0.f, -0.2f }, {0.f, 0.2f} };
+
+	m.insert_constraint(std::move(points), 2);
 
 	//m.Locate_point({ 0.5f, 0.5f });
 	//m.Locate_point({ 0.f, 0.f });
@@ -50,6 +59,10 @@ int main()
 	thingerino.set_edge_color({ 1.f, 0.246201f, 0.201556f });
 	thingerino.set_face_color({ 1.0f, 0.5f, 0.2f });
 
+	DebugObject symedge_visualizer({ glm::vec2(-0.25f, 0.25f), glm::vec2(0.25f, -0.25f) }, DRAW_EDGES);
+	symedge_visualizer.set_edge_thiccness(5.f);
+	symedge_visualizer.set_edge_color({ 0.f, 0.f, 0.8f });
+
 	ShaderPath debug_draw_path;
 	debug_draw_path[VS] = "debug_vertex_shader.glsl";
 	debug_draw_path[FS] = "debug_fragment_shader.glsl";
@@ -57,6 +70,7 @@ int main()
 	DebugPipeline debug_pass;
 	debug_pass.add_pass(DebugPipeline::DEBUG_PASS, std::move(debug_draw_path));
 	debug_pass.add_drawable(std::move(thingerino));
+	debug_pass.add_drawable(std::move(symedge_visualizer));
 
 	renderer.add_pipeline(std::move(debug_pass));
 	//set debug edge of renderer
@@ -64,6 +78,7 @@ int main()
 
 	while (!renderer.shut_down)
 	{
+		symedge_visualizer.update_edge(m.get_edge(renderer.m_current_edge->edge));
 		renderer.run();
 	}
 	return 0;
