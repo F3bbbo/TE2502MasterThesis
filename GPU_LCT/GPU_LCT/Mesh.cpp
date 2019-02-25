@@ -277,7 +277,7 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 		orig_sym.push_back(curr_e->sym());
 	}
 	// Add the orignal edges from the second triangle if there is one
-	curr_e = e->sym();
+	curr_e = orig_e_sym;
 	if (curr_e != nullptr) {
 		for (unsigned int i = 0; i < 2; i++) {
 			curr_e = curr_e->nxt;
@@ -367,8 +367,7 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 			// opposing edge
 			auto edge_sym = orig_face[next_id]->nxt->nxt;
 			// add edge to edge list
-			int edge_index = m_edges.size();
-			add_edge({ { edge->vertex, edge_sym->vertex }, (i % 2 == 1) ? orig_crep : std::vector<int>() });
+			int edge_index = add_edge({ { edge->vertex, edge_sym->vertex }, (i % 2 == 1) ? orig_crep : std::vector<int>() });
 			edge->edge = edge_index;
 			edge_sym->edge = edge_index;
 			// connect sym of the edges
