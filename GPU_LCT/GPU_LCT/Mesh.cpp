@@ -620,9 +620,9 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 			// Open new face
 			if (!prev_crossed)
 			{
+				top_face_points.push_back(edge_list[ei - 1]);
 				top_face_points.push_back(edge_list[ei - 1]->nxt->nxt);
-				top_face_points.push_back(edge_list[ei - 1]->nxt);
-				bottom_face_points.push_back(edge_list[ei - 1]->nxt->nxt);
+				bottom_face_points.push_back(edge_list[ei - 1]);
 				prev_crossed = true;
 			}
 
@@ -634,6 +634,7 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 			if (edge_list[ei]->nxt->nxt->vertex == bottom_face_points.back()->nxt->vertex)
 				bottom_face_points.push_back(edge_list[ei]->nxt->nxt);
 
+			current_cei = (current_cei + 1) % crossed_edge_list.size();
 		}
 		else {
 			// Close prev face
@@ -836,7 +837,7 @@ std::vector<SymEdge*> Mesh::get_intersecting_edge_list(SymEdge* v1, SymEdge* v2,
 			// Check if we have arrived to a triangle that contains the segment endpoint
 			if (face_contains_vertex(v2->vertex, triangle->face))
 			{
-				/*edge_list.push_back(triangle->nxt);*/
+				edge_list.push_back(triangle->nxt);
 				return edge_list;
 			}
 
