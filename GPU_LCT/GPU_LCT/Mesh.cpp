@@ -368,7 +368,7 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 			auto edge_sym = orig_face[next_id]->nxt->nxt;
 			// add edge to edge list
 			int edge_index = m_edges.size();
-			add_edge({ edge->vertex, edge_sym->vertex });
+			add_edge({ { edge->vertex, edge_sym->vertex }, (i % 2 == 0) ? orig_crep : std::vector<int>() });
 			edge->edge = edge_index;
 			edge_sym->edge = edge_index;
 			// connect sym of the edges
