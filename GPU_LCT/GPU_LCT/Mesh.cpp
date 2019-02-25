@@ -287,7 +287,7 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 	}
 	else {
 		orig_face.push_back(e);
-		orig_sym.push_back(e->rot);
+		orig_sym.push_back(e->sym());
 	}
 
 	unsigned int num_new_tri = orig_face.size();
@@ -336,7 +336,7 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 
 		// second new triangle connections
 		orig_face[1]->nxt->rot = orig_sym[1];
-		orig_face[1]->rot = orig_face[1]->nxt;
+		orig_face[1]->rot = orig_face[0]->nxt;
 		// create edges in m_edge list
 		// tri 1 single edge
 		int edge_i = add_edge({ { orig_face[0]->vertex, orig_face[0]->nxt->nxt->vertex}, orig_crep });
