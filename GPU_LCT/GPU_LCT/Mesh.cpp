@@ -614,7 +614,7 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 	bool prev_crossed = false;
 	for (int ei = 1; ei < edge_list.size(); ei++)
 	{
-		if (ei == crossed_edge_list[current_cei])
+		if (crossed_edge_list.size() != 0 && ei == crossed_edge_list[current_cei])
 		{
 			// Open new face
 			if (!prev_crossed)
@@ -730,19 +730,40 @@ std::vector<SymEdge*> Mesh::get_intersecting_edge_list(SymEdge* v1, SymEdge* v2,
 		{
 			// Check for parallel edge
 			std::array<glm::vec2, 2> edge = { m_vertices[triangle->vertex].vertice, m_vertices[triangle->nxt->vertex].vertice };
-			if (line_line_intersection_point(edge[0], edge[1], constraint_edge[0], constraint_edge[1]) == glm::vec2(FLT_MAX, FLT_MAX))
+			if (glm::dot(glm::normalize(constraint_edge[1] - constraint_edge[0]), glm::normalize(edge[1] - edge[0])) > 1 - EPSILON)
 			{
-				if (glm::dot(constraint_edge[1] - constraint_edge[0], edge[1] - edge[0]) > 0)
+				/*vertex_list.push_back(edge_list.size());*/
+				edge_list.push_back(triangle);
+
+				if (face_contains_vertex(v2->vertex, triangle->face))
 				{
-					/*vertex_list.push_back(edge_list.size());*/
-					edge_list.push_back(triangle);
+					edge_list.push_back(triangle->nxt);
+					return edge_list;
+				}
+				else
+				{
 					triangle = triangle->sym()->rot;
 					continue;
 				}
 			}
+			// Check for parallel next edge
+			edge = { m_vertices[triangle->vertex].vertice, m_vertices[triangle->nxt->nxt->vertex].vertice };
+			if (glm::dot(glm::normalize(constraint_edge[1] - constraint_edge[0]), glm::normalize(edge[1] - edge[0])) > 1 - EPSILON)
+			{
+				/*vertex_list.push_back(edge_list.size());*/
+				edge_list.push_back(triangle);
 
-			if (face_contains_vertex(v2->vertex, triangle->face))
-				return edge_list;
+				if (face_contains_vertex(v2->vertex, triangle->face))
+				{
+					edge_list.push_back(triangle->rot->nxt);
+					return edge_list;
+				}
+				else
+				{
+					triangle = triangle->rot->sym()->rot;
+					continue;
+				}
+			}
 
 			// If not at endpoint, check to which edge we should walk
 			std::array<glm::vec2, 2> other_edge = get_edge(triangle->nxt->edge);

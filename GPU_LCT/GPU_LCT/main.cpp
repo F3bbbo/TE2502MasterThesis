@@ -21,10 +21,6 @@ int main()
 	lr = m.Locate_point(point);
 	m.Insert_point_in_face(point, lr.sym_edge);
 
-	point = { 0.f, 0.0f };
-	lr = m.Locate_point(point);
-	m.Insert_point_in_edge(point, lr.sym_edge);
-
 	point = { 0.f, -0.5f };
 	lr = m.Locate_point(point);
 	m.Insert_point_in_edge(point, lr.sym_edge);
@@ -47,7 +43,7 @@ int main()
 
 	points = { { 0.f, -0.2f }, {0.f, 0.2f} };
 
-	//m.insert_constraint(std::move(points), 2);
+	m.insert_constraint(std::move(points), 2);
 
 	//m.Locate_point({ 0.5f, 0.5f });
 	//m.Locate_point({ 0.f, 0.f });
