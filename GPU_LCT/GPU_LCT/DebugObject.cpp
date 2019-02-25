@@ -12,35 +12,30 @@ DebugObject::DebugObject(Mesh& mesh, DRAW_TYPES mode) : Drawable(mode)
 
 DebugObject::DebugObject(std::array<glm::vec2, 2> vertices, DRAW_TYPES mode) : Drawable(mode)
 {
+	glGenVertexArrays(1, &m_VAO);
+	glGenBuffers(1, &m_VBO);
+	m_num_points = 2;
+	m_num_edges = 2;
+
+	glGenBuffers(1, &m_EBO_edges);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_edges);
+	std::vector<glm::ivec2> edges_indices = { {0, 1} };
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec2) * 2, edges_indices.data(), GL_STATIC_DRAW);
+
 	update_edge(vertices);
 }
 
 void DebugObject::update_edge(std::array<glm::vec2, 2> vertices)
 {
-	if (m_VBO > 0)
-		glDeleteBuffers(1, &m_VBO);
-	/*if (m_VAO > 0)
-		glDeleteBuffers(1, &m_VAO);*/
+	glBindVertexArray(m_VAO);
 
-	glGenVertexArrays(1, &m_VAO);
-	/*glBindVertexArray(m_VAO);*/
-
-	m_num_points = (GLuint)vertices.size();
-
-	glGenBuffers(1, &m_VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	std::vector<glm::ivec2> edges_indices = { {0, 1} };
-
-	m_num_edges = (GLuint)edges_indices.size() * 2;
-
-	glGenBuffers(1, &m_EBO_edges);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_edges);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec2) * edges_indices.size(), edges_indices.data(), GL_STATIC_DRAW);
+	glBindVertexArray(0);
 }
 
 
