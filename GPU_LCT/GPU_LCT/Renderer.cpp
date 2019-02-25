@@ -66,6 +66,11 @@ void Renderer::check_error()
 	}
 }
 
+void Renderer::set_debug_edge(SymEdge * start_edge)
+{
+	m_current_edge = start_edge;
+}
+
 void Renderer::draw_frame()
 {
 	for (auto& pipeline : m_pipelines)
@@ -76,4 +81,31 @@ void Renderer::processInput()
 {
 	if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(m_window, true);
+
+	if (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS)
+	{
+		m_pressed_r = true;
+	}
+	else if (m_pressed_r) {
+		m_pressed_r = false;
+		if (m_current_edge->rot != nullptr) {
+			m_current_edge = m_current_edge->rot;
+		}
+		else {
+			std::cout << "Rot is nullptr.\n";
+		}
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_N) == GLFW_PRESS)
+	{
+		m_pressed_n = true;
+	}
+	else if (m_pressed_n) {
+		m_pressed_n = false;
+		if (m_current_edge->nxt != nullptr) {
+			m_current_edge = m_current_edge->nxt;
+		}
+		else {
+			std::cout << "Next is nullptr.\n";
+		}
+	}
 }

@@ -6,7 +6,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
-
+#include "data_structures.hpp"
 #include "Pipeline.h"
 
 class Renderer
@@ -24,6 +24,7 @@ public:
 
 	void run();
 	void check_error();
+	void set_debug_edge(SymEdge* start_edge);
 
 	bool shut_down = false;
 private:
@@ -33,6 +34,12 @@ private:
 	std::vector<std::unique_ptr<Pipeline>> m_pipelines;
 	float m_dt;
 	GLFWwindow* m_window = nullptr;
+
+	// Debug walking variables
+
+	SymEdge* m_current_edge = nullptr;
+	bool m_pressed_r = false;
+	bool m_pressed_n = false;
 };
 
 #endif

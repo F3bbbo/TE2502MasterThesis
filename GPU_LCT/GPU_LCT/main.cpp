@@ -59,6 +59,8 @@ int main()
 	debug_pass.add_drawable(std::move(thingerino));
 
 	renderer.add_pipeline(std::move(debug_pass));
+	//set debug edge of renderer
+	renderer.set_debug_edge(m.first);
 
 	while (!renderer.shut_down)
 	{
