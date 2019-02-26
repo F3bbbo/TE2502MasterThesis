@@ -1,4 +1,4 @@
-#include "Pipeline.h"
+#include "Pipeline.hpp"
 
 
 Pipeline::Pipeline()
@@ -31,7 +31,7 @@ void Pipeline::compile_shaders(int type, ShaderPath&& input)
 	char infoLog[512];
 	int success;
 	int shader_object;
-	
+
 	for (auto& shader_data : input)
 	{
 		std::ifstream shader_file;

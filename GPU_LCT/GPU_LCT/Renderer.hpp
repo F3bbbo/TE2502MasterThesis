@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 #include "data_structures.hpp"
-#include "Pipeline.h"
+#include "Pipeline.hpp"
 
 class Renderer
 {

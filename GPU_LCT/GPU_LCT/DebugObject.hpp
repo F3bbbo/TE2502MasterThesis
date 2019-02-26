@@ -3,17 +3,17 @@
 #ifndef DEBUG_OBJECT_HPP
 #define DEBUG_OBJECT_HPP
 
-#include "Drawable.h"
+#include "Drawable.hpp"
 
 class DebugObject : public Drawable
 {
 public:
 	bool is_valid();
-	
+
 	void set_point_color(glm::vec3&& color);
 	void set_edge_color(glm::vec3&& color);
 	void set_face_color(glm::vec3&& color);
-	
+
 	glm::vec3 const& get_point_color();
 	glm::vec3 const& get_edge_color();
 	glm::vec3 const& get_face_color();
@@ -42,9 +42,9 @@ private:
 	GLuint m_num_cedges = 0;
 	GLuint m_num_faces = 0;
 
-	glm::vec3 m_point_color = {0.5f, 0.5f, 0.5f};
-	glm::vec3 m_edge_color = {0.f, 0.f, 0.f};
-	glm::vec3 m_face_color = {1.f, 1.f, 1.f};
+	glm::vec3 m_point_color = { 0.5f, 0.5f, 0.5f };
+	glm::vec3 m_edge_color = { 0.f, 0.f, 0.f };
+	glm::vec3 m_face_color = { 1.f, 1.f, 1.f };
 
 	float m_edge_thiccness = 1.f;
 	float m_point_thiccness = 5.f;

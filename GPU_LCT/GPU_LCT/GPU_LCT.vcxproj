@@ -178,11 +178,11 @@
     <ClInclude Include="data_structures.hpp" />
     <ClInclude Include="DebugObject.hpp" />
     <ClInclude Include="DebugPipeline.hpp" />
-    <ClInclude Include="Drawable.h" />
+    <ClInclude Include="Drawable.hpp" />
     <ClInclude Include="Log.hpp" />
     <ClInclude Include="Mesh.hpp" />
-    <ClInclude Include="Pipeline.h" />
-    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Pipeline.hpp" />
+    <ClInclude Include="Renderer.hpp" />
     <ClInclude Include="trig_functions.hpp" />
   </ItemGroup>
   <ItemGroup>
