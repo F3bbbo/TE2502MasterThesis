@@ -8,7 +8,7 @@ Mesh::~Mesh()
 {
 }
 
-void Mesh::Initialize_as_quad(glm::vec2 scale = glm::vec2{ 1.f, 1.f }, glm::vec2 translate = glm::vec2{ 0.f, 0.f })
+void Mesh::initialize_as_quad(glm::vec2 scale = glm::vec2{ 1.f, 1.f }, glm::vec2 translate = glm::vec2{ 0.f, 0.f })
 {
 	// First vertex is top left for openGL, remaining order is ccw
 	m_vertices = { {{-1.f, 1.f}, 0}, {{-1.f, -1.f}, 0}, {{1.f, -1.f}, 0}, {{1.f, 1.f}, 0} };
@@ -151,11 +151,11 @@ void Mesh::next_iter()
 
 LocateRes Mesh::Locate_point(glm::vec2 p)
 {
-	return Oriented_walk(first, p);
+	return oriented_walk(first, p);
 }
 
 
-LocateRes Mesh::Oriented_walk(SymEdge* start_edge, const glm::vec2& p)
+LocateRes Mesh::oriented_walk(SymEdge* start_edge, const glm::vec2& p)
 {
 	LocateRes res;
 	res.sym_edge = start_edge;
@@ -164,7 +164,7 @@ LocateRes Mesh::Oriented_walk(SymEdge* start_edge, const glm::vec2& p)
 	next_iter();
 	while (res.type == LocateType::NEXT)
 	{
-		res = Standard_walk(res.sym_edge, p);
+		res = standard_walk(res.sym_edge, p);
 	}
 
 	// Epsilon based walk mode
@@ -173,13 +173,13 @@ LocateRes Mesh::Oriented_walk(SymEdge* start_edge, const glm::vec2& p)
 	next_iter();
 	while (res.type == LocateType::NEXT)
 	{
-		res = Epsilon_walk(res.sym_edge, p);
+		res = epsilon_walk(res.sym_edge, p);
 	}
 
 	return res;
 }
 
-LocateRes Mesh::Standard_walk(SymEdge * current_edge, const glm::vec2 & p)
+LocateRes Mesh::standard_walk(SymEdge * current_edge, const glm::vec2 & p)
 {
 	LocateRes res;
 	SymEdge * curr_edge = current_edge;
@@ -219,7 +219,7 @@ LocateRes Mesh::Standard_walk(SymEdge * current_edge, const glm::vec2 & p)
 	return res;
 }
 
-LocateRes Mesh::Epsilon_walk(SymEdge * current_edge, const glm::vec2 & p)
+LocateRes Mesh::epsilon_walk(SymEdge * current_edge, const glm::vec2 & p)
 {
 	LocateRes res;
 
@@ -251,11 +251,11 @@ LocateRes Mesh::Epsilon_walk(SymEdge * current_edge, const glm::vec2 & p)
 	}
 
 	// do standard walk to check if point is inside triangle otherwise we need to investigate another triangle
-	res = Standard_walk(current_edge, p);
+	res = standard_walk(current_edge, p);
 	return res;
 }
 
-SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
+SymEdge* Mesh::insert_point_in_edge(glm::vec2 p, SymEdge * e)
 {
 	// save original e and e_sym to delete them later
 	SymEdge* orig_e = e;
@@ -390,7 +390,7 @@ SymEdge* Mesh::Insert_point_in_edge(glm::vec2 p, SymEdge * e)
 	return ret_edge;
 }
 
-SymEdge* Mesh::Insert_point_in_face(glm::vec2 p, SymEdge * e)
+SymEdge* Mesh::insert_point_in_face(glm::vec2 p, SymEdge * e)
 {
 	// add points to vertex list
 	int vertex_index = add_vert(p);
@@ -466,9 +466,9 @@ void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 	{
 		LocateRes lr = Locate_point(point);
 		if (lr.type == LocateType::FACE)
-			vertex_list.push_back(Insert_point_in_face(point, lr.sym_edge));
+			vertex_list.push_back(insert_point_in_face(point, lr.sym_edge));
 		else if (lr.type == LocateType::EDGE)
-			vertex_list.push_back(Insert_point_in_edge(point, lr.sym_edge));
+			vertex_list.push_back(insert_point_in_edge(point, lr.sym_edge));
 		else if (lr.type == LocateType::VERTEX)
 			vertex_list.push_back(lr.sym_edge);
 	}
@@ -595,17 +595,18 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 		{
 			glm::ivec2 edge_index = m_edges[(edge_list[cei])->edge].edge;
 			glm::vec2 intersection_point = line_line_intersection_point(m_vertices[edge_index.x].vertice, m_vertices[edge_index.y].vertice, m_vertices[v1->vertex].vertice, m_vertices[v2->vertex].vertice);
+			// TODO: Change locate_point to oriented_walk
 			LocateRes point_location = Locate_point(intersection_point);
 			if (point_location.type == LocateType::EDGE)
 			{
-				Insert_point_in_edge(intersection_point, point_location.sym_edge);
+				insert_point_in_edge(intersection_point, point_location.sym_edge);
 				continue;
 			}
 		}
 	}
 
 	crossed_edge_list.clear();
-	edge_list = get_intersecting_edge_list(Oriented_walk(v1, p1).sym_edge, Oriented_walk(v2, p2).sym_edge, crossed_edge_list);
+	edge_list = get_intersecting_edge_list(oriented_walk(v1, p1).sym_edge, oriented_walk(v2, p2).sym_edge, crossed_edge_list);
 
 	// Step 2
 	std::deque<std::vector<SymEdge*>> non_tringulated_faces;

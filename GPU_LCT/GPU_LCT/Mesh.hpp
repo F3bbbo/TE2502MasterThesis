@@ -48,7 +48,7 @@ public:
 	SymEdge* first;
 	Mesh();
 	~Mesh();
-	void Initialize_as_quad(glm::vec2 scale, glm::vec2 translate);
+	void initialize_as_quad(glm::vec2 scale, glm::vec2 translate);
 	std::vector<VertexRef> get_vertex_list();
 	std::vector<Edge> get_edge_list();
 	std::vector<Face> get_face_list();
@@ -57,8 +57,8 @@ public:
 	glm::vec2 get_vertex(int index);
 	LocateRes Locate_point(glm::vec2 p);
 	// returns index to the vertex that was inserted
-	SymEdge* Insert_point_in_edge(glm::vec2 p, SymEdge* e);
-	SymEdge* Insert_point_in_face(glm::vec2 p, SymEdge* e);
+	SymEdge* insert_point_in_edge(glm::vec2 p, SymEdge* e);
+	SymEdge* insert_point_in_face(glm::vec2 p, SymEdge* e);
 
 	void insert_constraint(std::vector<glm::vec2>&& points, int cref);
 private:
@@ -71,9 +71,9 @@ private:
 	unsigned long int m_iter_id = 0; //Number indication which iteration id the mesh is currently at
 	void next_iter();
 
-	LocateRes Oriented_walk(SymEdge* start_edge, const glm::vec2& p);
-	LocateRes Standard_walk(SymEdge* start_edge, const glm::vec2& p);
-	LocateRes Epsilon_walk(SymEdge* current_edge, const glm::vec2& p);
+	LocateRes oriented_walk(SymEdge* start_edge, const glm::vec2& p);
+	LocateRes standard_walk(SymEdge* start_edge, const glm::vec2& p);
+	LocateRes epsilon_walk(SymEdge* current_edge, const glm::vec2& p);
 
 	void flip_edges(std::stack<SymEdge*>&& edge_indices);
 	bool is_delaunay(SymEdge* edge);
