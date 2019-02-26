@@ -584,6 +584,8 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 	// Step 1
 	std::vector<int> crossed_edge_list;
 	std::vector<SymEdge*> edge_list = get_intersecting_edge_list(v1, v2, crossed_edge_list);
+	glm::vec2 p1 = m_vertices[v1->vertex].vertice;
+	glm::vec2 p2 = m_vertices[v2->vertex].vertice;
 
 	// For each intersected edge we want to, 1. insert points where contraints cross and 2. get a list of all the vertices that intersects the new constrained edge, that includes existing points.
 
@@ -603,13 +605,13 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 	}
 
 	crossed_edge_list.clear();
-	edge_list = get_intersecting_edge_list(v1, v2, crossed_edge_list);
+	edge_list = get_intersecting_edge_list(Oriented_walk(v1, p1).sym_edge, Oriented_walk(v2, p2).sym_edge, crossed_edge_list);
 
 	// Step 2
 	std::deque<std::vector<SymEdge*>> non_tringulated_faces;
 	std::vector<SymEdge*> top_face_points;
 	std::vector<SymEdge*> bottom_face_points;
-	
+
 	int current_cei = 0;
 	bool prev_crossed = false;
 	for (int ei = 1; ei < edge_list.size(); ei++)
@@ -723,7 +725,7 @@ std::vector<SymEdge*> Mesh::get_intersecting_edge_list(SymEdge* v1, SymEdge* v2,
 	SymEdge* triangle = v1;
 	std::array<glm::vec2, 2> constraint_edge = { m_vertices[v1->vertex].vertice, m_vertices[v2->vertex].vertice };
 	std::vector<SymEdge*> edge_list;
-	
+
 	while (true)
 	{
 		while (true)
