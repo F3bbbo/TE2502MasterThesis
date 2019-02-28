@@ -12,5 +12,7 @@ struct SymEdge
 	int edge;
 	int face;
 	SymEdge* sym() { return this->nxt->rot; };
+	SymEdge* crot() { return (this->sym() != nullptr) ? this->sym()->nxt : nullptr; };
+	SymEdge* prev() { return this->nxt->nxt; };
 };
 #endif

@@ -476,6 +476,11 @@ void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 		insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);
 }
 
+void Mesh::transform_into_LCT()
+{
+	no_colliniear_constraints(first->nxt);
+}
+
 void Mesh::flip_edges(std::stack<SymEdge*>&& edge_indices)
 {
 	while (edge_indices.size() > 0)
@@ -838,6 +843,14 @@ bool Mesh::edge_contains_vertex(int vertex, int edge)
 		return false;
 }
 
+bool Mesh::is_constrained(int edge)
+{
+	if (m_edges[edge].constraint_ref.size() > 0)
+		return true;
+	else
+		return false;
+}
+
 void Mesh::triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, int start_i, int end_i, SymEdge* edge_ab)
 {
 	int list_size = end_i - start_i + 1;
@@ -1005,4 +1018,65 @@ int Mesh::add_face(glm::ivec3 f)
 void Mesh::remove_face(int index)
 {
 	m_free_faces.push_back(index);
+}
+
+//---------------------------------------------
+// LCT
+//---------------------------------------------
+
+bool Mesh::no_colliniear_constraints(SymEdge* v)
+{
+	SymEdge* edge = v;
+	bool reverse_direction = false;
+	std::vector<SymEdge*> constrained_edges;
+	while (true)
+	{
+		if (is_constrained(edge->edge))
+		{
+			std::array<glm::vec2, 2> curr_edge = get_edge(edge->edge);
+			for (SymEdge* c_edge : constrained_edges)
+			{
+				std::array<glm::vec2, 2> constraint_edge = get_edge(c_edge->edge);
+				if (glm::dot(glm::normalize(constraint_edge[1] - constraint_edge[0]), glm::normalize(curr_edge[1] - curr_edge[0])) < -1 + EPSILON)
+					return false;
+			}
+			constrained_edges.push_back(edge);
+		}
+
+		if (!reverse_direction)
+		{
+			if (edge->rot == v)
+				return true;
+
+			if (edge->rot != nullptr)
+				edge = edge->rot;
+			else
+			{
+				reverse_direction = true;
+				edge = v->crot();
+				if (edge == nullptr)
+					return true;
+			}
+		}
+		else
+		{
+			edge = edge->crot();
+			if (edge == nullptr)
+				return true;
+		}
+	}
+	return false;
+}
+
+bool Mesh::possible_disturbance(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 s)
+{
+	if (line_length(a - b) > line_length(project_point_on_line(b, s) - b))
+		return true;
+
+	glm::vec2 p = get_symmetrical_corner(a, b, c);
+
+	if (line_length(c - p) > line_length(project_point_on_line(p, s) - b))
+		return true;
+
+	return false;
 }

@@ -61,6 +61,8 @@ public:
 	SymEdge* insert_point_in_face(glm::vec2 p, SymEdge* e);
 
 	void insert_constraint(std::vector<glm::vec2>&& points, int cref);
+
+	void transform_into_LCT();
 private:
 	std::vector<VertexRef> m_vertices; // Each vertice keeps track of how many times it is referenced
 	std::deque<int> m_free_verts;
@@ -82,6 +84,7 @@ private:
 	std::vector<SymEdge*> get_intersecting_edge_list(SymEdge* v1, SymEdge* v2, std::vector<int>& vertex_list);
 	bool face_contains_vertex(int vertex, int face);
 	bool edge_contains_vertex(int vertex, int edge);
+	bool is_constrained(int edge);
 
 	// returns the 
 	void triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, int start_i, int end_i, SymEdge* edge_ab);
@@ -94,6 +97,13 @@ private:
 	void remove_edge(int index);
 	int add_face(glm::ivec3 f);
 	void remove_face(int index);
+
+	//---------------------------------------------
+	// LCT
+	//---------------------------------------------
+
+	bool no_colliniear_constraints(SymEdge* v);
+	bool possible_disturbance(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 s);
 };
 
 #endif
