@@ -1036,6 +1036,33 @@ void Mesh::remove_face(int index)
 // LCT
 //---------------------------------------------
 
+bool Mesh::possible_disturbance(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 s)
+{
+	if (line_length(a - b) > line_length(project_point_on_line(b, s) - b))
+		return true;
+
+	glm::vec2 p = get_symmetrical_corner(a, b, c);
+
+	if (line_length(c - p) > line_length(project_point_on_line(p, s) - b))
+		return true;
+
+	return false;
+}
+
+bool Mesh::is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym)
+{
+	if (!no_colliniear_constraints(v_sym))
+		return false;
+
+	glm::vec2 v = get_vertex(v_sym->vertex);
+	glm::vec2 a = get_vertex(b_sym->nxt->nxt->vertex);
+	glm::vec2 b = get_vertex(b_sym->vertex);
+	glm::vec2 c = get_vertex(b_sym->nxt->vertex);
+
+	if (!is_orthogonally_projectable(v, a, b))
+		return false;
+}
+
 bool Mesh::no_colliniear_constraints(SymEdge* v)
 {
 	SymEdge* edge = v;
@@ -1080,17 +1107,32 @@ bool Mesh::no_colliniear_constraints(SymEdge* v)
 	return false;
 }
 
-bool Mesh::possible_disturbance(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 s)
+bool Mesh::is_orthogonally_projectable(glm::vec2 v, glm::vec2 a, glm::vec2 b)
 {
-	if (line_length(a - b) > line_length(project_point_on_line(b, s) - b))
-		return true;
+	glm::vec2 line = b - a;
+	glm::vec2 projected_point = project_point_on_line(v, line);
 
-	glm::vec2 p = get_symmetrical_corner(a, b, c);
+	float projected_length = glm::dot(line, projected_point - a);
 
-	if (line_length(c - p) > line_length(project_point_on_line(p, s) - b))
-		return true;
+	if (projected_length < 0.f || projected_length * projected_length > line_length2(line))
+		return false;
 
-	return false;
+	return true;
+}
+
+SymEdge* Mesh::find_closest_constraint(SymEdge* ca)
+{
+	std::stack<SymEdge*> unvisited_triangles;
+	unvisited_triangles.push(ca);
+	
+	while (!unvisited_triangles.empty())
+	{
+		SymEdge* edge = unvisited_triangles.top();
+		unvisited_triangles.pop();
+
+		/*if ()*/
+	}
+	return nullptr;
 }
 
 bool Mesh::disturbance_linear_pass(SymEdge * start_edge)

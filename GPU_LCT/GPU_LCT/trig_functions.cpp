@@ -103,6 +103,11 @@ float line_length(glm::vec2 line)
 	return glm::sqrt(line.x * line.x + line.y * line.y);
 }
 
+float line_length2(glm::vec2 line)
+{
+	return line.x * line.x + line.y * line.y;
+}
+
 glm::vec2 line_line_intersection_point(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 d, float epsi)
 {
 	// Line AB represented as a1x + b1y = c1 
@@ -117,7 +122,7 @@ glm::vec2 line_line_intersection_point(glm::vec2 a, glm::vec2 b, glm::vec2 c, gl
 
 	float determinant = a1 * b2 - a2 * b1;
 
-	if (std::fabs(determinant) < epsi)
+	if ( std::fabs(determinant) < epsi )
 	{
 		// The lines are parallel. This is simplified 
 		// by returning a pair of FLT_MAX 
@@ -162,6 +167,20 @@ bool point_in_circle(std::array<glm::vec2, 4> points)
 	return false;
 }
 
+glm::vec2 project_point_on_line(glm::vec2 point, glm::vec2 line)
+{
+	line = glm::normalize(line);
+	return glm::dot(point, line) * line;
+}
+
+glm::vec2 get_symmetrical_corner(glm::vec2 a, glm::vec2 b, glm::vec2 c)
+{
+	glm::vec2 ac = c - a;
+	glm::vec2 half = a + (ac / 2.f);
+	float len = line_length(half - project_point_on_line(b, ac));
+	return b + 2.f * len * glm::normalize(ac);
+}
+
 glm::vec2 circle_center_from_points(glm::vec2 a, glm::vec2 b, glm::vec2 c)
 {
 	glm::vec2 ab = b - a;
@@ -179,16 +198,48 @@ glm::vec2 circle_center_from_points(glm::vec2 a, glm::vec2 b, glm::vec2 c)
 	return line_line_intersection_point(midpoints[0], midpoints[0] + normals[0], midpoints[1], midpoints[1] + normals[1]);
 }
 
-glm::vec2 project_point_on_line(glm::vec2 point, glm::vec2 line)
+bool line_circle_intersection(std::array<glm::vec2, 3> circle, std::array<glm::vec2, 2> endpoints)
 {
-	line = glm::normalize(line);
-	return glm::dot(point, line) * line;
+	if (point_in_circle({ circle[0], circle[1], circle[2], { endpoints[0]} }))
+		if (!point_in_circle({ circle[0], circle[1], circle[2], { endpoints[1]} }))
+			return true;
+	else
+		if (!point_in_circle({ circle[0], circle[1], circle[2], { endpoints[1]} }))
+			return true;
+	return false;
 }
 
-glm::vec2 get_symmetrical_corner(glm::vec2 a, glm::vec2 b, glm::vec2 c)
+std::vector<float> ray_circle_intersection(std::array<glm::vec2, 2> ray, glm::vec2 center, float r)
 {
-	glm::vec2 ac = c - a;
-	glm::vec2 half = a + (ac / 2.f);
-	float len = line_length(half - project_point_on_line(b, ac));
-	return b + 2.f * len * glm::normalize(ac);
+	// Sources:
+	// https://math.stackexchange.com/questions/311921/get-location-of-vector-circle-intersection
+	// http://mathworld.wolfram.com/QuadraticFormula.html
+
+	float a = (ray[1].x - ray[0].x) * (ray[1].x - ray[0].x) + (ray[1].y - ray[0].y) * (ray[1].y - ray[0].y);
+	float b = 2.f * (ray[1].x - ray[0].x) * (ray[0].x - center.x) + 2.f * (ray[1].y - ray[0].y) * (ray[0].y - center.y);
+	float c = (ray[0].x - center.x) * (ray[0].x - center.x) + (ray[0].y - center.y) * (ray[0].y - center.y) - r * r;
+
+	float disc = b * b - 4.f * a * c;
+	if (disc < 0.f)
+		return {};
+
+	// Alternative quadratic formula for more numerical precision
+	float t[2] = { (2.f * c) / (-b + glm::sqrt(disc)), (2.f * c) / (-b - glm::sqrt(disc)) };
+
+	std::vector<float> result;
+	for (int i = 0; i < 2; i++)
+	{
+		if (t[i] > 0.f && t[i] < 1.f)
+			result.push_back(t[i]);
+	}
+	return result;
 }
+
+bool vector_inside_circle(std::array<glm::vec2, 2> ray, glm::vec2 center, float r)
+{
+	if (line_length2(ray[0] - center) <= r * r)
+		if (line_length2(ray[1] - center) <= r * r)
+			return true;
+	return false;
+}
+
