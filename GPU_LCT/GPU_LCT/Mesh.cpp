@@ -479,6 +479,7 @@ void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 void Mesh::transform_into_LCT()
 {
 	no_colliniear_constraints(first->nxt);
+	disturbance_linear_pass(first);
 }
 
 void Mesh::flip_edges(std::stack<SymEdge*>&& edge_indices)
@@ -1078,5 +1079,32 @@ bool Mesh::possible_disturbance(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2
 	if (line_length(c - p) > line_length(project_point_on_line(p, s) - b))
 		return true;
 
+	return false;
+}
+
+bool Mesh::disturbance_linear_pass(SymEdge * start_edge)
+{
+	next_iter();
+	std::deque<SymEdge*> triangles;
+	triangles.push_back(start_edge);
+	m_faces[start_edge->face].explored = m_iter_id;
+	while (triangles.size() != 0)
+	{
+		// Pop current triangle exploring from the triangle list
+		SymEdge* curr_e = triangles.front();
+		triangles.pop_front();
+		// Add new triangles to the triangle list
+		for (unsigned int i = 0; i < 2; i++)
+		{
+			curr_e = curr_e->nxt;
+			if (curr_e->sym() != nullptr && m_faces[curr_e->sym()->face].explored != m_iter_id)
+			{
+				triangles.push_back(curr_e->sym());
+				m_faces[curr_e->sym()->face].explored = m_iter_id;
+			}
+		}
+		// Check for disturbances of current triangle
+		std::cout << curr_e->face << std::endl;
+	}
 	return false;
 }
