@@ -13,7 +13,7 @@ void Mesh::initialize_as_quad(glm::vec2 scale = glm::vec2{ 1.f, 1.f }, glm::vec2
 	// First vertex is top left for openGL, remaining order is ccw
 	m_vertices = { {{-1.f, 1.f}, 0}, {{-1.f, -1.f}, 0}, {{1.f, -1.f}, 0}, {{1.f, 1.f}, 0} };
 	for (auto& vertex : m_vertices) vertex.vertice = vertex.vertice * scale + translate;
-	m_edges = { {{0, 1}, {}} , {{1, 2}, {}}, {{2, 3}, {}} , {{3, 0}, {}}, {{3, 1}, {}} };
+	m_edges = { {{0, 1}, {0}} , {{1, 2}, {0}}, {{2, 3}, {0}} , {{3, 0}, {0}}, {{3, 1}, {}} };
 	m_faces = { {{0, 1, 3}, 0}, {{3, 1, 2}, 0} };
 
 	std::vector<glm::ivec3> triangle_edges;
