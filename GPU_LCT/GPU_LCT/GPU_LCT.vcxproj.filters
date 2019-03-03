@@ -48,6 +48,12 @@
     <ClCompile Include="Log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DelaunayDebugObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DelaunayDebugPipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="data_structures.hpp">
@@ -77,12 +83,24 @@
     <ClInclude Include="Drawable.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DelaunayDebugObject.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DelaunayDebugPipeline.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="debug_vertex_shader.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
     <None Include="debug_fragment_shader.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="debug_delaunay_vertex_shader.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="debug_delaunay_fragment_shader.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
   </ItemGroup>

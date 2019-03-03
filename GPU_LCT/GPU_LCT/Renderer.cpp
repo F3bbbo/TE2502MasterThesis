@@ -1,13 +1,14 @@
 #include "Renderer.hpp"
 
-Renderer::Renderer()
+Renderer::Renderer(int screen_res)
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	m_window = glfwCreateWindow(800, 600, "LCT", NULL, NULL);
+	m_screen_res = screen_res;
+	m_window = glfwCreateWindow(screen_res, screen_res, "LCT", NULL, NULL);
 	if (m_window == NULL)
 	{
 		LOG_T(CRITICAL, "Failed to create GLFW window");
@@ -16,6 +17,9 @@ Renderer::Renderer()
 	glfwMakeContextCurrent(m_window);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		LOG_T(CRITICAL, "Failed to initialize GLAD");
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 }
 
 Renderer::~Renderer()
@@ -32,7 +36,6 @@ void Renderer::run()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		draw_frame();
-		check_error();
 
 		// check and call events and swap the buffers
 		glfwPollEvents();
@@ -69,6 +72,11 @@ void Renderer::check_error()
 void Renderer::set_debug_edge(SymEdge * start_edge)
 {
 	m_current_edge = start_edge;
+}
+
+int Renderer::get_screen_res()
+{
+	return m_screen_res;
 }
 
 void Renderer::draw_frame()

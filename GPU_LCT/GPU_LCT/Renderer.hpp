@@ -12,7 +12,7 @@
 class Renderer
 {
 public:
-	Renderer();
+	Renderer(int screen_res);
 	~Renderer();
 
 	template<typename T>
@@ -25,6 +25,7 @@ public:
 	void run();
 	void check_error();
 	void set_debug_edge(SymEdge* start_edge);
+	int get_screen_res();
 
 	bool shut_down = false;
 	SymEdge* m_current_edge = nullptr;
@@ -35,7 +36,7 @@ private:
 	std::vector<std::unique_ptr<Pipeline>> m_pipelines;
 	float m_dt;
 	GLFWwindow* m_window = nullptr;
-
+	int m_screen_res = 600;
 	// Debug walking variables
 
 	bool m_pressed_r = false;

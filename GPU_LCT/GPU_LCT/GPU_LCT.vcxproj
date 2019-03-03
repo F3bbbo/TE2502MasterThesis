@@ -165,6 +165,8 @@
   <ItemGroup>
     <ClCompile Include="DebugObject.cpp" />
     <ClCompile Include="DebugPipeline.cpp" />
+    <ClCompile Include="DelaunayDebugObject.cpp" />
+    <ClCompile Include="DelaunayDebugPipeline.cpp" />
     <ClCompile Include="Drawable.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Log.cpp" />
@@ -178,6 +180,8 @@
     <ClInclude Include="data_structures.hpp" />
     <ClInclude Include="DebugObject.hpp" />
     <ClInclude Include="DebugPipeline.hpp" />
+    <ClInclude Include="DelaunayDebugObject.hpp" />
+    <ClInclude Include="DelaunayDebugPipeline.hpp" />
     <ClInclude Include="Drawable.hpp" />
     <ClInclude Include="Log.hpp" />
     <ClInclude Include="Mesh.hpp" />
@@ -186,6 +190,8 @@
     <ClInclude Include="trig_functions.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="debug_delaunay_fragment_shader.glsl" />
+    <None Include="debug_delaunay_vertex_shader.glsl" />
     <None Include="debug_fragment_shader.glsl" />
     <None Include="debug_vertex_shader.glsl" />
   </ItemGroup>

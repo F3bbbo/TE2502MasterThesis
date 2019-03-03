@@ -1,13 +1,15 @@
 #include "Mesh.hpp"
 #include "DebugObject.hpp"
 #include "DebugPipeline.hpp"
+#include "DelaunayDebugObject.hpp"
+#include "DelaunayDebugPipeline.hpp"
 #include "Renderer.hpp"
 #include <array>
 
 int main()
 {
 	// Important that the renderer is created first because it initializes OpenGL
-	Renderer renderer;
+	Renderer renderer(800);
 
 	Mesh m;
 	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
@@ -41,7 +43,7 @@ int main()
 	lr = m.Locate_point(point);
 	m.Insert_point_in_edge(point, lr.sym_edge);*/
 
-	points = { { 0.f, -0.2f }, {0.f, 0.2f} };
+	points = { { 0.f, -0.2f }, {0.f, 0.2f}, {-0.2, 0.1f} };
 
 	m.insert_constraint(std::move(points), 2);
 
@@ -69,11 +71,26 @@ int main()
 	debug_pass.add_pass(DebugPipeline::DEBUG_PASS, std::move(debug_draw_path));
 	debug_pass.add_drawable(std::move(thingerino));
 	debug_pass.add_drawable(std::move(symedge_visualizer));
+	
+	DelaunayDebugObject ddo(m);
+	ddo.set_circle_color({ 1.f, 1.f, 0.f });
+	ddo.set_circle_thiccness(0.005f);
+	ddo.enable(true);
+
+	ShaderPath delaunay_draw_path;
+	delaunay_draw_path[VS] = "debug_delaunay_vertex_shader.glsl";
+	delaunay_draw_path[FS] = "debug_delaunay_fragment_shader.glsl";
+
+	DelaunayDebugPipeline ddp((float)renderer.get_screen_res());
+	ddp.add_pass(DelaunayDebugPipeline::DELAUNAY_DEBUG_PASS, std::move(delaunay_draw_path));
+	ddp.m_circles = ddo;
 
 	renderer.add_pipeline(std::move(debug_pass));
+	renderer.add_pipeline(std::move(ddp));
 	//set debug edge of renderer
 	renderer.set_debug_edge(m.first);
 
+	renderer.check_error();
 	while (!renderer.shut_down)
 	{
 		symedge_visualizer.update_edge(m.get_edge(renderer.m_current_edge->edge));

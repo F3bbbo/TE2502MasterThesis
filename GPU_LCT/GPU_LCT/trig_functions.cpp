@@ -131,6 +131,23 @@ bool point_in_circle(std::array<glm::vec2, 4> points)
 	return false;
 }
 
+glm::vec2 circle_center_from_points(glm::vec2 a, glm::vec2 b, glm::vec2 c)
+{
+	glm::vec2 ab = b - a;
+	glm::vec2 bc = c - b;
+
+	std::array<glm::vec2, 2> midpoints = { a + ab / 2.f, b + bc / 2.f };
+	std::array<glm::vec2, 2> normals;
+	// rotate vectors 90 degrees
+	glm::vec3 vec = cross(glm::vec3(ab.x, ab.y, 0.f), glm::vec3(0.f, 0.f, 1.f));
+	normals[0] = glm::vec2(vec.x, vec.y);
+
+	vec = cross(glm::vec3(bc.x, bc.y, 0.f), glm::vec3(0.f, 0.f, 1.f));
+	normals[1] = glm::vec2(vec.x, vec.y);
+
+	return line_line_intersection_point(midpoints[0], midpoints[0] + normals[0], midpoints[1], midpoints[1] + normals[1]);
+}
+
 glm::vec2 project_point_on_line(glm::vec2 point, glm::vec2 line)
 {
 	line = glm::normalize(line);
