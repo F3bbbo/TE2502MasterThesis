@@ -53,9 +53,40 @@ bool point_segment_test(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2, float epsi)
 	return true;
 }
 
+float sign(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3)
+{
+	return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+}
+
 bool point_triangle_test(glm::vec2 p1, glm::vec2 t1, glm::vec2 t2, glm::vec2 t3, float epsi)
 {
 
+	float d1, d2, d3;
+	bool has_neg, has_pos;
+
+	d1 = sign(p1, t1, t2);
+	d2 = sign(p1, t2, t3);
+	d3 = sign(p1, t3, t1);
+
+	has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+	has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+	return !(has_neg && has_pos);
+}
+
+bool segment_triangle_test(glm::vec2 p1, glm::vec2 p2, glm::vec2 t1, glm::vec2 t2, glm::vec2 t3)
+{
+	if (point_triangle_test(p1, t1, t2, t3) && point_triangle_test(p2, t1, t2, t3)) {
+		// If triangle contains both points of segment return true
+		return true;
+	}
+	if (line_seg_intersection_ccw(p1, p2, t1, t2) ||
+		line_seg_intersection_ccw(p1, p2, t2, t3) ||
+		line_seg_intersection_ccw(p1, p2, t3, t1)) {
+		// If segment intersects any of the edges of the triangle return true
+		return true;
+	}
+	// Otherwise segment is missing the triangle
 	return false;
 }
 
@@ -86,7 +117,7 @@ glm::vec2 line_line_intersection_point(glm::vec2 a, glm::vec2 b, glm::vec2 c, gl
 
 	float determinant = a1 * b2 - a2 * b1;
 
-	if ( std::fabs(determinant) < epsi )
+	if (std::fabs(determinant) < epsi)
 	{
 		// The lines are parallel. This is simplified 
 		// by returning a pair of FLT_MAX 
