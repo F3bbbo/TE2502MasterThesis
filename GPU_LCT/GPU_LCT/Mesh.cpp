@@ -1141,14 +1141,45 @@ bool Mesh::edge_intersects_sector(SymEdge* b, SymEdge* segment)
 	return false;
 }
 
+SymEdge* Mesh::find_closest_constraint(SymEdge* b)
+{
+	if (is_constrained(b->nxt->edge))
+		return b->nxt;
+
+	if (b->nxt->sym() == nullptr)
+		return nullptr;
+
+	std::stack<SymEdge*> unvisited_triangles;
+	unvisited_triangles.push(b->nxt->sym()->nxt);
+	unvisited_triangles.push(b->nxt->sym()->nxt->nxt);
+	SymEdge* ret = nullptr;
+	float dist = FLT_MAX;
+	glm::vec2 b_vert = get_vertex(b->vertex);
 	while (!unvisited_triangles.empty())
 	{
 		SymEdge* edge = unvisited_triangles.top();
 		unvisited_triangles.pop();
 
-		/*if ()*/
+		if (!edge_intersects_sector(b, edge))
+			break;
+		if (is_constrained(edge->edge))
+		{
+			std::array<glm::vec2, 2> segment_endpoints = get_edge(edge->edge);
+			glm::vec2 b_prim = project_point_on_line(b_vert, segment_endpoints[0] - segment_endpoints[1]);
+			if (line_length(b_prim - b_vert) < dist)
+			{
+				dist = line_length(b_prim - b_vert);
+				ret = edge;
+			}
+		}
+
+		if (edge->sym() != nullptr)
+		{
+			unvisited_triangles.push(edge->sym()->nxt);
+			unvisited_triangles.push(edge->sym()->nxt->nxt);
+		}
 	}
-	return nullptr;
+	return ret;
 }
 
 bool Mesh::disturbance_linear_pass(SymEdge * start_edge)
