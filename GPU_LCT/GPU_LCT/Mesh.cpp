@@ -1120,11 +1120,27 @@ bool Mesh::is_orthogonally_projectable(glm::vec2 v, glm::vec2 a, glm::vec2 b)
 	return true;
 }
 
-SymEdge* Mesh::find_closest_constraint(SymEdge* ca)
+bool Mesh::edge_intersects_sector(SymEdge* b, SymEdge* segment)
 {
-	std::stack<SymEdge*> unvisited_triangles;
-	unvisited_triangles.push(ca);
-	
+	glm::vec2 center = get_vertex(b->vertex);
+	glm::vec2 a = get_vertex(b->prev()->vertex);
+	glm::vec2 c = get_vertex(b->nxt->vertex);
+
+	std::array<glm::vec2, 2> segment_endpoints = get_edge(segment->edge);
+	glm::vec2 center_prim = project_point_on_line(center, segment_endpoints[0] - segment_endpoints[1]);
+	float center_prim_length2 = line_length2(center_prim - center);
+	// Check if the closes point on the segment is within the circle radius
+	if (center_prim_length2 > glm::min(line_length2(a - center), line_length2(c - center)))
+		return false;
+
+	glm::vec2 point = line_line_intersection_point(center, center_prim, a, c);
+	// Check if the intersection point P of the lines (center, centerprim) and (a, b) is clloser to the center than center prim
+	// And check if the dot is positive, which means that P is on the opposite side of ab relative to the center
+	if (glm::dot(point - center, center_prim - center) > 0 && center_prim_length2 > line_length2(point - center))
+		return true;
+	return false;
+}
+
 	while (!unvisited_triangles.empty())
 	{
 		SymEdge* edge = unvisited_triangles.top();
