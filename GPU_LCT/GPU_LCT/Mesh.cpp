@@ -480,19 +480,42 @@ SymEdge* Mesh::insert_point_in_face(glm::vec2 p, SymEdge * e)
 
 void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 {
-	std::vector<SymEdge*> vertex_list;
+	std::vector<int> vertex_list;
+	std::vector<SymEdge*> sym_edge_list;
 	for (glm::vec2 point : points)
 	{
 		LocateRes lr = Locate_point(point);
 		if (lr.type == LocateType::FACE)
-			vertex_list.push_back(insert_point_in_face(point, lr.sym_edge));
+		{
+			SymEdge* new_p = insert_point_in_face(point, lr.sym_edge);
+			sym_edge_list.push_back(new_p);
+			vertex_list.push_back(new_p->vertex);
+		}
 		else if (lr.type == LocateType::EDGE)
-			vertex_list.push_back(insert_point_in_edge(point, lr.sym_edge));
+		{
+			SymEdge* new_p = insert_point_in_edge(point, lr.sym_edge);
+			sym_edge_list.push_back(new_p);
+			vertex_list.push_back(new_p->vertex);
+		}
 		else if (lr.type == LocateType::VERTEX)
-			vertex_list.push_back(lr.sym_edge);
+		{
+			sym_edge_list.push_back(lr.sym_edge);
+			vertex_list.push_back(lr.sym_edge->vertex);
+		}
 	}
-	for (size_t vertex = 0; vertex < vertex_list.size() - 1; vertex++)
-		insert_segment(vertex_list[vertex], vertex_list[vertex + 1], cref);
+	for (size_t vertex = 0; vertex < sym_edge_list.size() - 1; vertex++)
+	{
+		if (sym_edge_list[vertex]->vertex != vertex_list[vertex])
+		{
+			sym_edge_list[vertex] = oriented_walk(sym_edge_list[vertex],
+				m_vertices[vertex_list[vertex]].vertice).sym_edge;
+		}
+		if (sym_edge_list[vertex + 1]->vertex != vertex_list[vertex + 1]) {
+			sym_edge_list[vertex + 1] = oriented_walk(sym_edge_list[vertex + 1],
+				m_vertices[vertex_list[vertex + 1]].vertice).sym_edge;
+		}
+		insert_segment(sym_edge_list[vertex], sym_edge_list[vertex + 1], cref);
+	}
 }
 
 void Mesh::transform_into_LCT()
