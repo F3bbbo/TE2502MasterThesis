@@ -1115,7 +1115,111 @@ bool Mesh::disturbance_linear_pass(SymEdge * start_edge)
 			}
 		}
 		// Check for disturbances of current triangle
-		std::cout << curr_e->face << std::endl;
+		//std::cout << "Curr_tri" << curr_e->face << std::endl;
+		fix_triangle_disturbances(curr_e);
+
 	}
 	return false;
+}
+
+void Mesh::fix_triangle_disturbances(SymEdge * tri)
+{
+	SymEdge* curr_tri = tri;
+	// Check if any of edges of the triangle is constraints
+	std::vector<SymEdge*> constraints;
+	std::vector<SymEdge*> edge_ac;
+	for (unsigned int i = 0; i < 3; i++)
+	{
+		if (m_edges[curr_tri->edge].constraint_ref.size() != 0)
+		{
+			constraints.push_back(curr_tri);
+			edge_ac.push_back(curr_tri);
+		}
+		curr_tri = curr_tri->nxt;
+	}
+
+	// if 0 constraints found go through triangle again looking for close enough 
+	// constraints
+	if (constraints.size() == 0)
+	{
+
+	}
+	else if (constraints.size() == 1)
+	{ // if one constraint was found only two traversals exist for triangle
+		std::stack<SymEdge*> explore_stack;
+		//First do the right side
+		//std::cout << "Right side\n";
+		if (edge_ac[0]->nxt->nxt->sym() != nullptr)
+			explore_stack.push(edge_ac[0]->nxt->nxt->sym());
+		// Calculate R triangle
+		std::array<glm::vec2, 3> R;
+		R[0] = m_vertices[edge_ac[0]->vertex].vertice;
+		R[1] = m_vertices[edge_ac[0]->prev()->vertex].vertice;
+		{
+			glm::vec2 ac = R[0] - m_vertices[edge_ac[0]->nxt->vertex].vertice;
+			glm::vec2 dir = glm::normalize(ac);
+			glm::vec2 ab = R[1] - m_vertices[edge_ac[0]->nxt->vertex].vertice;
+			float b_prim = glm::dot(dir, ab);
+			R[2] = R[1] + (dir * (glm::length(ac) - b_prim));
+		}
+		while (!explore_stack.empty())
+		{
+			SymEdge* curr_e = explore_stack.top();
+			explore_stack.pop();
+			// TODO: check if point is an disturbance
+			//std::cout << "Explore_face: " << curr_e->face << std::endl;
+			// add next edges 
+			curr_e = curr_e->nxt;
+			for (unsigned int i = 0; i < 2; i++)
+			{
+				//Skip edges that are constraints
+				if (m_edges[curr_e->edge].constraint_ref.size() == 0)
+				{
+					auto edge = get_edge(curr_e->edge);
+					if (segment_triangle_test(edge[0], edge[1], R[0], R[1], R[2]))
+						explore_stack.push(curr_e->sym());
+				}
+				curr_e = curr_e->nxt;
+			}
+
+		}
+		//Then do the left side
+		if (edge_ac[0]->nxt->sym() != nullptr)
+			explore_stack.push(edge_ac[0]->nxt->sym());
+		// Calculate R for left side
+		R[0] = m_vertices[edge_ac[0]->nxt->vertex].vertice;
+		R[1] = m_vertices[edge_ac[0]->prev()->vertex].vertice;
+		{
+			glm::vec2 ac = R[0] - m_vertices[edge_ac[0]->vertex].vertice;
+			glm::vec2 dir = glm::normalize(ac);
+			glm::vec2 ab = R[1] - m_vertices[edge_ac[0]->vertex].vertice;
+			float b_prim = glm::dot(dir, ab);
+			R[2] = R[1] + (dir * (glm::length(ac) - b_prim));
+		}
+		//std::cout << "Left side\n";
+		while (!explore_stack.empty())
+		{
+			SymEdge* curr_e = explore_stack.top();
+			explore_stack.pop();
+			// TODO: check if point is an disturbance
+			//std::cout << "Explore_face: " << curr_e->face << std::endl;
+			// add next edges 
+			curr_e = curr_e->nxt;
+			for (unsigned int i = 0; i < 2; i++)
+			{
+				//Skip edges that are constraints
+				if (m_edges[curr_e->edge].constraint_ref.size() == 0)
+				{
+					auto edge = get_edge(curr_e->edge);
+					if (segment_triangle_test(edge[0], edge[1], R[0], R[1], R[2]))
+						explore_stack.push(curr_e->sym());
+				}
+				curr_e = curr_e->nxt;
+			}
+
+		}
+	}
+	// if more than 1 constraints exist on the triangle no traversals through 
+	// the triangle are possible.
+	return;
 }

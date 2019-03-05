@@ -106,6 +106,7 @@ private:
 	bool no_colliniear_constraints(SymEdge* v);
 	bool possible_disturbance(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 s);
 	bool disturbance_linear_pass(SymEdge* start_edge);
+	void fix_triangle_disturbances(SymEdge* tri);
 };
 
 #endif
