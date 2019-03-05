@@ -30,10 +30,15 @@ void DebugObject::update_edge(std::array<glm::vec2, 2> vertices)
 {
 	glBindVertexArray(m_VAO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
+	std::array<DrawVertex, 2> dv;
+	dv[0] = DrawVertex(vertices[0], glm::vec4(m_point_color.r, m_point_color.g, m_point_color.b, 1.f) );
+	dv[1] = DrawVertex(vertices[1], glm::vec4(m_point_color.r, m_point_color.g, m_point_color.b, 0.f) );
 
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(DrawVertex) * 2, vertices.data(), GL_DYNAMIC_DRAW);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	glBindVertexArray(0);
@@ -50,33 +55,30 @@ void DebugObject::bind_VAO()
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 }
 
-void DebugObject::draw_object(GLuint color_location)
+void DebugObject::draw_object()
 {
 	if (m_mode == DRAW_FACES || m_mode == DRAW_ALL)
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_faces);
-		glUniform3f(color_location, m_face_color.r, m_face_color.g, m_face_color.b);
 		glDrawElements(GL_TRIANGLES, m_num_faces, GL_UNSIGNED_INT, 0);
 	}
 	if (m_mode == DRAW_EDGES || m_mode == DRAW_ALL)
 	{
 		glLineWidth(m_edge_thiccness);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_edges);
-		glUniform3f(color_location, m_edge_color.r, m_edge_color.g, m_edge_color.b);
 		glDrawElements(GL_LINES, m_num_edges, GL_UNSIGNED_INT, 0);
 
 		if (m_draw_constraints)
 		{
 			glLineWidth(m_edge_thiccness);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_cedges);
-			glUniform3f(color_location, 0.1f, 0.6f, 0.1f);
+			//glUniform3f(color_location, 0.1f, 0.6f, 0.1f);
 			glDrawElements(GL_LINES, m_num_cedges, GL_UNSIGNED_INT, 0);
 		}
 	}
 	if (m_mode == DRAW_POINTS || m_mode == DRAW_ALL)
 	{
 		glPointSize(m_point_thiccness);
-		glUniform3f(color_location, m_point_color.r, m_point_color.g, m_point_color.b);
 		glDrawArrays(GL_POINTS, 0, m_num_points);
 	}
 }
@@ -137,10 +139,10 @@ void DebugObject::construct_GL_objects(Mesh& mesh)
 	glBindVertexArray(m_VAO);
 
 	std::vector<VertexRef> const& mesh_verts = mesh.get_vertex_list();
-	std::vector<glm::vec2> vertices;
+	std::vector<DrawVertex> vertices;
 
 	for (auto& vertex : mesh_verts)
-		vertices.push_back(vertex.vertice);
+		vertices.push_back({ vertex.vertice, {m_point_color.r, m_point_color.g, m_point_color.b, 1.f} });
 
 	m_num_points = (GLuint)vertices.size();
 
@@ -148,7 +150,9 @@ void DebugObject::construct_GL_objects(Mesh& mesh)
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+
 	glEnableVertexAttribArray(0);
 	
 	if (m_mode == DRAW_EDGES || m_mode == DRAW_ALL)

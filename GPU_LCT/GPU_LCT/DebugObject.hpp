@@ -8,6 +8,14 @@
 class DebugObject : public Drawable
 {
 public:
+	struct DrawVertex
+	{
+		DrawVertex() {};
+		DrawVertex(glm::vec2 v, glm::vec4 c) : vertex(v), color(c) {};
+		glm::vec2 vertex;
+		glm::vec4 color;
+	};
+
 	bool is_valid();
 
 	void set_point_color(glm::vec3&& color);
@@ -27,7 +35,7 @@ public:
 	void update_edge(std::array<glm::vec2, 2> vertices);
 	~DebugObject();
 	void bind_VAO();
-	void draw_object(GLuint color_location);
+	void draw_object();
 private:
 	void construct_GL_objects(Mesh& mesh);
 

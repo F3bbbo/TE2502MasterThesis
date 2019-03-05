@@ -7,11 +7,10 @@ DebugPipeline::DebugPipeline()
 void DebugPipeline::draw()
 {
 	glUseProgram(m_passes[DEBUG_PASS]);
-	GLuint color_location = glGetUniformLocation(m_passes[DEBUG_PASS], "color");
 	for (auto& model : m_debug_objects)
 	{
 		model.second.bind_VAO();
-		model.second.draw_object(color_location);
+		model.second.draw_object();
 	}
 }
 
