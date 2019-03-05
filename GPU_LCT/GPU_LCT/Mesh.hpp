@@ -105,7 +105,8 @@ private:
 	//---------------------------------------------
 
 	bool possible_disturbance(SymEdge* b, SymEdge* segment);
-	bool is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym);
+	bool is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym, glm::vec2 e);
+	float local_clearance(SymEdge* b, SymEdge* segment);
 	bool no_colliniear_constraints(SymEdge* v);
 	bool disturbance_linear_pass(SymEdge* start_edge);
 	void fix_triangle_disturbances(SymEdge* tri);

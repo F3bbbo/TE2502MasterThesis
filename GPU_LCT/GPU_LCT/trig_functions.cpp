@@ -191,6 +191,8 @@ float area_of_triangle(glm::vec2 a, glm::vec2 b, glm::vec2 c)
 
 bool point_inside_triangle(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 p)
 {
+	// Source
+	// https://www.youtube.com/watch?time_continue=47&v=H9qu9Xptf-w
 	float combined_area = area_of_triangle(p, a, b) + area_of_triangle(p, b, c) + area_of_triangle(p, a, c);
 	float abc_area = area_of_triangle(a, b, c);
 	return (combined_area > abc_area - EPSILON) && (combined_area < abc_area + EPSILON);

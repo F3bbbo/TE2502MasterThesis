@@ -1066,14 +1066,14 @@ bool Mesh::possible_disturbance(SymEdge* tranveral_corner, SymEdge* segment)
 	return false;
 }
 
-bool Mesh::is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym)
+bool Mesh::is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym, glm::vec2 e)
 {
 	// 1
 	if (!no_colliniear_constraints(v_sym))
 		return false;
 
 	glm::vec2 v = get_vertex(v_sym->vertex);
-	glm::vec2 a = get_vertex(b_sym->nxt->nxt->vertex);
+	glm::vec2 a = get_vertex(b_sym->prev()->vertex);
 	glm::vec2 b = get_vertex(b_sym->vertex);
 	glm::vec2 c = get_vertex(b_sym->nxt->vertex);
 
@@ -1082,23 +1082,44 @@ bool Mesh::is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym)
 		return false;
 
 	// 3
-	SymEdge* constraint;
+	SymEdge* constraint = nullptr;
 	if (is_constrained(b_sym->nxt->edge))
 		constraint = b_sym->nxt;
 	else
 		constraint = find_closest_constraint(b_sym->nxt->sym());
 	
-	std::array<glm::vec2, 2> edge_endpoints = get_edge(constraint->edge);
-	glm::vec2 v_prim = project_point_on_line(v, edge_endpoints[0] - edge_endpoints[1]) - v;
+	std::array<glm::vec2, 2> c_endpoints = get_edge(constraint->edge);
+	glm::vec2 v_prim = project_point_on_line(v, c_endpoints[0] - c_endpoints[1]);
 	if (!(line_seg_intersection_ccw(v, v_prim, a, c) && line_seg_intersection_ccw(v, v_prim, b, c)))
 		return false;
 
 	// 4
-
-	// todo: define clearance function
+	float dist_v_segment = line_length(project_point_on_line(v, c_endpoints[0] - c_endpoints[1]) - v);
+	if (!(dist_v_segment < local_clearance(b_sym, constraint)))
+		return false;
 
 	// 5
+	if (!(dist_v_segment < line_length(v - e)))
+		return false;
 
+	return true;
+}
+
+float Mesh::local_clearance(SymEdge* b, SymEdge* segment)
+{
+	glm::vec2 b_vert = get_vertex(b->vertex);
+	if (segment == nullptr)
+	{
+		glm::vec2 a_vert = get_vertex(b->prev()->vertex);
+		glm::vec2 c_vert = get_vertex(b->nxt->vertex);
+		return glm::min(line_length(a_vert - b_vert), line_length(c_vert - b_vert));
+	}
+	else
+	{
+		std::array<glm::vec2, 2> c_endpoints = get_edge(segment->edge);
+		glm::vec2 b_prim = project_point_on_line(b_vert, c_endpoints[0] - c_endpoints[1]);
+		return line_length(b_vert - b_prim);
+	}
 }
 
 bool Mesh::no_colliniear_constraints(SymEdge* v)
