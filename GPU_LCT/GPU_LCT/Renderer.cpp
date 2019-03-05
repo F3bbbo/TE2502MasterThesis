@@ -19,7 +19,7 @@ Renderer::Renderer(int screen_res)
 		LOG_T(CRITICAL, "Failed to initialize GLAD");
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 Renderer::~Renderer()
@@ -79,6 +79,17 @@ int Renderer::get_screen_res()
 	return m_screen_res;
 }
 
+bool Renderer::mouse_clicked()
+{
+	return m_click_mouse;
+}
+
+glm::vec2 Renderer::get_mouse_pos()
+{
+	m_click_mouse = false;
+	return mouse_pos;
+}
+
 void Renderer::draw_frame()
 {
 	for (auto& pipeline : m_pipelines)
@@ -115,5 +126,19 @@ void Renderer::processInput()
 		else {
 			std::cout << "Next is nullptr.\n";
 		}
+	}
+
+	if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+	{
+		m_pressed_mouse = true;
+	}
+	else if (m_pressed_mouse) {
+		m_pressed_mouse = false;
+		double x, y;
+		glfwGetCursorPos(m_window, &x, &y);
+		x = x / m_screen_res * 2.0 - 1.0;
+		y = -(y / m_screen_res * 2.0 - 1.0);
+		mouse_pos = glm::vec2(x, y);
+		m_click_mouse = true;
 	}
 }

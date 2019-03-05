@@ -8,6 +8,7 @@
 #include <vector>
 #include "data_structures.hpp"
 #include "Pipeline.hpp"
+#include <glm/glm.hpp>
 
 class Renderer
 {
@@ -26,6 +27,9 @@ public:
 	void check_error();
 	void set_debug_edge(SymEdge* start_edge);
 	int get_screen_res();
+	bool mouse_clicked();
+
+	glm::vec2 get_mouse_pos();
 
 	bool shut_down = false;
 	SymEdge* m_current_edge = nullptr;
@@ -41,6 +45,9 @@ private:
 
 	bool m_pressed_r = false;
 	bool m_pressed_n = false;
+	bool m_pressed_mouse = false;
+	bool m_click_mouse = false;
+	glm::vec2 mouse_pos;
 };
 
 #endif

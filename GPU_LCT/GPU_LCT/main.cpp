@@ -34,7 +34,7 @@ int main()
 	points = { {0.f, -0.4f}, {0.f, 0.4f} };
 
 	m.insert_constraint(std::move(points), 1);
-	
+
 	/*point = {0.f, -0.2f};
 	lr = m.Locate_point(point);
 	m.Insert_point_in_edge(point, lr.sym_edge);
@@ -71,7 +71,7 @@ int main()
 	debug_pass.add_pass(DebugPipeline::DEBUG_PASS, std::move(debug_draw_path));
 	debug_pass.add_drawable(std::move(thingerino));
 	debug_pass.add_drawable(std::move(symedge_visualizer));
-	
+
 	DelaunayDebugObject ddo(m);
 	ddo.set_circle_color({ 1.f, 1.f, 0.f });
 	ddo.set_circle_thiccness(0.005f);
@@ -95,6 +95,12 @@ int main()
 	{
 		symedge_visualizer.update_edge(m.get_edge(renderer.m_current_edge->edge));
 		renderer.run();
+		// handle mouse click
+		if (renderer.mouse_clicked())
+		{
+			std::cout << "Clicked Triangle(index): " << m.locate_face(renderer.get_mouse_pos()) << std::endl;
+			//std::cout << "Mouse Location: {" << renderer.get_mouse_pos().x << ", " << renderer.get_mouse_pos().y << "}\n";
+		}
 	}
 	return 0;
 }

@@ -143,6 +143,17 @@ glm::vec2 Mesh::get_vertex(int index)
 	return m_vertices[index].vertice;
 }
 
+int Mesh::locate_face(glm::vec2 p)
+{
+	for (unsigned int i = 0; i < m_faces.size(); i++)
+	{
+		auto face = get_triangle(i);
+		if (point_triangle_test(p, face[0], face[1], face[2]))
+			return i;
+	}
+	return -1;
+}
+
 
 void Mesh::next_iter()
 {

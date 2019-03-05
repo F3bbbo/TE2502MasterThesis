@@ -55,6 +55,7 @@ public:
 	std::array<glm::vec2, 2> get_edge(int index);
 	std::array<glm::vec2, 3> get_triangle(int index);
 	glm::vec2 get_vertex(int index);
+	int locate_face(glm::vec2 p);
 	LocateRes Locate_point(glm::vec2 p);
 	// returns index to the vertex that was inserted
 	SymEdge* insert_point_in_edge(glm::vec2 p, SymEdge* e);
