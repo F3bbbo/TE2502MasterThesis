@@ -129,6 +129,14 @@ std::array<glm::vec2, 2> Mesh::get_edge(int index)
 	return ret;
 }
 
+glm::vec2 Mesh::get_other_edge_vertex(int eindex, int vindex)
+{
+	if (m_edges[eindex].edge[0] == vindex)
+		return get_vertex(m_edges[eindex].edge[0]);
+	else
+		return get_vertex(m_edges[eindex].edge[1]);
+}
+
 std::array<glm::vec2, 3> Mesh::get_triangle(int index)
 {
 	std::array<glm::vec2, 3> ret;
@@ -1036,14 +1044,23 @@ void Mesh::remove_face(int index)
 // LCT
 //---------------------------------------------
 
-bool Mesh::possible_disturbance(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 s)
+bool Mesh::possible_disturbance(SymEdge* tranveral_corner, SymEdge* segment)
 {
-	if (line_length(a - b) > line_length(project_point_on_line(b, s) - b))
+	glm::vec2 a = get_vertex(tranveral_corner->prev()->vertex);
+	glm::vec2 b = get_vertex(tranveral_corner->vertex);
+	glm::vec2 c = get_vertex(tranveral_corner->nxt->vertex);
+	std::array<glm::vec2, 2> segment_endpoints = get_edge(segment->edge);
+
+	glm::vec2 sector_c = project_point_on_line(b, c - a);
+	float dist = 2.f * line_length(sector_c - a);
+	sector_c = a + glm::normalize(c - a) * dist;
+	if (edge_intersects_sector(a, b, sector_c, segment_endpoints))
 		return true;
 
 	glm::vec2 p = get_symmetrical_corner(a, b, c);
+	sector_c = c + glm::normalize(a - c) * dist;
 
-	if (line_length(c - p) > line_length(project_point_on_line(p, s) - b))
+	if (edge_intersects_sector(a, b, sector_c, segment_endpoints))
 		return true;
 
 	return false;
@@ -1051,6 +1068,7 @@ bool Mesh::possible_disturbance(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2
 
 bool Mesh::is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym)
 {
+	// 1
 	if (!no_colliniear_constraints(v_sym))
 		return false;
 
@@ -1059,8 +1077,28 @@ bool Mesh::is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym)
 	glm::vec2 b = get_vertex(b_sym->vertex);
 	glm::vec2 c = get_vertex(b_sym->nxt->vertex);
 
+	// 2
 	if (!is_orthogonally_projectable(v, a, b))
 		return false;
+
+	// 3
+	SymEdge* constraint;
+	if (is_constrained(b_sym->nxt->edge))
+		constraint = b_sym->nxt;
+	else
+		constraint = find_closest_constraint(b_sym->nxt->sym());
+	
+	std::array<glm::vec2, 2> edge_endpoints = get_edge(constraint->edge);
+	glm::vec2 v_prim = project_point_on_line(v, edge_endpoints[0] - edge_endpoints[1]) - v;
+	if (!(line_seg_intersection_ccw(v, v_prim, a, c) && line_seg_intersection_ccw(v, v_prim, b, c)))
+		return false;
+
+	// 4
+
+	// todo: define clearance function
+
+	// 5
+
 }
 
 bool Mesh::no_colliniear_constraints(SymEdge* v)
@@ -1072,10 +1110,10 @@ bool Mesh::no_colliniear_constraints(SymEdge* v)
 	{
 		if (is_constrained(edge->edge))
 		{
-			std::array<glm::vec2, 2> curr_edge = get_edge(edge->edge);
+			std::array<glm::vec2, 2> curr_edge = { get_vertex(edge->vertex), get_other_edge_vertex( edge->edge, edge->vertex) };
 			for (SymEdge* c_edge : constrained_edges)
 			{
-				std::array<glm::vec2, 2> constraint_edge = get_edge(c_edge->edge);
+				std::array<glm::vec2, 2> constraint_edge = { get_vertex(edge->vertex), get_other_edge_vertex( c_edge->edge, c_edge->vertex) };
 				if (glm::dot(glm::normalize(constraint_edge[1] - constraint_edge[0]), glm::normalize(curr_edge[1] - curr_edge[0])) < -1 + EPSILON)
 					return false;
 			}
@@ -1104,7 +1142,6 @@ bool Mesh::no_colliniear_constraints(SymEdge* v)
 				return true;
 		}
 	}
-	return false;
 }
 
 bool Mesh::is_orthogonally_projectable(glm::vec2 v, glm::vec2 a, glm::vec2 b)
@@ -1112,7 +1149,7 @@ bool Mesh::is_orthogonally_projectable(glm::vec2 v, glm::vec2 a, glm::vec2 b)
 	glm::vec2 line = b - a;
 	glm::vec2 projected_point = project_point_on_line(v, line);
 
-	float projected_length = glm::dot(line, projected_point - a);
+	float projected_length = glm::dot(glm::normalize(line), projected_point - a);
 
 	if (projected_length < 0.f || projected_length * projected_length > line_length2(line))
 		return false;
@@ -1120,53 +1157,50 @@ bool Mesh::is_orthogonally_projectable(glm::vec2 v, glm::vec2 a, glm::vec2 b)
 	return true;
 }
 
-bool Mesh::edge_intersects_sector(SymEdge* b, SymEdge* segment)
+bool Mesh::edge_intersects_sector(glm::vec2 a, glm::vec2 b, glm::vec2 c, std::array<glm::vec2, 2> segment)
 {
-	glm::vec2 center = get_vertex(b->vertex);
-	glm::vec2 a = get_vertex(b->prev()->vertex);
-	glm::vec2 c = get_vertex(b->nxt->vertex);
+	// Assumes that b is the origin of the sector
+	glm::vec2 center_prim = project_point_on_line(b, segment[0] - segment[1]);
+	float center_prim_length = line_length(center_prim - b);
+	float sector_radius = glm::min(line_length(a - b), line_length(c - b));
 
-	std::array<glm::vec2, 2> segment_endpoints = get_edge(segment->edge);
-	glm::vec2 center_prim = project_point_on_line(center, segment_endpoints[0] - segment_endpoints[1]);
-	float center_prim_length2 = line_length2(center_prim - center);
-	// Check if the closes point on the segment is within the circle radius
-	if (center_prim_length2 > glm::min(line_length2(a - center), line_length2(c - center)))
-		return false;
+	if (line_length(a - b) < line_length(c - b))
+		c = b + glm::normalize(c - b) * sector_radius;
+	else
+		a = b + glm::normalize(a - b) * sector_radius;
 
-	glm::vec2 point = line_line_intersection_point(center, center_prim, a, c);
-	// Check if the intersection point P of the lines (center, centerprim) and (a, b) is clloser to the center than center prim
-	// And check if the dot is positive, which means that P is on the opposite side of ab relative to the center
-	if (glm::dot(point - center, center_prim - center) > 0 && center_prim_length2 > line_length2(point - center))
+	bool inside_triangle = point_inside_triangle(a, c, b, center_prim);
+	bool inside_circle = center_prim_length <= sector_radius;
+	glm::vec2 point = line_line_intersection_point(b, center_prim, a, c);
+	bool other_side_of_ac = glm::dot(point - b, center_prim - b) > 0 && center_prim_length > line_length(point - b);
+	if (inside_triangle || (inside_circle && other_side_of_ac))
 		return true;
 	return false;
 }
 
-SymEdge* Mesh::find_closest_constraint(SymEdge* b)
+SymEdge* Mesh::find_closest_constraint(SymEdge* ac)
 {
-	if (is_constrained(b->nxt->edge))
-		return b->nxt;
-
-	if (b->nxt->sym() == nullptr)
-		return nullptr;
-
+	// Assumes that ac has been checked outside of the function
 	std::stack<SymEdge*> unvisited_triangles;
-	unvisited_triangles.push(b->nxt->sym()->nxt);
-	unvisited_triangles.push(b->nxt->sym()->nxt->nxt);
+	unvisited_triangles.push(ac->nxt);
+	unvisited_triangles.push(ac->prev());
 	SymEdge* ret = nullptr;
 	float dist = FLT_MAX;
+	SymEdge* b = ac->sym()->nxt->nxt;
 	glm::vec2 b_vert = get_vertex(b->vertex);
 	while (!unvisited_triangles.empty())
 	{
 		SymEdge* edge = unvisited_triangles.top();
 		unvisited_triangles.pop();
 
-		if (!edge_intersects_sector(b, edge))
+		// checks if either sector is intersected by the edge
+		if (!possible_disturbance(b, edge))
 			break;
 		if (is_constrained(edge->edge))
 		{
 			std::array<glm::vec2, 2> segment_endpoints = get_edge(edge->edge);
 			glm::vec2 b_prim = project_point_on_line(b_vert, segment_endpoints[0] - segment_endpoints[1]);
-			if (line_length(b_prim - b_vert) < dist)
+			if (line_length(b_prim - b_vert) < dist && !(point_equal(b_prim, get_vertex(b->prev()->vertex)) || point_equal(b_prim, get_vertex(b->nxt->vertex))))
 			{
 				dist = line_length(b_prim - b_vert);
 				ret = edge;

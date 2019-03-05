@@ -181,6 +181,21 @@ glm::vec2 get_symmetrical_corner(glm::vec2 a, glm::vec2 b, glm::vec2 c)
 	return b + 2.f * len * glm::normalize(ac);
 }
 
+float area_of_triangle(glm::vec2 a, glm::vec2 b, glm::vec2 c)
+{
+	// https://www.mathsisfun.com/geometry/herons-formula.html
+	float abc[3] = { line_length(b - a) + line_length(c - b) + line_length(a - c) };
+	float s = (abc[0] + abc[1] + abc[2]) / 2.f;
+	return glm::sqrt(s * (s - abc[0]) * (s - abc[1]) * (s - abc[2]));
+}
+
+bool point_inside_triangle(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 p)
+{
+	float combined_area = area_of_triangle(p, a, b) + area_of_triangle(p, b, c) + area_of_triangle(p, a, c);
+	float abc_area = area_of_triangle(a, b, c);
+	return (combined_area > abc_area - EPSILON) && (combined_area < abc_area + EPSILON);
+}
+
 glm::vec2 circle_center_from_points(glm::vec2 a, glm::vec2 b, glm::vec2 c)
 {
 	glm::vec2 ab = b - a;
@@ -198,22 +213,10 @@ glm::vec2 circle_center_from_points(glm::vec2 a, glm::vec2 b, glm::vec2 c)
 	return line_line_intersection_point(midpoints[0], midpoints[0] + normals[0], midpoints[1], midpoints[1] + normals[1]);
 }
 
-bool line_circle_intersection(std::array<glm::vec2, 3> circle, std::array<glm::vec2, 2> endpoints)
-{
-	if (point_in_circle({ circle[0], circle[1], circle[2], { endpoints[0]} }))
-		if (!point_in_circle({ circle[0], circle[1], circle[2], { endpoints[1]} }))
-			return true;
-	else
-		if (!point_in_circle({ circle[0], circle[1], circle[2], { endpoints[1]} }))
-			return true;
-	return false;
-}
-
 std::vector<float> ray_circle_intersection(std::array<glm::vec2, 2> ray, glm::vec2 center, float r)
 {
-	// Sources:
+	// Solution
 	// https://math.stackexchange.com/questions/311921/get-location-of-vector-circle-intersection
-	// http://mathworld.wolfram.com/QuadraticFormula.html
 
 	float a = (ray[1].x - ray[0].x) * (ray[1].x - ray[0].x) + (ray[1].y - ray[0].y) * (ray[1].y - ray[0].y);
 	float b = 2.f * (ray[1].x - ray[0].x) * (ray[0].x - center.x) + 2.f * (ray[1].y - ray[0].y) * (ray[0].y - center.y);
@@ -224,22 +227,14 @@ std::vector<float> ray_circle_intersection(std::array<glm::vec2, 2> ray, glm::ve
 		return {};
 
 	// Alternative quadratic formula for more numerical precision
+	// http://mathworld.wolfram.com/QuadraticFormula.html
 	float t[2] = { (2.f * c) / (-b + glm::sqrt(disc)), (2.f * c) / (-b - glm::sqrt(disc)) };
 
 	std::vector<float> result;
 	for (int i = 0; i < 2; i++)
 	{
-		if (t[i] > 0.f && t[i] < 1.f)
+		if (t[i] >= 0.f && t[i] <= 1.f)
 			result.push_back(t[i]);
 	}
 	return result;
 }
-
-bool vector_inside_circle(std::array<glm::vec2, 2> ray, glm::vec2 center, float r)
-{
-	if (line_length2(ray[0] - center) <= r * r)
-		if (line_length2(ray[1] - center) <= r * r)
-			return true;
-	return false;
-}
-

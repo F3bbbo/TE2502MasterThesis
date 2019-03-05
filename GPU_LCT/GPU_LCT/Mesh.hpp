@@ -53,6 +53,7 @@ public:
 	std::vector<Edge> get_edge_list();
 	std::vector<Face> get_face_list();
 	std::array<glm::vec2, 2> get_edge(int index);
+	glm::vec2 get_other_edge_vertex(int eindex, int vindex);
 	std::array<glm::vec2, 3> get_triangle(int index);
 	glm::vec2 get_vertex(int index);
 	int locate_face(glm::vec2 p);
@@ -103,13 +104,13 @@ private:
 	// LCT
 	//---------------------------------------------
 
-	bool possible_disturbance(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 s);
+	bool possible_disturbance(SymEdge* b, SymEdge* segment);
 	bool is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym);
 	bool no_colliniear_constraints(SymEdge* v);
 	bool disturbance_linear_pass(SymEdge* start_edge);
 	void fix_triangle_disturbances(SymEdge* tri);
 	bool is_orthogonally_projectable(glm::vec2 v, glm::vec2 a, glm::vec2 b);
-	bool edge_intersects_sector(SymEdge* b, SymEdge* segment);
+	bool edge_intersects_sector(glm::vec2 a, glm::vec2 b, glm::vec2 c, std::array<glm::vec2, 2> segment);
 	SymEdge* find_closest_constraint(SymEdge* b);
 };
 
