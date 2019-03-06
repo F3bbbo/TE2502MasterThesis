@@ -105,7 +105,7 @@ private:
 	//---------------------------------------------
 
 	bool possible_disturbance(SymEdge* b, SymEdge* segment);
-	bool is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym, glm::vec2 e);
+	bool is_disturbed(SymEdge* constraint, SymEdge* b_sym, SymEdge* v_sym, glm::vec2 e);
 	float local_clearance(SymEdge* b, SymEdge* segment);
 	bool no_colliniear_constraints(SymEdge* v);
 	// Returns the pRefs from the linear pass that needs to 

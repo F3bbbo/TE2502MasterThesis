@@ -1090,7 +1090,7 @@ bool Mesh::possible_disturbance(SymEdge* tranveral_corner, SymEdge* segment)
 	return false;
 }
 
-bool Mesh::is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym, glm::vec2 e)
+bool Mesh::is_disturbed(SymEdge* constraint, SymEdge* b_sym, SymEdge* v_sym, glm::vec2 e)
 {
 	// 1
 	if (!no_colliniear_constraints(v_sym))
@@ -1106,12 +1106,6 @@ bool Mesh::is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym, glm::vec
 		return false;
 
 	// 3
-	SymEdge* constraint = nullptr;
-	if (is_constrained(b_sym->nxt->edge))
-		constraint = b_sym->nxt;
-	else
-		constraint = find_closest_constraint(b_sym->nxt->sym());
-
 	std::array<glm::vec2, 2> c_endpoints = get_edge(constraint->edge);
 	glm::vec2 v_prim = project_point_on_line(v, c_endpoints[0], c_endpoints[1]);
 	if (!(line_seg_intersection_ccw(v, v_prim, a, c) && line_seg_intersection_ccw(v, v_prim, b, c)))
@@ -1359,7 +1353,7 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 			// TODO: check if point is an disturbance
 			std::cout << "Explore_face: " << curr_e->face << std::endl;
 			SymEdge* pot_disturb = curr_e->nxt->nxt;
-			if (is_disturbed(edge_ac[0]->prev(), true, pot_disturb,
+			if (is_disturbed(edge_ac[0], edge_ac[0]->prev(), pot_disturb,
 				m_vertices[pot_disturb->nxt->vertex].vertice))
 			{
 				std::cout << "Disturbance index: " << pot_disturb->vertex << "\n";
@@ -1409,7 +1403,7 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 			std::cout << "Explore_face: " << curr_e->face << std::endl;
 			// TODO: check if point is an disturbance
 			SymEdge* pot_disturb = curr_e->nxt->nxt;
-			if (is_disturbed(edge_ac[0]->prev(), true, pot_disturb,
+			if (is_disturbed(edge_ac[0], edge_ac[0]->prev(), pot_disturb,
 				m_vertices[pot_disturb->prev()->vertex].vertice))
 			{
 				std::cout << "Disturbance index: " << pot_disturb->vertex << "\n";
