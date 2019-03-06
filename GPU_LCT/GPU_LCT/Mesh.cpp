@@ -1302,7 +1302,7 @@ std::vector<std::pair<glm::vec2, SymEdge*>> Mesh::disturbance_linear_pass(SymEdg
 			}
 		}
 		// Check for disturbances of current triangle
-		std::cout << "Curr_tri " << curr_e->face << std::endl;
+		//std::cout << "Curr_tri " << curr_e->face << std::endl;
 		//if (curr_e->face == 11) {
 		//	int a = 2;
 		//}
@@ -1338,7 +1338,7 @@ void Mesh::find_triangle_disturbances(SymEdge * tri, std::vector<std::pair<glm::
 	{ // if one constraint was found only two traversals exist for triangle
 		std::stack<SymEdge*> explore_stack;
 		//First do the right side
-		std::cout << "Right side\n";
+		//std::cout << "Right side\n";
 		if (edge_ac[0]->nxt->nxt->sym() != nullptr)
 			explore_stack.push(edge_ac[0]->nxt->nxt->sym());
 		// Calculate right R triangle
@@ -1369,7 +1369,7 @@ void Mesh::find_triangle_disturbances(SymEdge * tri, std::vector<std::pair<glm::
 			{
 				if (dist < best_dist)
 				{
-					std::cout << "Disturbance index: " << pot_disturb->vertex << " Dist: " << dist << "\n";
+					//std::cout << "Disturbance index: " << pot_disturb->vertex << " Dist: " << dist << "\n";
 					first_disturb = pot_disturb;
 					best_dist = dist;
 				}
@@ -1419,7 +1419,7 @@ void Mesh::find_triangle_disturbances(SymEdge * tri, std::vector<std::pair<glm::
 			float b_prim = glm::dot(dir, ab);
 			R[2] = R[1] + (dir * (glm::length(ac) - b_prim));
 		}
-		std::cout << "Left side\n";
+		//std::cout << "Left side\n";
 		// Reset first disturbance variables
 		best_dist = FLT_MAX;
 		first_disturb = nullptr;
@@ -1436,7 +1436,7 @@ void Mesh::find_triangle_disturbances(SymEdge * tri, std::vector<std::pair<glm::
 			{
 				if (dist < best_dist)
 				{
-					std::cout << "Disturbance index: " << pot_disturb->vertex << " Dist: " << dist << "\n";
+					//std::cout << "Disturbance index: " << pot_disturb->vertex << " Dist: " << dist << "\n";
 					first_disturb = pot_disturb;
 					best_dist = dist;
 				}
