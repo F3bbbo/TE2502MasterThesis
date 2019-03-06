@@ -1352,7 +1352,7 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 				if (m_edges[curr_e->edge].constraint_ref.size() == 0)
 				{
 					// Check if edge has previously been traversed
-					if (traversed_edges.find(curr_e->edge) != traversed_edges.end())
+					if (traversed_edges.find(curr_e->edge) == traversed_edges.end())
 					{
 						// Add edge index to traversed map
 						traversed_edges.insert(std::pair<int, bool>(curr_e->edge, true));
@@ -1386,7 +1386,7 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 		{
 			SymEdge* curr_e = explore_stack.top();
 			explore_stack.pop();
-			std::cout << "Curr_e: " << curr_e->edge << "\n";
+			//std::cout << "Curr_e: " << curr_e->edge << "\n";
 			// TODO: check if point is an disturbance
 			SymEdge* pot_disturb = curr_e->nxt->nxt;
 			if (is_disturbed(edge_ac[0]->prev(), true, pot_disturb,
@@ -1402,7 +1402,7 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 				if (m_edges[curr_e->edge].constraint_ref.size() == 0)
 				{
 					// Check if edge has previously been traversed
-					if (traversed_edges.find(curr_e->edge) != traversed_edges.end())
+					if (traversed_edges.find(curr_e->edge) == traversed_edges.end())
 					{
 						// Add edge index to traversed map
 						traversed_edges.insert(std::pair<int, bool>(curr_e->edge, true));
