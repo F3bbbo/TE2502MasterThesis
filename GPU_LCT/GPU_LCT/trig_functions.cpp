@@ -167,17 +167,18 @@ bool point_in_circle(std::array<glm::vec2, 4> points)
 	return false;
 }
 
-glm::vec2 project_point_on_line(glm::vec2 point, glm::vec2 line)
+glm::vec2 project_point_on_line(glm::vec2 point, glm::vec2 a, glm::vec2 b)
 {
-	line = glm::normalize(line);
-	return glm::dot(point, line) * line;
+	glm::vec2 ab = b - a;
+	glm::vec2 ap = point - a;
+	return a + glm::dot(ap, ab) / glm::dot(ab, ab) * ab;
 }
 
 glm::vec2 get_symmetrical_corner(glm::vec2 a, glm::vec2 b, glm::vec2 c)
 {
 	glm::vec2 ac = c - a;
 	glm::vec2 half = a + (ac / 2.f);
-	float len = line_length(half - project_point_on_line(b, ac));
+	float len = line_length(half - project_point_on_line(b, a, c));
 	return b + 2.f * len * glm::normalize(ac);
 }
 
