@@ -132,7 +132,7 @@ std::array<glm::vec2, 2> Mesh::get_edge(int index)
 
 glm::vec2 Mesh::get_other_edge_vertex(int eindex, int vindex)
 {
-	if (m_edges[eindex].edge[0] == vindex)
+	if (m_edges[eindex].edge[0] != vindex)
 		return get_vertex(m_edges[eindex].edge[0]);
 	else
 		return get_vertex(m_edges[eindex].edge[1]);
