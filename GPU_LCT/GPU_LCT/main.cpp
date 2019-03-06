@@ -31,7 +31,12 @@ int main()
 
 	//m.insert_constraint(std::move(points), 0);
 
-	points = { { -0.25f, -0.4f}, { -0.25f, 0.4f} };
+	points = {
+	{ -0.35f, 0.2f},
+	{ 0.35f, 0.2f},
+	{ 0.4f, 0.1f},
+	{ -0.4f, 0.11f},
+	{ -0.35f, 0.2f} };
 
 	m.insert_constraint(std::move(points), 1);
 
@@ -43,9 +48,24 @@ int main()
 	lr = m.Locate_point(point);
 	m.Insert_point_in_edge(point, lr.sym_edge);*/
 
-	points = { { 0.25f, -0.4f }, {0.25f, 0.4f} };
+	points = {
+	{ -0.1f, -0.06f },
+	{ -0.0f, -0.06f },
+	{ -0.0f, -0.4f },
+	{ -0.1f, -0.379f },
+	{ -0.1f, -0.06f } };
 
 	m.insert_constraint(std::move(points), 2);
+
+	points = {
+	{ 0.25f, -0.05f },
+	{ 0.15f, -0.05f },
+	{ 0.15f, -0.299f },
+	{ 0.25f, -0.3f },
+	{ 0.25f, -0.05f } };
+
+	m.insert_constraint(std::move(points), 3);
+
 
 	m.transform_into_LCT();
 
@@ -75,7 +95,7 @@ int main()
 	DelaunayDebugObject ddo(m);
 	ddo.set_circle_color({ 1.f, 1.f, 0.f });
 	ddo.set_circle_thiccness(0.005f);
-	ddo.enable(true);
+	ddo.enable(false);
 
 	ShaderPath delaunay_draw_path;
 	delaunay_draw_path[VS] = "debug_delaunay_vertex_shader.glsl";
