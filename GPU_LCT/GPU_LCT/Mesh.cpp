@@ -1335,70 +1335,9 @@ void Mesh::find_triangle_disturbances(SymEdge * tri, std::vector<std::pair<glm::
 
 	}
 	else if (constraints.size() == 1)
-	{ // if one constraint was found only two traversals exist for triangle
-		std::stack<SymEdge*> explore_stack;
-		//First do the right side
-		//std::cout << "Right side\n";
-		if (edge_ac[0]->nxt->nxt->sym() != nullptr)
-			explore_stack.push(edge_ac[0]->nxt->nxt->sym());
-		// Calculate right R triangle
-		std::array<glm::vec2, 3> R;
-		R[0] = m_vertices[edge_ac[0]->vertex].vertice;
-		R[1] = m_vertices[edge_ac[0]->prev()->vertex].vertice;
-		{
-			glm::vec2 ac = R[0] - m_vertices[edge_ac[0]->nxt->vertex].vertice;
-			glm::vec2 dir = glm::normalize(ac);
-			glm::vec2 ab = R[1] - m_vertices[edge_ac[0]->nxt->vertex].vertice;
-			float b_prim = glm::dot(dir, ab);
-			R[2] = R[1] + (dir * (glm::length(ac) - b_prim));
-		}
-		std::map<int, bool> traversed_edges;
-		// Initilize first disturbance variables
-		float best_dist = FLT_MAX;
-		SymEdge* first_disturb = nullptr;
-		while (!explore_stack.empty())
-		{
-			SymEdge* curr_e = explore_stack.top();
-			explore_stack.pop();
-			// TODO: check if point is an disturbance
-			//std::cout << "Explore_face: " << curr_e->face << std::endl;
-			SymEdge* pot_disturb = curr_e->nxt->nxt;
-			float dist = is_disturbed(edge_ac[0], edge_ac[0]->prev(), pot_disturb,
-				m_vertices[pot_disturb->nxt->vertex].vertice);
-			if (dist > 0.0f)
-			{
-				if (dist < best_dist)
-				{
-					//std::cout << "Disturbance index: " << pot_disturb->vertex << " Dist: " << dist << "\n";
-					first_disturb = pot_disturb;
-					best_dist = dist;
-				}
-			}
-			// add next edges 
-			curr_e = curr_e->nxt;
-			for (unsigned int i = 0; i < 2; i++)
-			{
-				//Skip edges that are constraints
-				if (m_edges[curr_e->edge].constraint_ref.size() == 0)
-				{
-					// Check if edge has previously been traversed
-					if (traversed_edges.find(curr_e->edge) == traversed_edges.end())
-					{
-						// Add edge index to traversed map
-						traversed_edges.insert(std::pair<int, bool>(curr_e->edge, true));
-						// Check if edge is inside the R area.
-						auto edge = get_edge(curr_e->edge);
-						if (segment_triangle_test(edge[0], edge[1], R[0], R[1], R[2]))
-							explore_stack.push(curr_e->sym());
-					}
-				}
-				curr_e = curr_e->nxt;
-			}
+	{
 
-		}
-		// clear right sides traversed edges
-		traversed_edges.clear();
-
+		SymEdge* first_disturb = find_constraint_disturbance(constraints[0], edge_ac[0], true);
 		// Add pRef to list if there is a disturbance
 		if (first_disturb != nullptr)
 		{
@@ -1406,63 +1345,8 @@ void Mesh::find_triangle_disturbances(SymEdge * tri, std::vector<std::pair<glm::
 				calculate_pref(constraints[0], first_disturb),
 				constraints[0]));
 		}
-		//Then do the left side
-		if (edge_ac[0]->nxt->sym() != nullptr)
-			explore_stack.push(edge_ac[0]->nxt->sym());
-		// Calculate R for left side
-		R[0] = m_vertices[edge_ac[0]->nxt->vertex].vertice;
-		R[1] = m_vertices[edge_ac[0]->prev()->vertex].vertice;
-		{
-			glm::vec2 ac = R[0] - m_vertices[edge_ac[0]->vertex].vertice;
-			glm::vec2 dir = glm::normalize(ac);
-			glm::vec2 ab = R[1] - m_vertices[edge_ac[0]->vertex].vertice;
-			float b_prim = glm::dot(dir, ab);
-			R[2] = R[1] + (dir * (glm::length(ac) - b_prim));
-		}
-		//std::cout << "Left side\n";
-		// Reset first disturbance variables
-		best_dist = FLT_MAX;
-		first_disturb = nullptr;
-		while (!explore_stack.empty())
-		{
-			SymEdge* curr_e = explore_stack.top();
-			explore_stack.pop();
-			//std::cout << "Explore_face: " << curr_e->face << std::endl;
-			// TODO: check if point is an disturbance
-			SymEdge* pot_disturb = curr_e->nxt->nxt;
-			float dist = is_disturbed(edge_ac[0], edge_ac[0]->prev(), pot_disturb,
-				m_vertices[pot_disturb->prev()->vertex].vertice);
-			if (dist > 0.0f)
-			{
-				if (dist < best_dist)
-				{
-					//std::cout << "Disturbance index: " << pot_disturb->vertex << " Dist: " << dist << "\n";
-					first_disturb = pot_disturb;
-					best_dist = dist;
-				}
-			}
-			// add next edges 
-			curr_e = curr_e->nxt;
-			for (unsigned int i = 0; i < 2; i++)
-			{
-				//Skip edges that are constraints
-				if (m_edges[curr_e->edge].constraint_ref.size() == 0)
-				{
-					// Check if edge has previously been traversed
-					if (traversed_edges.find(curr_e->edge) == traversed_edges.end())
-					{
-						// Add edge index to traversed map
-						traversed_edges.insert(std::pair<int, bool>(curr_e->edge, true));
-						// Check if edge is inside the R area.
-						auto edge = get_edge(curr_e->edge);
-						if (segment_triangle_test(edge[0], edge[1], R[0], R[1], R[2]))
-							explore_stack.push(curr_e->sym());
-					}
-				}
-				curr_e = curr_e->nxt;
-			}
 
-		}
+		first_disturb = find_constraint_disturbance(constraints[0], edge_ac[0], false);
 		// Add pRef to list if there is a disturbance
 		if (first_disturb != nullptr)
 		{
@@ -1474,4 +1358,95 @@ void Mesh::find_triangle_disturbances(SymEdge * tri, std::vector<std::pair<glm::
 	// if more than 1 constraints exist on the triangle no traversals through 
 	// the triangle are possible.
 	return;
+}
+
+SymEdge* Mesh::find_constraint_disturbance(SymEdge * constraint, SymEdge * edge_ac, bool right)
+{
+
+	std::stack<SymEdge*> explore_stack;
+	std::array<glm::vec2, 3> R;
+	if (right) {
+		// Calculate right R triangle
+		R[0] = m_vertices[edge_ac->vertex].vertice;
+		R[1] = m_vertices[edge_ac->prev()->vertex].vertice;
+		{
+			glm::vec2 ac = R[0] - m_vertices[edge_ac->nxt->vertex].vertice;
+			glm::vec2 dir = glm::normalize(ac);
+			glm::vec2 ab = R[1] - m_vertices[edge_ac->nxt->vertex].vertice;
+			float b_prim = glm::dot(dir, ab);
+			R[2] = R[1] + (dir * (glm::length(ac) - b_prim));
+		}
+		// set start of explore stack
+		if (edge_ac->nxt->nxt->sym() != nullptr)
+			explore_stack.push(edge_ac->nxt->nxt->sym());
+	}
+	else {
+		//Then do the left side
+		// Calculate R for left side
+		R[0] = m_vertices[edge_ac->nxt->vertex].vertice;
+		R[1] = m_vertices[edge_ac->prev()->vertex].vertice;
+		{
+			glm::vec2 ac = R[0] - m_vertices[edge_ac->vertex].vertice;
+			glm::vec2 dir = glm::normalize(ac);
+			glm::vec2 ab = R[1] - m_vertices[edge_ac->vertex].vertice;
+			float b_prim = glm::dot(dir, ab);
+			R[2] = R[1] + (dir * (glm::length(ac) - b_prim));
+		}
+		// set start of explore stack
+		if (edge_ac->nxt->sym() != nullptr)
+			explore_stack.push(edge_ac->nxt->sym());
+	}
+
+
+	//First do the right side
+	//std::cout << "Right side\n";
+
+
+	std::map<int, bool> traversed_edges;
+	// Initilize first disturbance variables
+	float best_dist = FLT_MAX;
+	SymEdge* first_disturb = nullptr;
+	while (!explore_stack.empty())
+	{
+		SymEdge* curr_e = explore_stack.top();
+		explore_stack.pop();
+		// TODO: check if point is an disturbance
+		//std::cout << "Explore_face: " << curr_e->face << std::endl;
+		SymEdge* pot_disturb = curr_e->nxt->nxt;
+		float dist = is_disturbed(constraint, edge_ac->prev(), pot_disturb,
+			m_vertices[right ? pot_disturb->nxt->vertex : pot_disturb->prev()->vertex].vertice);
+
+		if (dist > 0.0f)
+		{
+			if (dist < best_dist)
+			{
+				//std::cout << "Disturbance index: " << pot_disturb->vertex << " Dist: " << dist << "\n";
+				first_disturb = pot_disturb;
+				best_dist = dist;
+			}
+		}
+		// add next edges 
+		curr_e = curr_e->nxt;
+		for (unsigned int i = 0; i < 2; i++)
+		{
+			//Skip edges that are constraints
+			if (m_edges[curr_e->edge].constraint_ref.size() == 0)
+			{
+				// Check if edge has previously been traversed
+				if (traversed_edges.find(curr_e->edge) == traversed_edges.end())
+				{
+					// Add edge index to traversed map
+					traversed_edges.insert(std::pair<int, bool>(curr_e->edge, true));
+					// Check if edge is inside the R area.
+					auto edge = get_edge(curr_e->edge);
+					if (segment_triangle_test(edge[0], edge[1], R[0], R[1], R[2]))
+						explore_stack.push(curr_e->sym());
+				}
+			}
+			curr_e = curr_e->nxt;
+		}
+
+	}
+
+	return first_disturb;
 }

@@ -113,6 +113,7 @@ private:
 	// if the list is empty no disturbances where found.
 	std::vector<std::pair<glm::vec2, SymEdge*>> disturbance_linear_pass(SymEdge* start_edge);
 	void find_triangle_disturbances(SymEdge* tri, std::vector<std::pair<glm::vec2, SymEdge*>> &prefs);
+	SymEdge* find_constraint_disturbance(SymEdge* constraint, SymEdge* edge_ac, bool right);
 	bool is_orthogonally_projectable(glm::vec2 v, glm::vec2 a, glm::vec2 b);
 	bool edge_intersects_sector(glm::vec2 a, glm::vec2 b, glm::vec2 c, std::array<glm::vec2, 2> segment);
 	SymEdge* find_closest_constraint(SymEdge* b);
