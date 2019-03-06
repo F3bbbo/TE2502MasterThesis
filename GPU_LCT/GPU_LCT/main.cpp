@@ -72,16 +72,29 @@ int main()
 	//m.Locate_point({ 0.5f, 0.5f });
 	//m.Locate_point({ 0.f, 0.f });
 
-	DebugObject thingerino(m, DRAW_ALL, true);
-	thingerino.set_point_thiccness(10.f);
-	thingerino.set_edge_thiccness(5.f);
-	thingerino.set_point_color({ 1.f, 0.672443f, 0.201556f });
-	thingerino.set_edge_color({ 1.f, 0.246201f, 0.201556f });
-	thingerino.set_face_color({ 1.0f, 0.5f, 0.2f });
+	DebugObject debug_faces(DRAW_FACES);
+	debug_faces.set_color({ 1.0f, 0.5f, 0.2f });
+	debug_faces.build(m);
+
+	DebugObject debug_points(DRAW_POINTS);
+	debug_points.set_point_thiccness(10.f);
+	debug_points.set_color({ 1.f, 0.672443f, 0.201556f });
+	debug_points.build(m);
+
+	DebugObject debug_edges(DRAW_EDGES);
+	debug_edges.set_edge_thiccness(5.f);
+	debug_edges.set_color({ 1.f, 0.246201f, 0.201556f });
+	debug_edges.build(m);
+
+	DebugObject debug_edges_constraints(DRAW_EDGES);
+	debug_edges_constraints.set_edge_thiccness(5.f);
+	debug_edges_constraints.draw_constraints(true);
+	debug_edges_constraints.set_color({ 0.1f, 0.6f, 0.1f });
+	debug_edges_constraints.build(m);
 
 	DebugObject symedge_visualizer({ glm::vec2(-0.25f, 0.25f), glm::vec2(0.25f, -0.25f) }, DRAW_EDGES);
 	symedge_visualizer.set_edge_thiccness(5.f);
-	symedge_visualizer.set_edge_color({ 0.f, 0.f, 0.8f });
+	symedge_visualizer.set_color({ 0.f, 0.f, 0.8f });
 
 	ShaderPath debug_draw_path;
 	debug_draw_path[VS] = "debug_vertex_shader.glsl";
@@ -89,7 +102,10 @@ int main()
 
 	DebugPipeline debug_pass;
 	debug_pass.add_pass(DebugPipeline::DEBUG_PASS, std::move(debug_draw_path));
-	debug_pass.add_drawable(std::move(thingerino));
+	debug_pass.add_drawable(std::move(debug_faces));
+	debug_pass.add_drawable(std::move(debug_points));
+	debug_pass.add_drawable(std::move(debug_edges));
+	debug_pass.add_drawable(std::move(debug_edges_constraints));
 	debug_pass.add_drawable(std::move(symedge_visualizer));
 
 	DelaunayDebugObject ddo(m);
@@ -113,7 +129,7 @@ int main()
 	renderer.check_error();
 	while (!renderer.shut_down)
 	{
-		symedge_visualizer.update_edge(m.get_edge(renderer.m_current_edge->edge));
+		symedge_visualizer.update_edge({ m.get_vertex(renderer.m_current_edge->vertex), m.get_other_edge_vertex(renderer.m_current_edge->edge, renderer.m_current_edge->vertex) });
 		renderer.run();
 		// handle mouse click
 		if (renderer.mouse_clicked())

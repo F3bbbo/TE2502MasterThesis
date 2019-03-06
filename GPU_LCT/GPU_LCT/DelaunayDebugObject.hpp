@@ -38,7 +38,7 @@ public:
 	bool is_enabled();
 	void enable(bool value);
 private:
-	void construct_GL_objects(Mesh& mesh);
+	void build(Mesh& mesh);
 
 	GLuint m_VBO = 0;
 	GLuint m_ssbo = 0;

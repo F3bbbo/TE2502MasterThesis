@@ -28,7 +28,7 @@ DelaunayDebugObject::DelaunayDebugObject()
 
 DelaunayDebugObject::DelaunayDebugObject(Mesh& mesh)
 {
-	construct_GL_objects(mesh);
+	build(mesh);
 }
 
 DelaunayDebugObject::~DelaunayDebugObject()
@@ -52,7 +52,7 @@ void DelaunayDebugObject::enable(bool value)
 	m_enabled = value;
 }
 
-void DelaunayDebugObject::construct_GL_objects(Mesh & mesh)
+void DelaunayDebugObject::build(Mesh & mesh)
 {
 	std::vector<Face> face_list = mesh.get_face_list();
 	std::vector<CircleData> circle_data;

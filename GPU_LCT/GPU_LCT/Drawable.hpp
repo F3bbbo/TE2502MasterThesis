@@ -6,7 +6,7 @@
 #include <glad/glad.h>
 #include "Mesh.hpp"
 
-enum DRAW_TYPES { DRAW_FACES, DRAW_EDGES, DRAW_POINTS, DRAW_ALL };
+enum DRAW_TYPES { DRAW_FACES, DRAW_EDGES, DRAW_POINTS };
 
 class Drawable
 {
@@ -16,7 +16,7 @@ public:
 	~Drawable();
 	virtual void bind_VAO() = 0;
 protected:
-	virtual void construct_GL_objects(Mesh& mesh) = 0;
+	virtual void build(Mesh& mesh) = 0;
 	DRAW_TYPES m_mode = DRAW_FACES;
 };
 #endif
