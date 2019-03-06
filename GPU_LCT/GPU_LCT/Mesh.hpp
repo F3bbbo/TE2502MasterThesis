@@ -108,7 +108,10 @@ private:
 	bool is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym, glm::vec2 e);
 	float local_clearance(SymEdge* b, SymEdge* segment);
 	bool no_colliniear_constraints(SymEdge* v);
-	bool disturbance_linear_pass(SymEdge* start_edge);
+	// Returns the pRefs from the linear pass that needs to 
+	// be inserted into the mesh, 
+	// if the list is empty no disturbances where found.
+	std::vector<glm::vec2> disturbance_linear_pass(SymEdge* start_edge);
 	void fix_triangle_disturbances(SymEdge* tri);
 	bool is_orthogonally_projectable(glm::vec2 v, glm::vec2 a, glm::vec2 b);
 	bool edge_intersects_sector(glm::vec2 a, glm::vec2 b, glm::vec2 c, std::array<glm::vec2, 2> segment);

@@ -1,4 +1,5 @@
 #include "Mesh.hpp"
+#include <map>
 
 Mesh::Mesh()
 {
@@ -1110,7 +1111,7 @@ bool Mesh::is_disturbed(SymEdge* b_sym, bool direction, SymEdge* v_sym, glm::vec
 		constraint = b_sym->nxt;
 	else
 		constraint = find_closest_constraint(b_sym->nxt->sym());
-	
+
 	std::array<glm::vec2, 2> c_endpoints = get_edge(constraint->edge);
 	glm::vec2 v_prim = project_point_on_line(v, c_endpoints[0] - c_endpoints[1]);
 	if (!(line_seg_intersection_ccw(v, v_prim, a, c) && line_seg_intersection_ccw(v, v_prim, b, c)))
@@ -1154,10 +1155,10 @@ bool Mesh::no_colliniear_constraints(SymEdge* v)
 	{
 		if (is_constrained(edge->edge))
 		{
-			std::array<glm::vec2, 2> curr_edge = { get_vertex(edge->vertex), get_other_edge_vertex( edge->edge, edge->vertex) };
+			std::array<glm::vec2, 2> curr_edge = { get_vertex(edge->vertex), get_other_edge_vertex(edge->edge, edge->vertex) };
 			for (SymEdge* c_edge : constrained_edges)
 			{
-				std::array<glm::vec2, 2> constraint_edge = { get_vertex(edge->vertex), get_other_edge_vertex( c_edge->edge, c_edge->vertex) };
+				std::array<glm::vec2, 2> constraint_edge = { get_vertex(edge->vertex), get_other_edge_vertex(c_edge->edge, c_edge->vertex) };
 				if (glm::dot(glm::normalize(constraint_edge[1] - constraint_edge[0]), glm::normalize(curr_edge[1] - curr_edge[0])) < -1 + EPSILON)
 					return false;
 			}
@@ -1260,9 +1261,10 @@ SymEdge* Mesh::find_closest_constraint(SymEdge* ac)
 	return ret;
 }
 
-bool Mesh::disturbance_linear_pass(SymEdge * start_edge)
+std::vector<glm::vec2> Mesh::disturbance_linear_pass(SymEdge * start_edge)
 {
 	next_iter();
+	std::vector<glm::vec2> pRefs;
 	std::deque<SymEdge*> triangles;
 	triangles.push_back(start_edge);
 	m_faces[start_edge->face].explored = m_iter_id;
@@ -1282,11 +1284,11 @@ bool Mesh::disturbance_linear_pass(SymEdge * start_edge)
 			}
 		}
 		// Check for disturbances of current triangle
-		//std::cout << "Curr_tri" << curr_e->face << std::endl;
+		std::cout << "Curr_tri " << curr_e->face << std::endl;
 		fix_triangle_disturbances(curr_e);
 
 	}
-	return false;
+	return pRefs;
 }
 
 void Mesh::fix_triangle_disturbances(SymEdge * tri)
@@ -1315,10 +1317,10 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 	{ // if one constraint was found only two traversals exist for triangle
 		std::stack<SymEdge*> explore_stack;
 		//First do the right side
-		//std::cout << "Right side\n";
+		std::cout << "Right side\n";
 		if (edge_ac[0]->nxt->nxt->sym() != nullptr)
 			explore_stack.push(edge_ac[0]->nxt->nxt->sym());
-		// Calculate R triangle
+		// Calculate right R triangle
 		std::array<glm::vec2, 3> R;
 		R[0] = m_vertices[edge_ac[0]->vertex].vertice;
 		R[1] = m_vertices[edge_ac[0]->prev()->vertex].vertice;
@@ -1329,12 +1331,19 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 			float b_prim = glm::dot(dir, ab);
 			R[2] = R[1] + (dir * (glm::length(ac) - b_prim));
 		}
+		std::map<int, bool> traversed_edges;
 		while (!explore_stack.empty())
 		{
 			SymEdge* curr_e = explore_stack.top();
 			explore_stack.pop();
 			// TODO: check if point is an disturbance
 			//std::cout << "Explore_face: " << curr_e->face << std::endl;
+			SymEdge* pot_disturb = curr_e->nxt->nxt;
+			if (is_disturbed(edge_ac[0]->prev(), true, pot_disturb,
+				m_vertices[pot_disturb->nxt->vertex].vertice))
+			{
+				std::cout << "Disturbance index: " << pot_disturb->vertex << "\n";
+			}
 			// add next edges 
 			curr_e = curr_e->nxt;
 			for (unsigned int i = 0; i < 2; i++)
@@ -1342,14 +1351,23 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 				//Skip edges that are constraints
 				if (m_edges[curr_e->edge].constraint_ref.size() == 0)
 				{
-					auto edge = get_edge(curr_e->edge);
-					if (segment_triangle_test(edge[0], edge[1], R[0], R[1], R[2]))
-						explore_stack.push(curr_e->sym());
+					// Check if edge has previously been traversed
+					if (traversed_edges.find(curr_e->edge) != traversed_edges.end())
+					{
+						// Add edge index to traversed map
+						traversed_edges.insert(std::pair<int, bool>(curr_e->edge, true));
+						// Check if edge is inside the R area.
+						auto edge = get_edge(curr_e->edge);
+						if (segment_triangle_test(edge[0], edge[1], R[0], R[1], R[2]))
+							explore_stack.push(curr_e->sym());
+					}
 				}
 				curr_e = curr_e->nxt;
 			}
 
 		}
+		// clear right sides traversed edges
+		traversed_edges.clear();
 		//Then do the left side
 		if (edge_ac[0]->nxt->sym() != nullptr)
 			explore_stack.push(edge_ac[0]->nxt->sym());
@@ -1363,13 +1381,19 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 			float b_prim = glm::dot(dir, ab);
 			R[2] = R[1] + (dir * (glm::length(ac) - b_prim));
 		}
-		//std::cout << "Left side\n";
+		std::cout << "Left side\n";
 		while (!explore_stack.empty())
 		{
 			SymEdge* curr_e = explore_stack.top();
 			explore_stack.pop();
+			std::cout << "Curr_e: " << curr_e->edge << "\n";
 			// TODO: check if point is an disturbance
-			//std::cout << "Explore_face: " << curr_e->face << std::endl;
+			SymEdge* pot_disturb = curr_e->nxt->nxt;
+			if (is_disturbed(edge_ac[0]->prev(), true, pot_disturb,
+				m_vertices[pot_disturb->prev()->vertex].vertice))
+			{
+				std::cout << "Disturbance index: " << pot_disturb->vertex << "\n";
+			}
 			// add next edges 
 			curr_e = curr_e->nxt;
 			for (unsigned int i = 0; i < 2; i++)
@@ -1377,9 +1401,16 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 				//Skip edges that are constraints
 				if (m_edges[curr_e->edge].constraint_ref.size() == 0)
 				{
-					auto edge = get_edge(curr_e->edge);
-					if (segment_triangle_test(edge[0], edge[1], R[0], R[1], R[2]))
-						explore_stack.push(curr_e->sym());
+					// Check if edge has previously been traversed
+					if (traversed_edges.find(curr_e->edge) != traversed_edges.end())
+					{
+						// Add edge index to traversed map
+						traversed_edges.insert(std::pair<int, bool>(curr_e->edge, true));
+						// Check if edge is inside the R area.
+						auto edge = get_edge(curr_e->edge);
+						if (segment_triangle_test(edge[0], edge[1], R[0], R[1], R[2]))
+							explore_stack.push(curr_e->sym());
+					}
 				}
 				curr_e = curr_e->nxt;
 			}

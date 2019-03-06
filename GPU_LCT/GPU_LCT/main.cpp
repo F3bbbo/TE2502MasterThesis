@@ -29,9 +29,9 @@ int main()
 
 	std::vector<glm::vec2> points = { {-0.5f, -0.5f}, {0.5f, 0.5f} };
 
-	m.insert_constraint(std::move(points), 0);
+	//m.insert_constraint(std::move(points), 0);
 
-	points = { {0.f, -0.4f}, {0.f, 0.4f} };
+	points = { { -0.25f, -0.4f}, { -0.25f, 0.4f} };
 
 	m.insert_constraint(std::move(points), 1);
 
@@ -43,7 +43,7 @@ int main()
 	lr = m.Locate_point(point);
 	m.Insert_point_in_edge(point, lr.sym_edge);*/
 
-	points = { { 0.f, -0.2f }, {0.f, 0.2f}, {-0.2, 0.1f} };
+	points = { { 0.25f, -0.4f }, {0.25f, 0.4f} };
 
 	m.insert_constraint(std::move(points), 2);
 
