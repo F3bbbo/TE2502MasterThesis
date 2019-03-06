@@ -521,8 +521,15 @@ void Mesh::insert_constraint(std::vector<glm::vec2>&& points, int cref)
 
 void Mesh::transform_into_LCT()
 {
-	no_colliniear_constraints(first->nxt);
-	disturbance_linear_pass(first);
+	std::vector<std::pair<glm::vec2, SymEdge*>> pRefs;
+	do {
+		pRefs = disturbance_linear_pass(first);
+		for (auto& pRef : pRefs)
+		{
+			insert_point_in_edge(pRef.first, pRef.second);
+		}
+	} while (pRefs.size() != 0);
+
 }
 
 void Mesh::flip_edges(std::stack<SymEdge*>&& edge_indices)
@@ -1090,11 +1097,11 @@ bool Mesh::possible_disturbance(SymEdge* tranveral_corner, SymEdge* segment)
 	return false;
 }
 
-bool Mesh::is_disturbed(SymEdge* constraint, SymEdge* b_sym, SymEdge* v_sym, glm::vec2 e)
+float Mesh::is_disturbed(SymEdge* constraint, SymEdge* b_sym, SymEdge* v_sym, glm::vec2 e)
 {
 	// 1
 	if (!no_colliniear_constraints(v_sym))
-		return false;
+		return -1.0f;
 
 	glm::vec2 v = get_vertex(v_sym->vertex);
 	glm::vec2 a = get_vertex(b_sym->prev()->vertex);
@@ -1103,24 +1110,24 @@ bool Mesh::is_disturbed(SymEdge* constraint, SymEdge* b_sym, SymEdge* v_sym, glm
 
 	// 2
 	if (!is_orthogonally_projectable(v, a, c))
-		return false;
+		return -1.0f;
 
 	// 3
 	std::array<glm::vec2, 2> c_endpoints = get_edge(constraint->edge);
 	glm::vec2 v_prim = project_point_on_line(v, c_endpoints[0], c_endpoints[1]);
 	if (!(line_seg_intersection_ccw(v, v_prim, a, c) && line_seg_intersection_ccw(v, v_prim, b, c)))
-		return false;
+		return -1.0f;
 
 	// 4
 	float dist_v_segment = line_length(project_point_on_line(v, c_endpoints[0], c_endpoints[1]) - v);
 	if (!(dist_v_segment < local_clearance(b_sym, constraint)))
-		return false;
+		return -1.0f;
 
 	// 5
 	if (!(dist_v_segment < line_length(v - e)))
-		return false;
+		return -1.0f;
 
-	return true;
+	return dist_v_segment;
 }
 
 float Mesh::local_clearance(SymEdge* b, SymEdge* segment)
@@ -1272,10 +1279,10 @@ glm::vec2 Mesh::calculate_pref(SymEdge * c, SymEdge * d)
 	return glm::vec2();
 }
 
-std::vector<glm::vec2> Mesh::disturbance_linear_pass(SymEdge * start_edge)
+std::vector<std::pair<glm::vec2, SymEdge*>> Mesh::disturbance_linear_pass(SymEdge * start_edge)
 {
 	next_iter();
-	std::vector<glm::vec2> pRefs;
+	std::vector<std::pair<glm::vec2, SymEdge*>> pRefs;
 	std::deque<SymEdge*> triangles;
 	triangles.push_back(start_edge);
 	m_faces[start_edge->face].explored = m_iter_id;
@@ -1299,13 +1306,13 @@ std::vector<glm::vec2> Mesh::disturbance_linear_pass(SymEdge * start_edge)
 		//if (curr_e->face == 11) {
 		//	int a = 2;
 		//}
-		fix_triangle_disturbances(curr_e);
+		find_triangle_disturbances(curr_e, pRefs);
 
 	}
 	return pRefs;
 }
 
-void Mesh::fix_triangle_disturbances(SymEdge * tri)
+void Mesh::find_triangle_disturbances(SymEdge * tri, std::vector<std::pair<glm::vec2, SymEdge*>> &prefs)
 {
 	SymEdge* curr_tri = tri;
 	// Check if any of edges of the triangle is constraints
@@ -1346,17 +1353,26 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 			R[2] = R[1] + (dir * (glm::length(ac) - b_prim));
 		}
 		std::map<int, bool> traversed_edges;
+		// Initilize first disturbance variables
+		float best_dist = FLT_MAX;
+		SymEdge* first_disturb = nullptr;
 		while (!explore_stack.empty())
 		{
 			SymEdge* curr_e = explore_stack.top();
 			explore_stack.pop();
 			// TODO: check if point is an disturbance
-			std::cout << "Explore_face: " << curr_e->face << std::endl;
+			//std::cout << "Explore_face: " << curr_e->face << std::endl;
 			SymEdge* pot_disturb = curr_e->nxt->nxt;
-			if (is_disturbed(edge_ac[0], edge_ac[0]->prev(), pot_disturb,
-				m_vertices[pot_disturb->nxt->vertex].vertice))
+			float dist = is_disturbed(edge_ac[0], edge_ac[0]->prev(), pot_disturb,
+				m_vertices[pot_disturb->nxt->vertex].vertice);
+			if (dist > 0.0f)
 			{
-				std::cout << "Disturbance index: " << pot_disturb->vertex << "\n";
+				if (dist < best_dist)
+				{
+					std::cout << "Disturbance index: " << pot_disturb->vertex << " Dist: " << dist << "\n";
+					first_disturb = pot_disturb;
+					best_dist = dist;
+				}
 			}
 			// add next edges 
 			curr_e = curr_e->nxt;
@@ -1382,6 +1398,14 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 		}
 		// clear right sides traversed edges
 		traversed_edges.clear();
+
+		// Add pRef to list if there is a disturbance
+		if (first_disturb != nullptr)
+		{
+			prefs.push_back(std::pair<glm::vec2, SymEdge*>(
+				calculate_pref(constraints[0], first_disturb),
+				constraints[0]));
+		}
 		//Then do the left side
 		if (edge_ac[0]->nxt->sym() != nullptr)
 			explore_stack.push(edge_ac[0]->nxt->sym());
@@ -1396,17 +1420,26 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 			R[2] = R[1] + (dir * (glm::length(ac) - b_prim));
 		}
 		std::cout << "Left side\n";
+		// Reset first disturbance variables
+		best_dist = FLT_MAX;
+		first_disturb = nullptr;
 		while (!explore_stack.empty())
 		{
 			SymEdge* curr_e = explore_stack.top();
 			explore_stack.pop();
-			std::cout << "Explore_face: " << curr_e->face << std::endl;
+			//std::cout << "Explore_face: " << curr_e->face << std::endl;
 			// TODO: check if point is an disturbance
 			SymEdge* pot_disturb = curr_e->nxt->nxt;
-			if (is_disturbed(edge_ac[0], edge_ac[0]->prev(), pot_disturb,
-				m_vertices[pot_disturb->prev()->vertex].vertice))
+			float dist = is_disturbed(edge_ac[0], edge_ac[0]->prev(), pot_disturb,
+				m_vertices[pot_disturb->prev()->vertex].vertice);
+			if (dist > 0.0f)
 			{
-				std::cout << "Disturbance index: " << pot_disturb->vertex << "\n";
+				if (dist < best_dist)
+				{
+					std::cout << "Disturbance index: " << pot_disturb->vertex << " Dist: " << dist << "\n";
+					first_disturb = pot_disturb;
+					best_dist = dist;
+				}
 			}
 			// add next edges 
 			curr_e = curr_e->nxt;
@@ -1429,6 +1462,13 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 				curr_e = curr_e->nxt;
 			}
 
+		}
+		// Add pRef to list if there is a disturbance
+		if (first_disturb != nullptr)
+		{
+			prefs.push_back(std::pair<glm::vec2, SymEdge*>(
+				calculate_pref(constraints[0], first_disturb),
+				constraints[0]));
 		}
 	}
 	// if more than 1 constraints exist on the triangle no traversals through 
