@@ -116,6 +116,7 @@ private:
 	bool is_orthogonally_projectable(glm::vec2 v, glm::vec2 a, glm::vec2 b);
 	bool edge_intersects_sector(glm::vec2 a, glm::vec2 b, glm::vec2 c, std::array<glm::vec2, 2> segment);
 	SymEdge* find_closest_constraint(SymEdge* b);
+	glm::vec2 calculate_pref(SymEdge* c, SymEdge* d);// c = constraint, d = disturbance
 };
 
 #endif

@@ -1261,6 +1261,23 @@ SymEdge* Mesh::find_closest_constraint(SymEdge* ac)
 	return ret;
 }
 
+glm::vec2 Mesh::calculate_pref(SymEdge * c, SymEdge * d)
+{
+	auto tri = get_triangle(d->face);
+	glm::vec2 circle_center = circle_center_from_points(tri[0], tri[1], tri[2]);
+	float radius = glm::distance(circle_center, tri[0]);
+	auto constraint_e = get_edge(c->edge);
+	auto inter_points = ray_circle_intersection(constraint_e, circle_center, radius);
+	if (inter_points.size() == 1) {
+		return inter_points[0];
+	}
+	else if (inter_points.size() == 2) {
+		return (inter_points[0] + inter_points[1]) / 2.0f;
+	}
+	std::cout << "Invalid pRef.\n";
+	return glm::vec2();
+}
+
 std::vector<glm::vec2> Mesh::disturbance_linear_pass(SymEdge * start_edge)
 {
 	next_iter();
@@ -1285,6 +1302,9 @@ std::vector<glm::vec2> Mesh::disturbance_linear_pass(SymEdge * start_edge)
 		}
 		// Check for disturbances of current triangle
 		std::cout << "Curr_tri " << curr_e->face << std::endl;
+		//if (curr_e->face == 11) {
+		//	int a = 2;
+		//}
 		fix_triangle_disturbances(curr_e);
 
 	}
@@ -1337,7 +1357,7 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 			SymEdge* curr_e = explore_stack.top();
 			explore_stack.pop();
 			// TODO: check if point is an disturbance
-			//std::cout << "Explore_face: " << curr_e->face << std::endl;
+			std::cout << "Explore_face: " << curr_e->face << std::endl;
 			SymEdge* pot_disturb = curr_e->nxt->nxt;
 			if (is_disturbed(edge_ac[0]->prev(), true, pot_disturb,
 				m_vertices[pot_disturb->nxt->vertex].vertice))
@@ -1386,7 +1406,7 @@ void Mesh::fix_triangle_disturbances(SymEdge * tri)
 		{
 			SymEdge* curr_e = explore_stack.top();
 			explore_stack.pop();
-			//std::cout << "Curr_e: " << curr_e->edge << "\n";
+			std::cout << "Explore_face: " << curr_e->face << std::endl;
 			// TODO: check if point is an disturbance
 			SymEdge* pot_disturb = curr_e->nxt->nxt;
 			if (is_disturbed(edge_ac[0]->prev(), true, pot_disturb,
