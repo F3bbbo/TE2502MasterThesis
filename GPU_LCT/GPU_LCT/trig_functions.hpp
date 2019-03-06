@@ -42,7 +42,7 @@ bool point_in_circle(std::array<glm::vec2, 4 > points);
 
 glm::vec2 circle_center_from_points(glm::vec2 a, glm::vec2 b, glm::vec2 c);
 
-std::vector<float> ray_circle_intersection(std::array<glm::vec2, 2> ray, glm::vec2 center, float r);
+std::vector<glm::vec2> ray_circle_intersection(std::array<glm::vec2, 2> ray, glm::vec2 center, float r);
 
 glm::vec2 project_point_on_line(glm::vec2 point, glm::vec2 a, glm::vec2 b);
 

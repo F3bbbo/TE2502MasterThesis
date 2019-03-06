@@ -216,7 +216,7 @@ glm::vec2 circle_center_from_points(glm::vec2 a, glm::vec2 b, glm::vec2 c)
 	return line_line_intersection_point(midpoints[0], midpoints[0] + normals[0], midpoints[1], midpoints[1] + normals[1]);
 }
 
-std::vector<float> ray_circle_intersection(std::array<glm::vec2, 2> ray, glm::vec2 center, float r)
+std::vector<glm::vec2> ray_circle_intersection(std::array<glm::vec2, 2> ray, glm::vec2 center, float r)
 {
 	// Solution
 	// https://math.stackexchange.com/questions/311921/get-location-of-vector-circle-intersection
@@ -233,11 +233,11 @@ std::vector<float> ray_circle_intersection(std::array<glm::vec2, 2> ray, glm::ve
 	// http://mathworld.wolfram.com/QuadraticFormula.html
 	float t[2] = { (2.f * c) / (-b + glm::sqrt(disc)), (2.f * c) / (-b - glm::sqrt(disc)) };
 
-	std::vector<float> result;
+	std::vector<glm::vec2> result;
 	for (int i = 0; i < 2; i++)
 	{
 		if (t[i] >= 0.f && t[i] <= 1.f)
-			result.push_back(t[i]);
+			result.push_back(ray[0] + ((ray[1] - ray[0])* t[i]));
 	}
 	return result;
 }
