@@ -1333,6 +1333,34 @@ void Mesh::find_triangle_disturbances(SymEdge * tri, std::vector<std::pair<glm::
 	if (constraints.size() == 0)
 	{
 
+		SymEdge* curr_e = tri;
+		for (unsigned int i = 0; i < 3; i++)
+		{
+			SymEdge* constraint = nullptr;
+			constraint = find_closest_constraint(curr_e);
+			// if constraint was found check for disturbances
+			if (constraint != nullptr)
+			{
+				SymEdge* first_disturb = find_constraint_disturbance(constraint, curr_e, true);
+				// Add pRef to list if there is a disturbance
+				if (first_disturb != nullptr)
+				{
+					prefs.push_back(std::pair<glm::vec2, SymEdge*>(
+						calculate_pref(constraints[0], first_disturb),
+						constraints[0]));
+				}
+
+				first_disturb = find_constraint_disturbance(constraint, curr_e, false);
+				// Add pRef to list if there is a disturbance
+				if (first_disturb != nullptr)
+				{
+					prefs.push_back(std::pair<glm::vec2, SymEdge*>(
+						calculate_pref(constraint, first_disturb),
+						constraint));
+				}
+			}
+			curr_e = curr_e->nxt;
+		}
 	}
 	else if (constraints.size() == 1)
 	{
