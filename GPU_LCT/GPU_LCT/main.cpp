@@ -76,11 +76,6 @@ int main()
 	debug_faces.set_color({ 1.0f, 0.5f, 0.2f });
 	debug_faces.build(m);
 
-	DebugObject debug_points(DRAW_POINTS);
-	debug_points.set_point_thiccness(10.f);
-	debug_points.set_color({ 1.f, 0.672443f, 0.201556f });
-	debug_points.build(m);
-
 	DebugObject debug_edges(DRAW_EDGES);
 	debug_edges.set_edge_thiccness(5.f);
 	debug_edges.set_color({ 1.f, 0.246201f, 0.201556f });
@@ -96,6 +91,11 @@ int main()
 	symedge_visualizer.set_edge_thiccness(5.f);
 	symedge_visualizer.set_color({ 0.f, 0.f, 0.8f });
 
+	DebugObject debug_points(DRAW_POINTS);
+	debug_points.set_point_thiccness(10.f);
+	debug_points.set_color({ 1.f, 0.672443f, 0.201556f });
+	debug_points.build(m);
+
 	ShaderPath debug_draw_path;
 	debug_draw_path[VS] = "debug_vertex_shader.glsl";
 	debug_draw_path[FS] = "debug_fragment_shader.glsl";
@@ -103,10 +103,10 @@ int main()
 	DebugPipeline debug_pass;
 	debug_pass.add_pass(DebugPipeline::DEBUG_PASS, std::move(debug_draw_path));
 	debug_pass.add_drawable(std::move(debug_faces));
-	debug_pass.add_drawable(std::move(debug_points));
 	debug_pass.add_drawable(std::move(debug_edges));
 	debug_pass.add_drawable(std::move(debug_edges_constraints));
 	debug_pass.add_drawable(std::move(symedge_visualizer));
+	debug_pass.add_drawable(std::move(debug_points));
 
 	DelaunayDebugObject ddo(m);
 	ddo.set_circle_color({ 1.f, 1.f, 0.f });
