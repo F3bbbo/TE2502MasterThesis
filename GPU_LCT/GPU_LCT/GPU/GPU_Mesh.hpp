@@ -6,11 +6,11 @@
 
 namespace GPU
 {
-	class Mesh
+	class GPUMesh
 	{
 	public:
-		Mesh();
-		~Mesh();
+		GPUMesh();
+		~GPUMesh();
 	private:
 		PointBuffers m_point_bufs;
 		EdgeBuffers m_edge_bufs;

@@ -26,7 +26,7 @@ namespace GPU
 	{
 		GLuint positions = 0;
 		GLuint inserted = 0;
-		GLuint positions = 0;
+		GLuint tri_index = 0;
 	};
 
 	struct EdgeBuffers
