@@ -26,7 +26,7 @@ DelaunayDebugObject::DelaunayDebugObject()
 {
 }
 
-DelaunayDebugObject::DelaunayDebugObject(Mesh& mesh)
+DelaunayDebugObject::DelaunayDebugObject(CPU::Mesh& mesh)
 {
 	build(mesh);
 }
@@ -52,9 +52,9 @@ void DelaunayDebugObject::enable(bool value)
 	m_enabled = value;
 }
 
-void DelaunayDebugObject::build(Mesh & mesh)
+void DelaunayDebugObject::build(CPU::Mesh & mesh)
 {
-	std::vector<Face> face_list = mesh.get_face_list();
+	std::vector<CPU::Face> face_list = mesh.get_face_list();
 	std::vector<CircleData> circle_data;
 
 	// Calculate circle centroid and radius

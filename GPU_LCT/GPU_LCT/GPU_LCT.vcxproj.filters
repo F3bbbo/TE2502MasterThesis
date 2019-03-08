@@ -68,9 +68,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="data_structures.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="trig_functions.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -99,6 +96,9 @@
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.hpp">
+      <Filter>Header Files\CPU</Filter>
+    </ClInclude>
+    <ClInclude Include="data_structures.hpp">
       <Filter>Header Files\CPU</Filter>
     </ClInclude>
   </ItemGroup>

@@ -32,7 +32,7 @@ public:
 	~DebugObject();
 	void bind_VAO();
 	void draw_object();
-	void build(Mesh& mesh);
+	void build(CPU::Mesh& mesh);
 private:
 
 	GLuint m_VBO = 0;

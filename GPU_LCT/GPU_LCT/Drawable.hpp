@@ -16,7 +16,7 @@ public:
 	~Drawable();
 	virtual void bind_VAO() = 0;
 protected:
-	virtual void build(Mesh& mesh) = 0;
+	virtual void build(CPU::Mesh& mesh) = 0;
 	DRAW_TYPES m_mode = DRAW_FACES;
 };
 #endif

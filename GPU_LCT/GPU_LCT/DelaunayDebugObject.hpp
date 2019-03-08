@@ -32,13 +32,13 @@ public:
 	float get_circle_thiccness();
 
 	DelaunayDebugObject();
-	DelaunayDebugObject(Mesh& mesh);
+	DelaunayDebugObject(CPU::Mesh& mesh);
 	~DelaunayDebugObject();
 	void bind_VAO();
 	bool is_enabled();
 	void enable(bool value);
 private:
-	void build(Mesh& mesh);
+	void build(CPU::Mesh& mesh);
 
 	GLuint m_VBO = 0;
 	GLuint m_ssbo = 0;

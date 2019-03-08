@@ -25,14 +25,14 @@ public:
 
 	void run();
 	void check_error();
-	void set_debug_edge(SymEdge* start_edge);
+	void set_debug_edge(CPU::SymEdge* start_edge);
 	int get_screen_res();
 	bool mouse_clicked();
 
 	glm::vec2 get_mouse_pos();
 
 	bool shut_down = false;
-	SymEdge* m_current_edge = nullptr;
+	CPU::SymEdge* m_current_edge = nullptr;
 private:
 	void draw_frame();
 	void processInput();

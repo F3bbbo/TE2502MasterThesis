@@ -103,7 +103,7 @@ void DebugObject::set_point_thiccness(float thiccness)
 	m_point_thiccness = thiccness;
 }
 
-void DebugObject::build(Mesh& mesh)
+void DebugObject::build(CPU::Mesh& mesh)
 {
 	if (m_VBO > 0)
 		glDeleteBuffers(1, &m_VBO);
@@ -113,7 +113,7 @@ void DebugObject::build(Mesh& mesh)
 	glGenVertexArrays(1, &m_VAO);
 	glBindVertexArray(m_VAO);
 
-	std::vector<VertexRef> const& mesh_verts = mesh.get_vertex_list();
+	std::vector<CPU::VertexRef> const& mesh_verts = mesh.get_vertex_list();
 	std::vector<DrawVertex> vertices;
 
 	for (auto& vertex : mesh_verts)
@@ -132,7 +132,7 @@ void DebugObject::build(Mesh& mesh)
 	
 	if (m_mode == DRAW_EDGES)
 	{
-		std::vector<Edge> const&  mesh_edges = mesh.get_edge_list();
+		std::vector<CPU::Edge> const&  mesh_edges = mesh.get_edge_list();
 		std::vector<glm::ivec2> edges_indices;
 
 		if (m_draw_constraints)
@@ -157,7 +157,7 @@ void DebugObject::build(Mesh& mesh)
 	}
 	if (m_mode == DRAW_FACES)
 	{
-		std::vector<Face> const&  mesh_faces = mesh.get_face_list();
+		std::vector<CPU::Face> const&  mesh_faces = mesh.get_face_list();
 		std::vector<glm::ivec3> face_indices;
 
 		for (auto& face : mesh_faces)

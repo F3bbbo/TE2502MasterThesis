@@ -11,7 +11,7 @@ int main()
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer(800);
 
-	Mesh m;
+	CPU::Mesh m;
 	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
 	/*glm::vec2 point = { 0.4f, -0.4f };
 	LocateRes lr = m.Locate_point(point);

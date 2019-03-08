@@ -71,7 +71,7 @@ void Renderer::check_error()
 	}
 }
 
-void Renderer::set_debug_edge(SymEdge * start_edge)
+void Renderer::set_debug_edge(CPU::SymEdge * start_edge)
 {
 	m_current_edge = start_edge;
 }
