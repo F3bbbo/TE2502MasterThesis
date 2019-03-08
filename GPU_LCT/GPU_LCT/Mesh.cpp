@@ -671,7 +671,7 @@ void Mesh::insert_segment(SymEdge* v1, SymEdge* v2, int cref)
 
 	int current_cei = 0;
 	bool prev_crossed = false;
-	for (int ei = 1; ei < edge_list.size(); ei++)
+	for (size_t ei = 1; ei < edge_list.size(); ei++)
 	{
 		if (crossed_edge_list.size() != 0 && ei == crossed_edge_list[current_cei])
 		{
@@ -902,7 +902,7 @@ bool Mesh::is_constrained(int edge)
 		return false;
 }
 
-void Mesh::triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, int start_i, int end_i, SymEdge* edge_ab)
+void Mesh::triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, unsigned int start_i, unsigned int end_i, SymEdge* edge_ab)
 {
 	int list_size = end_i - start_i + 1;
 	if (list_size > 3)

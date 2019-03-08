@@ -154,7 +154,7 @@ glm::vec2 line_line_intersection_point(glm::vec2 a, glm::vec2 b, glm::vec2 c, gl
 bool point_in_circle(std::array<glm::vec2, 4> points)
 {
 	glm::mat4x4 mat;
-	for (int i = 0; i < points.size(); i++)
+	for (size_t i = 0; i < points.size(); i++)
 	{
 		mat[0][i] = points[i].x;
 		mat[1][i] = points[i].y;

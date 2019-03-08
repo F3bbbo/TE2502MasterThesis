@@ -89,7 +89,7 @@ private:
 	bool is_constrained(int edge);
 
 	// returns the 
-	void triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, int start_i, int end_i, SymEdge* edge_ab);
+	void triangulate_pseudopolygon_delaunay(SymEdge** points, SymEdge** syms, unsigned int start_i, unsigned int end_i, SymEdge* edge_ab);
 
 	// functions to insert and remove objects from the struct vectors
 	int add_vert(glm::vec2 v);
