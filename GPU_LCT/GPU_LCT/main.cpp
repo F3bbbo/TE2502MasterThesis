@@ -5,18 +5,13 @@
 #include "DelaunayDebugPipeline.hpp"
 #include "Renderer.hpp"
 #include <array>
+#include "Shapes.hpp"
+#include "TestMap.hpp"
 
 #include "GPU/GPU_Mesh.hpp"
-int main()
+void lct_example(CPU::Mesh &m)
 {
-	// Important that the renderer is created first because it initializes OpenGL
-	Renderer renderer(800);
 
-	GPU::GPUMesh g_mesh;
-	g_mesh.initiate_buffers({ {0.5, 0.6} }, {}, {});
-
-	CPU::Mesh m;
-	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
 	/*glm::vec2 point = { 0.4f, -0.4f };
 	LocateRes lr = m.Locate_point(point);
 	m.insert_point_in_face(point, lr.sym_edge);
@@ -62,7 +57,7 @@ int main()
 	m.insert_constraint(std::move(points), 2);
 
 	points = {
-	{ 0.25f, -0.05f },
+		{ 0.25f, -0.05f },
 	{ 0.15f, -0.05f },
 	{ 0.15f, -0.3f },
 	{ 0.25f, -0.3f },
@@ -70,8 +65,32 @@ int main()
 
 	m.insert_constraint(std::move(points), 3);
 
+}
 
-	m.transform_into_LCT();
+int main()
+{
+	// Important that the renderer is created first because it initializes OpenGL
+	Renderer renderer(800);
+
+	GPU::GPUMesh g_mesh;
+	g_mesh.initiate_buffers({ {0.5, 0.6} }, {}, {});
+
+	CPU::Mesh m;
+	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
+
+	lct_example(m);
+
+	//TestMap test_map;
+	//test_map.set_map_size({ 0.5f, 0.5f }, { -0.5f, -0.5f });
+	//test_map.set_num_obsticles({ 8, 8 });
+	//test_map.set_obsticle_scale(0.05f);
+
+	//auto obsticles = test_map.get_obsticles();
+	//for (unsigned int i = 0; i < obsticles.size(); i++)
+	//{
+	//	m.insert_constraint(std::move(obsticles[i]), i);
+	//}
+	//m.transform_into_LCT();
 
 	//m.Locate_point({ 0.5f, 0.5f });
 	//m.Locate_point({ 0.f, 0.f });
