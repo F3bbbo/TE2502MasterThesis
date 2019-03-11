@@ -6,10 +6,14 @@
 #include "Renderer.hpp"
 #include <array>
 
+#include "GPU/GPU_Mesh.hpp"
 int main()
 {
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer(800);
+
+	GPU::GPUMesh g_mesh;
+	g_mesh.initiate_buffers({ {0.5, 0.6} }, {}, {});
 
 	CPU::Mesh m;
 	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });

@@ -5,6 +5,7 @@
 
 #include <glm/glm.hpp>
 #include <glad/glad.h>
+#include "../Buffer.hpp"
 
 namespace GPU
 {
@@ -24,30 +25,30 @@ namespace GPU
 
 	struct PointBuffers
 	{
-		GLuint positions = 0;
-		GLuint inserted = 0;
-		GLuint tri_index = 0;
+		Buffer positions;
+		Buffer inserted;
+		Buffer tri_index;
 	};
 
 	struct EdgeBuffers
 	{
-		GLuint label = 0;
-		GLuint is_constrained = 0;
+		Buffer label;
+		Buffer is_constrained;
 	};
 
 	struct SegmentBuffers
 	{
-		GLuint endpoint_indices = 0;
-		GLuint inserted = 0;
+		Buffer endpoint_indices;
+		Buffer inserted;
 	};
 
 	struct TriangleBuffers
 	{
-		GLuint vertex_indices = 0;
-		GLuint symedges = 0;
-		GLuint ins_point_index = 0;
-		GLuint seg_inters_index = 0;
-		GLuint edge_flip_index = 0;
+		Buffer vertex_indices;
+		Buffer symedges;
+		Buffer ins_point_index;
+		Buffer seg_inters_index;
+		Buffer edge_flip_index;
 	};
 
 	struct Edge
