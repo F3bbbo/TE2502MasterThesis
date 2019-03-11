@@ -34,6 +34,12 @@
     <Filter Include="Source Files\GPU">
       <UniqueIdentifier>{1118063d-da2a-4759-b3a1-fda0ac4c9854}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Test">
+      <UniqueIdentifier>{59170110-868b-4d2e-8ab3-72c7c434c5da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Test">
+      <UniqueIdentifier>{69a40468-67da-42a7-b9e2-cb8b2d2b6443}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -75,6 +81,12 @@
     <ClCompile Include="GPU\GPU_Mesh.cpp">
       <Filter>Source Files\GPU</Filter>
     </ClCompile>
+    <ClCompile Include="TestMap.cpp">
+      <Filter>Source Files\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="Shapes.cpp">
+      <Filter>Source Files\Test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="trig_functions.hpp">
@@ -115,6 +127,12 @@
     </ClInclude>
     <ClInclude Include="GPU\GPU_Mesh.hpp">
       <Filter>Header Files\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="Shapes.hpp">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="TestMap.hpp">
+      <Filter>Header Files\Test</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

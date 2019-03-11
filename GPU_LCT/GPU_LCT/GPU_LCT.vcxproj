@@ -175,6 +175,8 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Shapes.cpp" />
+    <ClCompile Include="TestMap.cpp" />
     <ClCompile Include="trig_functions.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -190,6 +192,8 @@
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="Renderer.hpp" />
+    <ClInclude Include="Shapes.hpp" />
+    <ClInclude Include="TestMap.hpp" />
     <ClInclude Include="trig_functions.hpp" />
   </ItemGroup>
   <ItemGroup>
