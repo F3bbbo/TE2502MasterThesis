@@ -81,6 +81,9 @@
     <ClCompile Include="GPU\GPU_Mesh.cpp">
       <Filter>Source Files\GPU</Filter>
     </ClCompile>
+    <ClCompile Include="Buffer.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="TestMap.cpp">
       <Filter>Source Files\Test</Filter>
     </ClCompile>
@@ -127,6 +130,9 @@
     </ClInclude>
     <ClInclude Include="GPU\GPU_Mesh.hpp">
       <Filter>Header Files\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer.hpp">
+      <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="Shapes.hpp">
       <Filter>Header Files\Test</Filter>

@@ -4,6 +4,7 @@
 #define DEBUG_OBJECT_HPP
 
 #include "Drawable.hpp"
+#include "Buffer.hpp"
 
 class DebugObject : public Drawable
 {
@@ -35,9 +36,8 @@ public:
 	void build(CPU::Mesh& mesh);
 private:
 
-	GLuint m_VBO = 0;
-	GLuint m_EBO = 0;
-	GLuint m_VAO = 0;
+	Buffer m_vertex_input;
+	Buffer m_index_buffer;
 
 	GLuint m_num_primitives = 0;
 

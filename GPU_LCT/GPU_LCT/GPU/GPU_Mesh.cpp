@@ -2,7 +2,6 @@
 
 namespace GPU
 {
-
 	GPUMesh::GPUMesh()
 	{
 	}

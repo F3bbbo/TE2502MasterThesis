@@ -111,7 +111,7 @@ int main()
 	DelaunayDebugObject ddo(m);
 	ddo.set_circle_color({ 1.f, 1.f, 0.f });
 	ddo.set_circle_thiccness(0.005f);
-	ddo.enable(false);
+	ddo.enable(true);
 
 	ShaderPath delaunay_draw_path;
 	delaunay_draw_path[VS] = "debug_delaunay_vertex_shader.glsl";

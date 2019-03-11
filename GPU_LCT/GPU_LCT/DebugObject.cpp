@@ -11,35 +11,25 @@ DebugObject::DebugObject(DRAW_TYPES mode) : Drawable(mode)
 
 DebugObject::DebugObject(std::array<glm::vec2, 2> vertices, DRAW_TYPES mode) : Drawable(mode)
 {
-	glGenVertexArrays(1, &m_VAO);
-	glGenBuffers(1, &m_VBO);
+	m_vertex_input.create_buffer(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
 	m_num_primitives = 2;
 
-	glGenBuffers(1, &m_EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 	std::vector<glm::ivec2> edges_indices = { {0, 1} };
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec2) * 2, edges_indices.data(), GL_STATIC_DRAW);
-
+	m_index_buffer.create_buffer(GL_ELEMENT_ARRAY_BUFFER, edges_indices, GL_STATIC_DRAW);
 	update_edge(vertices);
 }
 
 void DebugObject::update_edge(std::array<glm::vec2, 2> vertices)
 {
-	glBindVertexArray(m_VAO);
+	m_vertex_input.bind_buffer();
+	std::vector<DrawVertex> dv;
+	dv.push_back({ vertices[0], glm::vec4(m_color.r, m_color.g, m_color.b, 1.f) });
+	dv.push_back({ vertices[1], glm::vec4(m_color.r, m_color.g, m_color.b, 0.f) });
 
-	std::array<DrawVertex, 2> dv;
-	dv[0] = DrawVertex(vertices[0], glm::vec4(m_color.r, m_color.g, m_color.b, 1.f) );
-	dv[1] = DrawVertex(vertices[1], glm::vec4(m_color.r, m_color.g, m_color.b, 0.f) );
-
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(DrawVertex) * 2, dv.data(), GL_DYNAMIC_DRAW);
-
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(2 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	glBindVertexArray(0);
+	m_vertex_input.update_buffer(dv);
+	m_vertex_input.set_vertex_attribute(0, 2, GL_FLOAT, 6 * sizeof(float), 0);
+	m_vertex_input.set_vertex_attribute(1, 4, GL_FLOAT, 6 * sizeof(float), 2 * sizeof(float));
+	m_vertex_input.unbind_buffer();
 }
 
 
@@ -49,21 +39,20 @@ DebugObject::~DebugObject()
 
 void DebugObject::bind_VAO()
 {
-	glBindVertexArray(m_VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+	m_vertex_input.bind_buffer();
 }
 
 void DebugObject::draw_object()
 {
 	if (m_mode == DRAW_FACES)
 	{
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+		m_index_buffer.bind_buffer();
 		glDrawElements(GL_TRIANGLES, m_num_primitives, GL_UNSIGNED_INT, 0);
 	}
 	if (m_mode == DRAW_EDGES)
 	{
 		glLineWidth(m_edge_thiccness);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+		m_index_buffer.bind_buffer();
 		glDrawElements(GL_LINES, m_num_primitives, GL_UNSIGNED_INT, 0);
 	}
 	if (m_mode == DRAW_POINTS)
@@ -75,7 +64,7 @@ void DebugObject::draw_object()
 
 bool DebugObject::is_valid()
 {
-	return m_VBO != 0;
+	return m_vertex_input.is_valid();
 }
 
 void DebugObject::set_color(glm::vec3 && color)
@@ -105,14 +94,6 @@ void DebugObject::set_point_thiccness(float thiccness)
 
 void DebugObject::build(CPU::Mesh& mesh)
 {
-	if (m_VBO > 0)
-		glDeleteBuffers(1, &m_VBO);
-	if (m_VAO > 0)
-		glDeleteBuffers(1, &m_VAO);
-
-	glGenVertexArrays(1, &m_VAO);
-	glBindVertexArray(m_VAO);
-
 	std::vector<CPU::VertexRef> const& mesh_verts = mesh.get_vertex_list();
 	std::vector<DrawVertex> vertices;
 
@@ -121,14 +102,9 @@ void DebugObject::build(CPU::Mesh& mesh)
 
 	m_num_primitives = (GLuint)vertices.size();
 
-	glGenBuffers(1, &m_VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(DrawVertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(2 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	m_vertex_input.create_buffer(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+	m_vertex_input.set_vertex_attribute(0, 2, GL_FLOAT, 6 * sizeof(float), 0);
+	m_vertex_input.set_vertex_attribute(1, 4, GL_FLOAT, 6 * sizeof(float), 2 * sizeof(float));
 	
 	if (m_mode == DRAW_EDGES)
 	{
@@ -150,10 +126,7 @@ void DebugObject::build(CPU::Mesh& mesh)
 		}
 
 		m_num_primitives = (GLuint)edges_indices.size() * 2;
-
-		glGenBuffers(1, &m_EBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec2) * edges_indices.size(), edges_indices.data(), GL_STATIC_DRAW);
+		m_index_buffer.create_buffer(GL_ELEMENT_ARRAY_BUFFER, edges_indices, GL_STATIC_DRAW);
 	}
 	if (m_mode == DRAW_FACES)
 	{
@@ -164,10 +137,6 @@ void DebugObject::build(CPU::Mesh& mesh)
 			face_indices.push_back(face.vert_i);
 
 		m_num_primitives = (GLuint)face_indices.size() * 3;
-
-		glGenBuffers(1, &m_EBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::ivec3) * face_indices.size(), face_indices.data(), GL_STATIC_DRAW);
+		m_index_buffer.create_buffer(GL_ELEMENT_ARRAY_BUFFER, face_indices, GL_STATIC_DRAW);
 	}
-	glBindVertexArray(0);
 }

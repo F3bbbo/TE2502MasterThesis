@@ -6,6 +6,7 @@
 #include "Drawable.hpp"
 #include "trig_functions.hpp"
 #include <array>
+#include "Buffer.hpp"
 
 class DelaunayDebugObject : public Drawable
 {
@@ -40,9 +41,8 @@ public:
 private:
 	void build(CPU::Mesh& mesh);
 
-	GLuint m_VBO = 0;
-	GLuint m_ssbo = 0;
-	GLuint m_VAO = 0;
+	Buffer m_vertex_buffer;
+	Buffer m_circle_buffer;
 
 	GLuint m_num_circles = 0;
 

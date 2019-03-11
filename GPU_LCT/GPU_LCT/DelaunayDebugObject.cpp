@@ -37,9 +37,8 @@ DelaunayDebugObject::~DelaunayDebugObject()
 
 void DelaunayDebugObject::bind_VAO()
 {
-	glBindVertexArray(m_VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_ssbo);
+	m_vertex_buffer.bind_buffer();
+	m_circle_buffer.bind_buffer();
 }
 
 bool DelaunayDebugObject::is_enabled()
@@ -72,34 +71,18 @@ void DelaunayDebugObject::build(CPU::Mesh & mesh)
 		circle_data.push_back(std::move(cd));
 	}
 
-	std::array<vec2, 6> NDC_vertices =
+	std::vector<vec2> NDC_vertices =
 	{
-		vec2(-1.f,  1.f),
-		vec2(-1.f, -1.f),
-		vec2( 1.f,  1.f),
+		{-1.f,  1.f},
+		{-1.f, -1.f},
+		{ 1.f,  1.f},
 
-		vec2( 1.f,  1.f),
-		vec2(-1.f, -1.f),
-		vec2( 1.f, -1.f)
+		{ 1.f,  1.f},
+		{-1.f, -1.f},
+		{ 1.f, -1.f}
 	};
 
-	//circle_data[0].radius = 0.5f;
-	glGenVertexArrays(1, &m_VAO);
-	glGenBuffers(1, &m_VBO);
-
-	glBindVertexArray(m_VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * NDC_vertices.size(), NDC_vertices.data(), GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	// Setup the circle data buffer
-	glGenBuffers(1, &m_ssbo);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ssbo);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(CircleData) * circle_data.size(), circle_data.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-	glBindVertexArray(0);
+	m_vertex_buffer.create_buffer(GL_ARRAY_BUFFER, NDC_vertices, GL_STATIC_DRAW);
+	m_vertex_buffer.set_vertex_attribute(0, 2, GL_FLOAT, 2 * sizeof(float), 0);
+	m_circle_buffer.create_buffer(GL_SHADER_STORAGE_BUFFER, circle_data, GL_STATIC_DRAW, 1);
 }
