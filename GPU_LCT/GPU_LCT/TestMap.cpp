@@ -22,6 +22,8 @@ void TestMap::generate_map()
 
 		glm::vec2 curr_pos = m_start;
 		// add obsticles inside the map area according to specified values
+
+		int shape_type = 0;
 		for (unsigned int y = 0; y < m_num_obsticles.y; y++)
 		{
 			curr_pos.y += delta.y;
@@ -29,11 +31,20 @@ void TestMap::generate_map()
 			for (unsigned int x = 0; x < m_num_obsticles.x; x++)
 			{
 				curr_pos.x += delta.x;
-
-				Shape* tmp = new Triangle();
+				Shape* tmp;
+				if (shape_type == 0)
+				{
+					tmp = new Triangle();
+				}
+				else
+				{
+					tmp = new Square();
+				}
+				shape_type = (shape_type + 1) % 2;
 				tmp->set_location(curr_pos);
 				tmp->set_scale(m_obsticles_scale);
 				m_shapes.push_back(tmp);
+
 			}
 		}
 
