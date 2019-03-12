@@ -39,8 +39,6 @@ private:
 	Buffer m_vertex_input;
 	Buffer m_index_buffer;
 
-	GLuint m_num_primitives = 0;
-
 	glm::vec3 m_color = { 1.f, 0.f, 0.f };
 
 	float m_edge_thiccness = 1.f;

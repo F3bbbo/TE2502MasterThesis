@@ -3,6 +3,10 @@
 #define BUFFER_HPP
 #include <glad/glad.h>
 #include <vector>
+#include "Log.hpp"
+
+// Guarantees a buffer increase of atleast the specidifed amount
+#define BUFFER_APPEND_BYTE_AMMOUNT 10000
 
 class Buffer
 {
@@ -11,8 +15,20 @@ public:
 	~Buffer();
 
 	template <typename Data>
-	void create_buffer(GLuint type, std::vector<Data> data, GLuint usage, GLuint location = 0)
+	void create_buffer(GLuint type, std::vector<Data> data, GLuint usage, GLuint location = 0, GLuint byte_length = 0)
 	{
+		m_num_elements = data.size();
+		if (byte_length != 0)
+		{
+			byte_length -= byte_length % sizeof(Data);
+			m_used_buffer_size = sizeof(Data) * m_num_elements;
+			m_buffer_size = byte_length;
+		}
+		else
+		{
+			m_buffer_size = sizeof(Data) * m_num_elements;
+			m_used_buffer_size = m_buffer_size;
+		}
 		m_loc = location;
 		m_type = type;
 		m_usage = usage;
@@ -24,17 +40,54 @@ public:
 
 		glGenBuffers(1, &m_buf);
 		glBindBuffer(type, m_buf);
-		glBufferData(type, sizeof(Data) * data.size(), data.data(), usage);
+		glBufferData(type, m_buffer_size, data.data(), usage);
+
 		m_valid = true;
 		
 		// Does not unbind the buffers
 	}
-	void create_buffer(GLuint type, GLuint usage, GLuint location = 0);
+
+	template <typename Data>
+	void append_to_buffer(std::vector<Data> data)
+	{
+		GLuint append_byte_length = sizeof(data) * data.size();
+		glBindBuffer(m_type, m_buf);
+		if (append_byte_length + m_used_buffer_size > m_buffer_size)
+		{
+			// Need to reallocate data
+
+			// Get the current data from the buffer
+			void* ptr = malloc(m_used_buffer_size);
+			void* mapped_data = glMapBufferRange(m_type, 0, m_used_buffer_size, GL_MAP_READ_BIT);
+			memcpy(ptr, mapped_data, m_used_buffer_size);
+			glUnmapBuffer(m_type);
+
+			// Create a bigger buffer
+			GLuint buffer_increase = BUFFER_APPEND_BYTE_AMMOUNT + (sizeof(Data) - BUFFER_APPEND_BYTE_AMMOUNT % sizeof(Data));
+			glBufferData(m_type, m_buffer_size + buffer_increase, NULL, m_usage);
+			glBufferSubData(m_type, 0, m_used_buffer_size, ptr);
+			glBufferSubData(m_type, m_used_buffer_size, append_byte_length, data.data());
+		}
+		else
+		{
+			// Use unused buffer space
+			void* mapped_data = glMapBufferRange(m_type, m_used_buffer_size, append_byte_length, GL_MAP_WRITE_BIT);
+			memcpy(mapped_data, data.data(), append_byte_length);
+			m_used_buffer_size += append_byte_length;
+			m_num_elements += data.size();
+			glUnmapBuffer(m_type);
+		}
+	}
+
+	void create_unitialized_buffer(GLuint type, GLuint usage, GLuint location = 0); // Creates a unitialized buffer with no size;
 
 	void set_vertex_attribute(GLuint location, GLuint size, GLuint type, GLuint stride, GLuint offset, GLboolean normalized = false);
 	void bind_buffer();
 	void unbind_buffer();
 	bool is_valid();
+
+	GLuint element_count();
+	GLuint buffer_size();
 
 	template <typename Data>
 	void update_buffer(std::vector<Data> data)
@@ -49,6 +102,9 @@ private:
 	GLuint m_vao;
 	GLuint m_loc;
 	GLuint m_usage;
+	GLuint m_buffer_size = 0; // bytes
+	GLuint m_used_buffer_size = 0; // bytes
+	GLuint m_num_elements = 0;
 	bool m_valid = false;
 };
 #endif BUFFER_HPP

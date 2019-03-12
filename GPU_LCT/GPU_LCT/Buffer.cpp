@@ -8,7 +8,7 @@ Buffer::~Buffer()
 {
 }
 
-void Buffer::create_buffer(GLuint type, GLuint usage, GLuint location)
+void Buffer::create_unitialized_buffer(GLuint type, GLuint usage, GLuint location)
 {
 	m_loc = location;
 	m_usage = usage;
@@ -51,4 +51,14 @@ void Buffer::unbind_buffer()
 bool Buffer::is_valid()
 {
 	return m_valid;
+}
+
+GLuint Buffer::element_count()
+{
+	return m_num_elements;
+}
+
+GLuint Buffer::buffer_size()
+{
+	return m_buffer_size;
 }

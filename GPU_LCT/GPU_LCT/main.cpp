@@ -86,7 +86,7 @@ int main()
 	Renderer renderer(800);
 
 	GPU::GPUMesh g_mesh;
-	g_mesh.initiate_buffers({ {0.5, 0.6} }, {}, {});
+	g_mesh.initiate_buffers();
 
 	CPU::Mesh m;
 	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });

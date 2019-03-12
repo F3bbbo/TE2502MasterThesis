@@ -11,8 +11,7 @@ DebugObject::DebugObject(DRAW_TYPES mode) : Drawable(mode)
 
 DebugObject::DebugObject(std::array<glm::vec2, 2> vertices, DRAW_TYPES mode) : Drawable(mode)
 {
-	m_vertex_input.create_buffer(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
-	m_num_primitives = 2;
+	m_vertex_input.create_unitialized_buffer(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
 
 	std::vector<glm::ivec2> edges_indices = { {0, 1} };
 	m_index_buffer.create_buffer(GL_ELEMENT_ARRAY_BUFFER, edges_indices, GL_STATIC_DRAW);
@@ -47,18 +46,18 @@ void DebugObject::draw_object()
 	if (m_mode == DRAW_FACES)
 	{
 		m_index_buffer.bind_buffer();
-		glDrawElements(GL_TRIANGLES, m_num_primitives, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, m_index_buffer.element_count() * 3, GL_UNSIGNED_INT, 0);
 	}
 	if (m_mode == DRAW_EDGES)
 	{
 		glLineWidth(m_edge_thiccness);
 		m_index_buffer.bind_buffer();
-		glDrawElements(GL_LINES, m_num_primitives, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_LINES, m_index_buffer.element_count() * 2, GL_UNSIGNED_INT, 0);
 	}
 	if (m_mode == DRAW_POINTS)
 	{
 		glPointSize(m_point_thiccness);
-		glDrawArrays(GL_POINTS, 0, m_num_primitives);
+		glDrawArrays(GL_POINTS, 0, m_vertex_input.element_count());
 	}
 }
 
@@ -100,8 +99,6 @@ void DebugObject::build(CPU::Mesh& mesh)
 	for (auto& vertex : mesh_verts)
 		vertices.push_back({ vertex.vertice, {m_color.r, m_color.g, m_color.b, 1.f} });
 
-	m_num_primitives = (GLuint)vertices.size();
-
 	m_vertex_input.create_buffer(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
 	m_vertex_input.set_vertex_attribute(0, 2, GL_FLOAT, 6 * sizeof(float), 0);
 	m_vertex_input.set_vertex_attribute(1, 4, GL_FLOAT, 6 * sizeof(float), 2 * sizeof(float));
@@ -125,7 +122,6 @@ void DebugObject::build(CPU::Mesh& mesh)
 				edges_indices.push_back(edge.edge);
 		}
 
-		m_num_primitives = (GLuint)edges_indices.size() * 2;
 		m_index_buffer.create_buffer(GL_ELEMENT_ARRAY_BUFFER, edges_indices, GL_STATIC_DRAW);
 	}
 	if (m_mode == DRAW_FACES)
@@ -136,7 +132,6 @@ void DebugObject::build(CPU::Mesh& mesh)
 		for (auto& face : mesh_faces)
 			face_indices.push_back(face.vert_i);
 
-		m_num_primitives = (GLuint)face_indices.size() * 3;
 		m_index_buffer.create_buffer(GL_ELEMENT_ARRAY_BUFFER, face_indices, GL_STATIC_DRAW);
 	}
 }
