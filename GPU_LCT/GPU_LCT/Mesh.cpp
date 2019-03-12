@@ -298,6 +298,9 @@ namespace CPU
 			orig_face.push_back(curr_e);
 			orig_sym.push_back(curr_e->sym());
 		}
+		// Array of the original edge symedges to be reused when creating new ones
+		std::stack<SymEdge*> available_symedges;
+		available_symedges.push(orig_e);
 		// Add the orignal edges from the second triangle if there is one
 		curr_e = orig_e_sym;
 		if (curr_e != nullptr) {
@@ -306,6 +309,8 @@ namespace CPU
 				orig_face.push_back(curr_e);
 				orig_sym.push_back(curr_e->sym());
 			}
+			// Add sym() edge to orig edge to available symedge list; 
+			available_symedges.push(orig_e_sym);
 		}
 		else {
 			orig_face.push_back(e);
@@ -332,12 +337,27 @@ namespace CPU
 			// next edge in original triangle
 			int next_id = (i + 1) % orig_face.size();
 			// create first edge of new triangle
-			SymEdge* tmp = new SymEdge();
+			SymEdge* tmp;
+			if (available_symedges.size() == 0)
+			{
+				tmp = new SymEdge();
+			}
+			else {
+				tmp = available_symedges.top();
+				available_symedges.pop();
+			}
 			tmp->vertex = orig_face[next_id]->vertex;
 			orig_face[i]->nxt = tmp;
 			curr_e = orig_face[i]->nxt;
 			// create second edge of new triangle
-			tmp = new SymEdge();
+			if (available_symedges.size() == 0)
+			{
+				tmp = new SymEdge();
+			}
+			else {
+				tmp = available_symedges.top();
+				available_symedges.pop();
+			}
 			tmp->vertex = vertex_index;
 			tmp->nxt = orig_face[i];
 			curr_e->nxt = tmp;
@@ -372,8 +392,6 @@ namespace CPU
 			// tri 2 single edge
 			edge_i = add_edge({ {orig_face[1]->nxt->vertex, orig_face[1]->nxt->nxt->vertex}, orig_crep });
 			orig_face[1]->nxt->edge = edge_i;
-			// Delete old symedge 
-			delete orig_e;
 			//add edges to flip stack
 			flip_stack.push(orig_face[0]);
 			flip_stack.push(orig_face[1]);
@@ -400,9 +418,6 @@ namespace CPU
 				// add edge to stack
 				flip_stack.push(orig_face[i]);
 			}
-			// Delete old symedges
-			delete orig_e;
-			delete orig_e_sym;
 		}
 
 		SymEdge* ret_edge = orig_face[0]->nxt->nxt;
