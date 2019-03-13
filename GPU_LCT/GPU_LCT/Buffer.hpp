@@ -15,14 +15,15 @@ public:
 	~Buffer();
 
 	template <typename Data>
-	void create_buffer(GLuint type, std::vector<Data> data, GLuint usage, GLuint location = 0, GLuint byte_length = 0)
+	void create_buffer(GLuint type, std::vector<Data> data, GLuint usage, GLuint location = 0, GLuint preallocate_size = 0)
 	{
 		m_num_elements = data.size();
-		if (byte_length != 0)
+		if (preallocate_size != 0)
 		{
-			byte_length -= byte_length % sizeof(Data);
+			m_buffer_size = sizeof(Data) * preallocate_size;
 			m_used_buffer_size = sizeof(Data) * m_num_elements;
-			m_buffer_size = byte_length;
+			if (m_used_buffer_size > m_buffer_size)
+				m_buffer_size = m_used_buffer_size;
 		}
 		else
 		{
@@ -40,7 +41,8 @@ public:
 
 		glGenBuffers(1, &m_buf);
 		glBindBuffer(type, m_buf);
-		glBufferData(type, m_buffer_size, data.data(), usage);
+		glBufferData(type, m_buffer_size, NULL, usage);
+		glBufferSubData(type, 0, m_used_buffer_size, data.data());
 
 		m_valid = true;
 		
@@ -67,16 +69,17 @@ public:
 			glBufferData(m_type, m_buffer_size + buffer_increase, NULL, m_usage);
 			glBufferSubData(m_type, 0, m_used_buffer_size, ptr);
 			glBufferSubData(m_type, m_used_buffer_size, append_byte_length, data.data());
+			m_buffer_size += buffer_increase;
 		}
 		else
 		{
 			// Use unused buffer space
 			void* mapped_data = glMapBufferRange(m_type, m_used_buffer_size, append_byte_length, GL_MAP_WRITE_BIT);
 			memcpy(mapped_data, data.data(), append_byte_length);
-			m_used_buffer_size += append_byte_length;
-			m_num_elements += data.size();
 			glUnmapBuffer(m_type);
 		}
+		m_used_buffer_size += append_byte_length;
+		m_num_elements += data.size();
 	}
 
 	void create_unitialized_buffer(GLuint type, GLuint usage, GLuint location = 0); // Creates a unitialized buffer with no size;
