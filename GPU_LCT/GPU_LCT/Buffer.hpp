@@ -89,7 +89,7 @@ public:
 	void unbind_buffer();
 	bool is_valid();
 
-	GLuint element_count();
+	int element_count();
 	GLuint buffer_size();
 
 	template <typename Data>
@@ -107,7 +107,7 @@ private:
 	GLuint m_usage;
 	GLuint m_buffer_size = 0; // bytes
 	GLuint m_used_buffer_size = 0; // bytes
-	GLuint m_num_elements = 0;
+	int m_num_elements = 0;
 	bool m_valid = false;
 };
 #endif BUFFER_HPP

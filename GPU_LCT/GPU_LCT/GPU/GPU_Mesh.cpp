@@ -4,6 +4,7 @@ namespace GPU
 {
 	GPUMesh::GPUMesh()
 	{
+		setup_compute_shaders();
 	}
 
 
@@ -65,5 +66,42 @@ namespace GPU
 		sym_edges.push_back({ 3, -1, 2, 2, 1 });
 
 		m_sym_edges.create_buffer(type, sym_edges, usage, 12, n);
+	}
+
+
+	void GPUMesh::setup_compute_shaders()
+	{
+		// TODO, specify paths
+		compile_cs(m_location_program, "location_step.glsl");
+		compile_cs(m_insertion_program, "");
+		compile_cs(m_marking_program, "");
+		compile_cs(m_flip_edges_program, "");
+	}
+
+	void GPUMesh::compile_cs(GLuint & program, const char * path)
+	{
+		GLuint shader = glCreateShader(GL_COMPUTE_SHADER);
+		glShaderSource(shader, 1, &path, NULL);
+		glCompileShader(shader);
+		// check for compilation errors as per normal here
+		int success;
+		char infoLog[512];
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
+		if (!success)
+		{
+			glGetShaderInfoLog(shader, 512, NULL, infoLog);
+			std::cout << " CS shader compile failed\n" << infoLog << '\n';
+		}
+
+		program = glCreateProgram();
+		glAttachShader(program, shader);
+		glLinkProgram(program);
+
+		glGetProgramiv(program, GL_LINK_STATUS, &success);
+		if (!success) {
+			glGetProgramInfoLog(program, 512, NULL, infoLog);
+			std::cout << "CS program linking failed\n" << infoLog << '\n';
+		}
 	}
 }

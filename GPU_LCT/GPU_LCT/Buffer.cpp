@@ -53,7 +53,7 @@ bool Buffer::is_valid()
 	return m_valid;
 }
 
-GLuint Buffer::element_count()
+int Buffer::element_count()
 {
 	return m_num_elements;
 }
