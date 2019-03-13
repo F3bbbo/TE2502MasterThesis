@@ -154,5 +154,8 @@
     <None Include="debug_delaunay_fragment_shader.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="GPU\location_step.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
