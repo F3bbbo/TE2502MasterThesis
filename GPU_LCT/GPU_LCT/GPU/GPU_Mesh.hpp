@@ -18,6 +18,7 @@ namespace GPU
 		EdgeBuffers m_edge_bufs;
 		SegmentBuffers m_segment_bufs;
 		TriangleBuffers m_triangle_bufs;
+		Buffer m_sym_edges;
 	};
 }
 #endif
