@@ -68,6 +68,53 @@ namespace GPU
 		m_sym_edges.create_buffer(type, sym_edges, usage, 12, n);
 	}
 
+	void GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
+	{
+		m_point_bufs.positions.append_to_buffer(points);
+		m_point_bufs.inserted.append_to_buffer(std::vector<int>(points.size(), 0));
+		m_point_bufs.tri_index.append_to_buffer(std::vector<int>(points.size(), 0));
+
+		for (auto& segment : segments)
+			segment = segment + glm::ivec2(m_segment_bufs.endpoint_indices.element_count());
+		m_segment_bufs.endpoint_indices.append_to_buffer(segments);
+		m_segment_bufs.inserted.append_to_buffer(std::vector<int>(points.size(), 0));
+
+		// TODO, maybe need to check if triangle buffers needs to grow
+
+		// Bind all ssbo's
+		m_point_bufs.positions.bind_buffer();
+		m_point_bufs.inserted.bind_buffer();
+		m_point_bufs.tri_index.bind_buffer();
+
+		m_edge_bufs.label.bind_buffer();
+		m_edge_bufs.is_constrained.bind_buffer();
+
+		m_segment_bufs.endpoint_indices.bind_buffer();
+		m_segment_bufs.inserted.bind_buffer();
+
+		m_triangle_bufs.vertex_indices.bind_buffer();
+		m_triangle_bufs.symedge_indices.bind_buffer();
+		m_triangle_bufs.ins_point_index.bind_buffer();
+		m_triangle_bufs.seg_inters_index.bind_buffer();
+		m_triangle_bufs.edge_flip_index.bind_buffer();
+
+		m_sym_edges.bind_buffer();
+
+		while (false)
+		{
+			//glUseProgram(m_location_program);
+			//glDispatchCompute((GLuint)number, 1, 1);
+
+			//glUseProgram(m_insertion_program);
+			//glDispatchCompute((GLuint)number, 1, 1);
+
+			//glUseProgram(m_marking_program);
+			//glDispatchCompute((GLuint)number, 1, 1);
+
+			//glUseProgram(m_flip_edges_program);
+			//glDispatchCompute((GLuint)number, 1, 1);
+		}
+	}
 
 	void GPUMesh::setup_compute_shaders()
 	{

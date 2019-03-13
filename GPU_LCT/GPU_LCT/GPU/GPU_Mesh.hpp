@@ -13,6 +13,7 @@ namespace GPU
 		GPUMesh();
 		~GPUMesh();
 		void initiate_buffers();
+		void build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
 	private:
 		void setup_compute_shaders();
 		void compile_cs(GLuint& program, const char* path);
