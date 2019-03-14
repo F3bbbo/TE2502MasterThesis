@@ -5,6 +5,7 @@
 
 #include "Drawable.hpp"
 #include "Buffer.hpp"
+#include "GPU/GPU_Mesh.hpp"
 
 class DebugObject : public Drawable
 {
@@ -25,6 +26,8 @@ public:
 	void draw_constraints(bool value);
 	void set_edge_thiccness(float thiccness);
 	void set_point_thiccness(float thiccness);
+	void set_draw_left_side(bool val);
+	bool draw_left_side();
 
 	DebugObject();
 	DebugObject(DRAW_TYPES mode);
@@ -34,6 +37,7 @@ public:
 	void bind_VAO();
 	void draw_object();
 	void build(CPU::Mesh& mesh);
+	void build(GPU::GPUMesh& mesh);
 private:
 
 	Buffer m_vertex_input;
@@ -44,5 +48,6 @@ private:
 	float m_edge_thiccness = 1.f;
 	float m_point_thiccness = 5.f;
 	bool m_draw_constraints = false;
+	bool m_draw_left_side = true;
 };
 #endif

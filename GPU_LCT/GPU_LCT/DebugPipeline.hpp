@@ -13,13 +13,14 @@ class DebugPipeline : public Pipeline
 public:
 	enum DebugPasses { DEBUG_PASS };
 
-	DebugPipeline();
+	DebugPipeline(glm::ivec2 screen_res);
 	~DebugPipeline();
 
 	void draw();
 	int add_drawable(DebugObject&& object);
 	bool is_compatible(int type);
 private:
+	glm::ivec2 m_screen_res;
 	int counter = 0;
 	std::map<int, DebugObject> m_debug_objects;
 };

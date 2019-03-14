@@ -2,7 +2,7 @@
 
 namespace GPU
 {
-	GPUMesh::GPUMesh()
+	GPUMesh::GPUMesh(glm::ivec2 screen_res)
 	{
 		setup_compute_shaders();
 	}
@@ -12,12 +12,12 @@ namespace GPU
 	{
 	}
 
-	void GPUMesh::initiate_buffers()
+	void GPUMesh::initiate_buffers(glm::vec2 scale)
 	{
 		// Creates a starting rectangle
 
 		// Fill point buffers
-		std::vector<glm::vec2> starting_vertices = { {-1.f, 1.f}, {-1.f, -1.f}, {1.f, -1.f}, {1.f, 1.f} };
+		std::vector<glm::vec2> starting_vertices = { {-1.f * scale.x, 1.f * scale.y}, {-1.f * scale.x, -1.f * scale.y}, {1.f * scale.x, -1.f * scale.y}, {1.f * scale.x, 1.f * scale.y} };
 		int type = GL_SHADER_STORAGE_BUFFER;
 		int usage = GL_DYNAMIC_DRAW | GL_DYNAMIC_READ;
 		int n = 100000;
@@ -114,6 +114,39 @@ namespace GPU
 			//glUseProgram(m_flip_edges_program);
 			//glDispatchCompute((GLuint)number, 1, 1);
 		}
+	}
+
+	std::vector<glm::vec2> GPUMesh::get_vertices()
+	{
+		 return m_point_bufs.positions.get_buffer_data<glm::vec2>();
+	}
+
+	std::vector<std::pair<glm::ivec2, bool>> GPUMesh::get_edges()
+	{
+		std::vector<SymEdge> sym_edge_list = m_sym_edges.get_buffer_data<SymEdge>();
+		std::vector<int> is_constrained_edge_list = m_edge_bufs.is_constrained.get_buffer_data<int>();
+
+		std::vector<std::pair<glm::ivec2, bool>> edge_list;
+		std::vector<glm::ivec2> found_edges;
+
+		for (SymEdge& symedge : sym_edge_list)
+		{
+			glm::ivec2 edge = { symedge.vertex, sym_edge_list[symedge.nxt].vertex };
+			if (std::find(found_edges.begin(), found_edges.end(), edge) == found_edges.end())
+			{
+				found_edges.push_back(edge);
+				if (is_constrained_edge_list[symedge.edge])
+					edge_list.push_back({edge, true});
+				else
+					edge_list.push_back({edge, false});
+			}
+		}
+		return edge_list;
+	}
+
+	std::vector<glm::ivec3> GPUMesh::get_faces()
+	{
+		return m_triangle_bufs.vertex_indices.get_buffer_data<glm::ivec3>();
 	}
 
 	void GPUMesh::setup_compute_shaders()

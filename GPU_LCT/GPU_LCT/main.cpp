@@ -83,10 +83,10 @@ void test_test_map(CPU::Mesh &m)
 int main()
 {
 	// Important that the renderer is created first because it initializes OpenGL
-	Renderer renderer(800);
+	Renderer renderer({ 1600, 800 });
 
-	GPU::GPUMesh g_mesh;
-	g_mesh.initiate_buffers();
+	GPU::GPUMesh g_mesh({ 1600, 800 });
+	g_mesh.initiate_buffers({0.5f, 0.5f});
 
 	CPU::Mesh m;
 	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
@@ -100,6 +100,7 @@ int main()
 	//m.Locate_point({ 0.5f, 0.5f });
 	//m.Locate_point({ 0.f, 0.f });
 
+	// Left side objects
 	DebugObject debug_faces(DRAW_FACES);
 	debug_faces.set_color({ 1.0f, 0.5f, 0.2f });
 	debug_faces.build(m);
@@ -124,17 +125,52 @@ int main()
 	debug_points.set_color({ 1.f, 0.672443f, 0.201556f });
 	debug_points.build(m);
 
+	// Right side objects
+
+	DebugObject r_debug_faces(DRAW_FACES);
+	r_debug_faces.set_color({ 1.0f, 0.5f, 0.2f });
+	r_debug_faces.build(g_mesh);
+	r_debug_faces.set_draw_left_side(false);
+
+	DebugObject r_debug_edges(DRAW_EDGES);
+	r_debug_edges.set_edge_thiccness(5.f);
+	r_debug_edges.set_color({ 1.f, 0.246201f, 0.201556f });
+	r_debug_edges.build(g_mesh);
+	r_debug_edges.set_draw_left_side(false);
+
+	DebugObject r_debug_edges_constraints(DRAW_EDGES);
+	r_debug_edges_constraints.set_edge_thiccness(5.f);
+	r_debug_edges_constraints.draw_constraints(true);
+	r_debug_edges_constraints.set_color({ 0.1f, 0.6f, 0.1f });
+	r_debug_edges_constraints.build(g_mesh);
+	r_debug_edges_constraints.set_draw_left_side(false);
+
+	/*DebugObject r_symedge_visualizer({ glm::vec2(-0.25f, 0.25f), glm::vec2(0.25f, -0.25f) }, DRAW_EDGES);
+	r_symedge_visualizer.set_edge_thiccness(5.f);
+	r_symedge_visualizer.set_color({ 0.f, 0.f, 0.8f });*/
+
+	DebugObject r_debug_points(DRAW_POINTS);
+	r_debug_points.set_point_thiccness(10.f);
+	r_debug_points.set_color({ 1.f, 0.672443f, 0.201556f });
+	r_debug_points.build(g_mesh);
+	r_debug_points.set_draw_left_side(false);
+
 	ShaderPath debug_draw_path;
 	debug_draw_path[VS] = "debug_vertex_shader.glsl";
 	debug_draw_path[FS] = "debug_fragment_shader.glsl";
 
-	DebugPipeline debug_pass;
+	DebugPipeline debug_pass(renderer.get_screen_res());
 	debug_pass.add_pass(DebugPipeline::DEBUG_PASS, std::move(debug_draw_path));
 	debug_pass.add_drawable(std::move(debug_faces));
 	debug_pass.add_drawable(std::move(debug_edges));
 	debug_pass.add_drawable(std::move(debug_edges_constraints));
 	debug_pass.add_drawable(std::move(symedge_visualizer));
 	debug_pass.add_drawable(std::move(debug_points));
+
+	debug_pass.add_drawable(std::move(r_debug_faces));
+	debug_pass.add_drawable(std::move(r_debug_edges));
+	debug_pass.add_drawable(std::move(r_debug_edges_constraints));
+	debug_pass.add_drawable(std::move(r_debug_points));
 
 	DelaunayDebugObject ddo(m);
 	ddo.set_circle_color({ 1.f, 1.f, 0.f });
@@ -145,7 +181,7 @@ int main()
 	delaunay_draw_path[VS] = "debug_delaunay_vertex_shader.glsl";
 	delaunay_draw_path[FS] = "debug_delaunay_fragment_shader.glsl";
 
-	DelaunayDebugPipeline ddp((float)renderer.get_screen_res());
+	DelaunayDebugPipeline ddp((float)renderer.get_screen_res().x);
 	ddp.add_pass(DelaunayDebugPipeline::DELAUNAY_DEBUG_PASS, std::move(delaunay_draw_path));
 	ddp.m_circles = ddo;
 

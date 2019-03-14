@@ -13,7 +13,7 @@
 class Renderer
 {
 public:
-	Renderer(int screen_res);
+	Renderer(glm::ivec2 screen_res);
 	~Renderer();
 
 	template<typename T>
@@ -26,7 +26,7 @@ public:
 	void run();
 	void check_error();
 	void set_debug_edge(CPU::SymEdge* start_edge);
-	int get_screen_res();
+	glm::ivec2 get_screen_res();
 	bool mouse_clicked();
 
 	glm::vec2 get_mouse_pos();
@@ -40,7 +40,7 @@ private:
 	std::vector<std::unique_ptr<Pipeline>> m_pipelines;
 	float m_dt;
 	GLFWwindow* m_window = nullptr;
-	int m_screen_res = 600;
+	glm::ivec2 m_screen_res = { 600, 600 };
 	// Debug walking variables
 
 	bool m_pressed_r = false;

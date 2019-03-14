@@ -1,6 +1,6 @@
 #include "Renderer.hpp"
 
-Renderer::Renderer(int screen_res)
+Renderer::Renderer(glm::ivec2 screen_res)
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -9,7 +9,7 @@ Renderer::Renderer(int screen_res)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	m_screen_res = screen_res;
-	m_window = glfwCreateWindow(screen_res, screen_res, "LCT", NULL, NULL);
+	m_window = glfwCreateWindow(screen_res.x, screen_res.y, "LCT", NULL, NULL);
 	if (m_window == NULL)
 	{
 		LOG_T(CRITICAL, "Failed to create GLFW window");
@@ -76,7 +76,7 @@ void Renderer::set_debug_edge(CPU::SymEdge * start_edge)
 	m_current_edge = start_edge;
 }
 
-int Renderer::get_screen_res()
+glm::ivec2 Renderer::get_screen_res()
 {
 	return m_screen_res;
 }
@@ -138,8 +138,8 @@ void Renderer::processInput()
 		m_pressed_mouse = false;
 		double x, y;
 		glfwGetCursorPos(m_window, &x, &y);
-		x = x / m_screen_res * 2.0 - 1.0;
-		y = -(y / m_screen_res * 2.0 - 1.0);
+		x = x / (m_screen_res.x / 2.0) * 2.0 - 1.0;
+		y = -(y / m_screen_res.y * 2.0 - 1.0);
 		mouse_pos = glm::vec2(x, y);
 		m_click_mouse = true;
 	}

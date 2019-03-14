@@ -70,6 +70,7 @@ public:
 			glBufferSubData(m_type, 0, m_used_buffer_size, ptr);
 			glBufferSubData(m_type, m_used_buffer_size, append_byte_length, data.data());
 			m_buffer_size += buffer_increase;
+			free(ptr);
 		}
 		else
 		{
@@ -80,6 +81,26 @@ public:
 		}
 		m_used_buffer_size += append_byte_length;
 		m_num_elements += data.size();
+	}
+
+	template <typename Data>
+	std::vector<Data> get_buffer_data(int element_offset = 0, int elements = 0)
+	{
+		if (element_offset > m_num_elements)
+			element_offset = m_num_elements;
+		if (element_offset + elements > m_num_elements)
+			elements = m_num_elements - element_offset;
+		if (elements == 0)
+			elements = m_num_elements;
+		Data* ptr = (Data*)malloc(m_used_buffer_size);
+		bind_buffer();
+		glGetBufferSubData(m_type, element_offset * sizeof(Data), elements * sizeof(Data), ptr);
+		unbind_buffer();
+		std::vector<Data> data;
+		for (int i = element_offset; i < m_num_elements; i++)
+			data.push_back(ptr[i]);
+		free(ptr);
+		return data;
 	}
 
 	void create_unitialized_buffer(GLuint type, GLuint usage, GLuint location = 0); // Creates a unitialized buffer with no size;

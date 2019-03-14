@@ -4,16 +4,20 @@
 
 #include "data_structures.hpp"
 #include <glm/glm.hpp>
+#include <utility>
 
 namespace GPU
 {
 	class GPUMesh
 	{
 	public:
-		GPUMesh();
+		GPUMesh(glm::ivec2 screen_res);
 		~GPUMesh();
-		void initiate_buffers();
+		void initiate_buffers(glm::vec2 scale = {1.f, 1.f});
 		void build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
+		std::vector<glm::vec2> get_vertices();
+		std::vector<std::pair<glm::ivec2, bool>> get_edges();
+		std::vector<glm::ivec3> get_faces();
 	private:
 		void setup_compute_shaders();
 		void compile_cs(GLuint& program, const char* path);
