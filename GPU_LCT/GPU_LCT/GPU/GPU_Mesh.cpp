@@ -1,4 +1,5 @@
 #include "GPU_Mesh.hpp"
+#include <fstream>
 
 namespace GPU
 {
@@ -27,7 +28,7 @@ namespace GPU
 		std::vector<GLuint> vert_indices(4, true);
 		m_point_bufs.inserted.create_buffer(type, std::vector<int>(4, 1), usage, 1, n);
 		m_point_bufs.tri_index.create_buffer(type, std::vector<int>(4, 0), usage, 2, n);
-	
+
 		// Fill edge buffers
 		m_edge_bufs.label.create_buffer(type, std::vector<int>(5, 0), usage, 3, n);
 		std::vector<GLuint> edge_constraints(5, 1);
@@ -152,7 +153,7 @@ namespace GPU
 	void GPUMesh::setup_compute_shaders()
 	{
 		// TODO, specify paths
-		compile_cs(m_location_program, "location_step.glsl");
+		compile_cs(m_location_program, "GPU/location_step.glsl");
 		compile_cs(m_insertion_program, "");
 		compile_cs(m_marking_program, "");
 		compile_cs(m_flip_edges_program, "");
@@ -160,8 +161,22 @@ namespace GPU
 
 	void GPUMesh::compile_cs(GLuint & program, const char * path)
 	{
+		if (path == "")
+			return;
+		std::ifstream shader_file;
+		std::string str;
+		shader_file.open(path);
+		while (!shader_file.eof())
+		{
+			std::string tmp;
+			getline(shader_file, tmp);
+			str += tmp + '\n';
+		}
+		shader_file.close();
+		const char* c = str.c_str();
+
 		GLuint shader = glCreateShader(GL_COMPUTE_SHADER);
-		glShaderSource(shader, 1, &path, NULL);
+		glShaderSource(shader, 1, &c, NULL);
 		glCompileShader(shader);
 		// check for compilation errors as per normal here
 		int success;
