@@ -18,6 +18,7 @@ void DelaunayDebugPipeline::draw()
 	if (!m_circles.is_enabled())
 		return;
 
+	glViewport(0, 0, (GLsizei)m_screen_res, (GLsizei)m_screen_res);
 	glUseProgram(m_passes[DELAUNAY_DEBUG_PASS]);
 	GLuint color_location = glGetUniformLocation(m_passes[DELAUNAY_DEBUG_PASS], "input_data.color");
 	GLuint circle_thiccness_location = glGetUniformLocation(m_passes[DELAUNAY_DEBUG_PASS], "input_data.circle_thiccness");
