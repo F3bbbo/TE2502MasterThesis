@@ -52,6 +52,7 @@ private:
 	std::array<glm::vec2, 2> m_curr_gpu_edge;
 	// Debug walking variables
 
+	bool m_update_both_symedges = false;
 	bool m_left_side = true;
 	bool m_pressed_r = false;
 	bool m_pressed_n = false;

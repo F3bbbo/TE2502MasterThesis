@@ -124,6 +124,10 @@ void Renderer::processInput()
 	if (glfwGetKey(m_window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 		m_left_side = false;
 
+	if (glfwGetKey(m_window, GLFW_KEY_T) == GLFW_PRESS)
+	{
+		m_update_both_symedges = m_update_both_symedges ? false : true;
+	}
 	if (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS)
 	{
 		m_pressed_r = true;
@@ -140,7 +144,7 @@ void Renderer::processInput()
 			else
 				failed = true;
 		}
-		else
+		if (!m_left_side || m_update_both_symedges)
 		{
 			if (m_current_GPU_edge.rot != -1)
 			{
@@ -169,7 +173,7 @@ void Renderer::processInput()
 			else
 				failed = true;
 		}
-		else
+		if (!m_left_side || m_update_both_symedges)
 		{
 			if (m_current_GPU_edge.nxt != -1)
 			{
