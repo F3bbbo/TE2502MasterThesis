@@ -55,9 +55,13 @@ public:
 		m_loc = location;
 		m_type = GL_UNIFORM_BUFFER;
 		m_usage = usage;
+		//m_num_elements = 1;
+		//m_buffer_size = sizeof(Data);
+		//m_used_buffer_size = m_buffer_size;
 		glGenBuffers(1, &m_buf);
 		glBindBuffer(m_type, m_buf);
 		glBufferData(m_type, sizeof(Data), &data, usage);
+		//glBindBuffer(m_type, 0);
 
 	}
 
@@ -132,7 +136,12 @@ public:
 	void update_buffer(std::vector<Data> data)
 	{
 		glBindBuffer(m_type, m_buf);
+		//bind_buffer();
 		glBufferData(m_type, sizeof(Data) * data.size(), data.data(), m_usage);
+		//int size = sizeof(Data) * data.size();
+		//glBufferSubData(m_type, 0, size, data.data());
+		glBindBuffer(m_type, 0);
+		//unbind_buffer();
 		m_valid = true;
 	};
 private:
