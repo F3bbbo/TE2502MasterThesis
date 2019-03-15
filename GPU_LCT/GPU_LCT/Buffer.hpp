@@ -64,7 +64,7 @@ public:
 	template <typename Data>
 	void append_to_buffer(std::vector<Data> data)
 	{
-		GLuint append_byte_length = sizeof(data) * data.size();
+		GLuint append_byte_length = sizeof(Data) * data.size();
 		glBindBuffer(m_type, m_buf);
 		if (append_byte_length + m_used_buffer_size > m_buffer_size)
 		{
