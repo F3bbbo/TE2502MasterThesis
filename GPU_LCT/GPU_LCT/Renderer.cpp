@@ -8,6 +8,8 @@ MessageCallback(GLenum source,
 	const GLchar* message,
 	const void* userParam)
 {
+	if (type != GL_DEBUG_TYPE_ERROR)
+		return;
 	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
 		(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
 		type, severity, message);
@@ -35,8 +37,8 @@ Renderer::Renderer(glm::ivec2 screen_res)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_DEBUG_OUTPUT);
 	//Set up debug callback
-	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	glDebugMessageCallback(MessageCallback, NULL);
 }
 
@@ -61,30 +63,6 @@ void Renderer::run()
 	}
 	else
 		shut_down = true;
-}
-
-void Renderer::check_error()
-{
-	GLenum err;
-	while ((err = glGetError()) != GL_NO_ERROR)
-	{
-		if (err == 0x0500)
-			LOG_T(WARNING, "INVALID ENUM");
-		else if (err == 0x0501)
-			LOG_T(WARNING, "INVALID VALUE");
-		else if (err == 0x0502)
-			LOG_T(WARNING, "INVALID OPERATION");
-		else if (err == 0x0503)
-			LOG_T(WARNING, "STACK OVERFLOW");
-		else if (err == 0x0504)
-			LOG_T(WARNING, "STACK UNDERFLOW");
-		else if (err == 0x0505)
-			LOG_T(WARNING, "GL OUT OF MEMORY");
-		else if (err == 0x0506)
-			LOG_T(WARNING, "GL INVALID FRAMEBUFFER OPERATION");
-		else if (err == 0x0507)
-			LOG_T(WARNING, "GL CONTEXT LOST");
-	}
 }
 
 void Renderer::set_debug_edge(CPU::SymEdge * start_edge)

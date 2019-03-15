@@ -199,8 +199,6 @@ int main()
 	//set debug edge of renderer
 	renderer.set_debug_edge(m.first);
 	renderer.set_gpu_mesh(&g_mesh);
-
-	renderer.check_error();
 	while (!renderer.shut_down)
 	{
 		symedge_visualizer.update_edge({ m.get_vertex(renderer.m_current_edge->vertex), m.get_other_edge_vertex(renderer.m_current_edge->edge, renderer.m_current_edge->vertex) });

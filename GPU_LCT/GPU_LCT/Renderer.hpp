@@ -27,7 +27,6 @@ public:
 	}
 
 	void run();
-	void check_error();
 	void set_debug_edge(CPU::SymEdge* start_edge);
 	glm::ivec2 get_screen_res();
 	bool mouse_clicked();
