@@ -115,9 +115,6 @@ namespace GPU
 			glUseProgram(m_location_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glFinish();
-			std::vector<glm::vec2> data;
-			m_point_bufs.positions.get_data(data);
-			data;
 			//glUseProgram(m_insertion_program);
 			//glDispatchCompute((GLuint)number, 1, 1);
 
