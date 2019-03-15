@@ -186,13 +186,20 @@ int main()
 	ddo.set_circle_thiccness(0.005f);
 	ddo.enable(true);
 
+	DelaunayDebugObject r_ddo(g_mesh);
+	r_ddo.set_circle_color({ 1.f, 1.f, 0.f });
+	r_ddo.set_circle_thiccness(0.005f);
+	r_ddo.enable(true);
+	r_ddo.set_draw_left_side(false);
+
 	ShaderPath delaunay_draw_path;
 	delaunay_draw_path[VS] = "debug_delaunay_vertex_shader.glsl";
 	delaunay_draw_path[FS] = "debug_delaunay_fragment_shader.glsl";
 
-	DelaunayDebugPipeline ddp((float)renderer.get_screen_res().y);
+	DelaunayDebugPipeline ddp(renderer.get_screen_res());
 	ddp.add_pass(DelaunayDebugPipeline::DELAUNAY_DEBUG_PASS, std::move(delaunay_draw_path));
-	ddp.m_circles = ddo;
+	ddp.m_circles.push_back(ddo);
+	ddp.m_circles.push_back(r_ddo);
 
 	renderer.add_pipeline(std::move(debug_pass));
 	renderer.add_pipeline(std::move(ddp));

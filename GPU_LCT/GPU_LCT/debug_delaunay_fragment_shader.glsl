@@ -8,7 +8,8 @@ struct input_parameters
 	vec3 color;
 	float circle_thiccness;
 	float screen_resolution;
-	vec3 pad;
+	vec2 viewport_offset;
+	float pad;
 };
 
 uniform input_parameters input_data;
@@ -31,7 +32,7 @@ void main()
 	for (int circle_index = 0; circle_index < circle_data.length(); circle_index++)
 	{
 		// Rescale coordinate
-		vec2 coordinate = (gl_FragCoord.xy / vec2(input_data.screen_resolution)) * vec2(2.f) - vec2(1.f);
+		vec2 coordinate = ((gl_FragCoord.xy - input_data.viewport_offset) / vec2(input_data.screen_resolution)) * vec2(2.f) - vec2(1.f);
 		// Calculate the distance from the pixel position to the circle boundary
 		float dist_from_boundary = abs(circle_data[circle_index].radius - length(coordinate - circle_data[circle_index].center));
 		// Calculate the shading factor

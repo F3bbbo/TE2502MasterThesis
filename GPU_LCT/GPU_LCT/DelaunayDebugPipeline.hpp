@@ -14,12 +14,12 @@ public:
 	enum DelaunayDebugPass { DELAUNAY_DEBUG_PASS };
 
 	DelaunayDebugPipeline();
-	DelaunayDebugPipeline(float screen_res);
+	DelaunayDebugPipeline(glm::ivec2 screen_res);
 	~DelaunayDebugPipeline();
 
-	DelaunayDebugObject m_circles;
+	std::vector<DelaunayDebugObject> m_circles;
 	void draw();
 	bool is_compatible(int type);
-	float m_screen_res;
+	glm::ivec2 m_screen_res;
 };
 #endif
