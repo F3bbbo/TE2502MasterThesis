@@ -8,6 +8,11 @@ Buffer::~Buffer()
 {
 }
 
+void Buffer::set_unitform_buffer_block(GLuint program, const char * buffer_name)
+{
+	glUniformBlockBinding(program, glGetUniformBlockIndex(program, buffer_name), m_loc);
+}
+
 void Buffer::create_unitialized_buffer(GLuint type, GLuint usage, GLuint location)
 {
 	m_loc = location;
@@ -28,9 +33,9 @@ void Buffer::set_vertex_attribute(GLuint location, GLuint size, GLuint type, GLu
 
 void Buffer::bind_buffer()
 {
-	if (GL_SHADER_STORAGE_BUFFER == m_type /*|| GL_UNIFORM_BUFFER == m_type*/)
+	if (GL_SHADER_STORAGE_BUFFER == m_type)
 	{
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, m_loc, m_buf);
+		glBindBufferBase(m_type, m_loc, m_buf);
 		return;
 	}
 
@@ -42,11 +47,11 @@ void Buffer::bind_buffer()
 
 void Buffer::unbind_buffer()
 {
-	//if (GL_SHADER_STORAGE_BUFFER == m_type || GL_UNIFORM_BUFFER == m_type)
-	//{
-	//	glBindBufferBase(m_type, m_loc, 0);
-	//	return;
-	//}
+	if (GL_SHADER_STORAGE_BUFFER == m_type || GL_UNIFORM_BUFFER == m_type)
+	{
+		glBindBufferBase(m_type, m_loc, 0);
+		return;
+	}
 
 	if (GL_ARRAY_BUFFER == m_type)
 		glBindVertexArray(0);

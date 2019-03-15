@@ -72,7 +72,17 @@ namespace GPU
 		BufferSizes bs;
 		bs.num_points = 4;
 		bs.num_tris = 2;
-		//m_sizes.create_uniform_buffer(bs, usage);
+		m_sizes.create_uniform_buffer(bs, usage);
+
+		// Probably not needed?
+
+		//m_sizes.bind_buffer();
+		//m_sizes.set_unitform_buffer_block(m_location_program, "Sizes");
+		//// TODO: uncomment when ready
+		////m_sizes.set_unitform_buffer_block(m_insertion_program, "Sizes");
+		////m_sizes.set_unitform_buffer_block(m_marking_program, "Sizes");
+		////m_sizes.set_unitform_buffer_block(m_flip_edges_program, "Sizes");
+		//m_sizes.unbind_buffer();
 	}
 
 	void GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
@@ -86,10 +96,12 @@ namespace GPU
 		m_segment_bufs.endpoint_indices.append_to_buffer(segments);
 		m_segment_bufs.inserted.append_to_buffer(std::vector<int>(points.size(), 0));
 		// uppdating ubo containing sizes
-		//auto buff_size = m_sizes.get_buffer_data<BufferSizes>();
-		//buff_size.front().num_points += points.size();
+		auto buff_size = m_sizes.get_buffer_data<BufferSizes>();
+		buff_size.front().num_points += points.size();
 		// TODO, fix setting number of triangles: buff_size.front().num_tris 
-		//m_sizes.update_buffer(buff_size);
+		m_sizes.bind_buffer();
+		m_sizes.update_buffer(buff_size);
+		m_sizes.unbind_buffer();
 		// TODO, maybe need to check if triangle buffers needs to grow
 
 		// Bind all ssbo's
@@ -112,15 +124,12 @@ namespace GPU
 		m_sym_edges.bind_buffer();
 
 		// Bind all ubo's
-		//m_sizes.bind_buffer();
-
+		m_sizes.bind_buffer();
 		//while (false)
 		{
 			glUseProgram(m_location_program);
 			glDispatchCompute((GLuint)256, 1, 1);
-			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
-			glFinish();
-
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 			//auto data_points = m_point_bufs.positions.get_buffer_data<glm::vec2>();
 			//auto data_inserted = m_point_bufs.inserted.get_buffer_data<int>();

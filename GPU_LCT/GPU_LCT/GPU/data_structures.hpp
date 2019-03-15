@@ -68,6 +68,7 @@ namespace GPU
 	{
 		int num_tris;
 		int num_points;
+		glm::vec2 pad;
 	};
 
 }

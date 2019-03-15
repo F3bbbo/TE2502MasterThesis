@@ -55,15 +55,17 @@ public:
 		m_loc = location;
 		m_type = GL_UNIFORM_BUFFER;
 		m_usage = usage;
-		//m_num_elements = 1;
-		//m_buffer_size = sizeof(Data);
-		//m_used_buffer_size = m_buffer_size;
+		m_num_elements = 1;
+		m_buffer_size = sizeof(Data);
+		m_used_buffer_size = m_buffer_size;
 		glGenBuffers(1, &m_buf);
-		glBindBuffer(m_type, m_buf);
+		bind_buffer();
 		glBufferData(m_type, sizeof(Data), &data, usage);
-		//glBindBuffer(m_type, 0);
-
+		unbind_buffer();
+		glBindBufferRange(m_type, 0, m_buf, 0, sizeof(Data));
 	}
+
+	void set_unitform_buffer_block(GLuint program, const char* buffer_name);
 
 	template <typename Data>
 	void append_to_buffer(std::vector<Data> data)
@@ -97,6 +99,7 @@ public:
 			memcpy(mapped_data, data.data(), append_byte_length);
 			glUnmapBuffer(m_type);
 		}
+		glBindBuffer(m_type, 0);
 		m_used_buffer_size += append_byte_length;
 		m_num_elements += data.size();
 	}
@@ -135,13 +138,8 @@ public:
 	template <typename Data>
 	void update_buffer(std::vector<Data> data)
 	{
-		glBindBuffer(m_type, m_buf);
-		//bind_buffer();
+		// Assumes that the buffer is bound
 		glBufferData(m_type, sizeof(Data) * data.size(), data.data(), m_usage);
-		//int size = sizeof(Data) * data.size();
-		//glBufferSubData(m_type, 0, size, data.data());
-		glBindBuffer(m_type, 0);
-		//unbind_buffer();
 		m_valid = true;
 	};
 private:
