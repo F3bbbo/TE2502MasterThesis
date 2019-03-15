@@ -67,6 +67,12 @@ namespace GPU
 		sym_edges.push_back({ 3, -1, 2, 2, 1 });
 
 		m_sym_edges.create_buffer(type, sym_edges, usage, 12, n);
+
+		// create uniform buffer to store size of other buffers
+		BufferSizes bs;
+		bs.num_points = 4;
+		bs.num_tris = 2;
+		m_sizes.create_uniform_buffer(bs, usage);
 	}
 
 	void GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
@@ -101,11 +107,17 @@ namespace GPU
 
 		m_sym_edges.bind_buffer();
 
-		while (false)
-		{
-			//glUseProgram(m_location_program);
-			//glDispatchCompute((GLuint)number, 1, 1);
+		// Bind all ubo's
+		m_sizes.bind_buffer();
 
+		//while (false)
+		{
+			glUseProgram(m_location_program);
+			glDispatchCompute((GLuint)256, 1, 1);
+			glFinish();
+			std::vector<glm::vec2> data;
+			m_point_bufs.positions.get_data(data);
+			data;
 			//glUseProgram(m_insertion_program);
 			//glDispatchCompute((GLuint)number, 1, 1);
 

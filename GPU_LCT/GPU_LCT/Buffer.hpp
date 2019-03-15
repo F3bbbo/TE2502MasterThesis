@@ -45,8 +45,20 @@ public:
 		glBufferSubData(type, 0, m_used_buffer_size, data.data());
 
 		m_valid = true;
-		
+
 		// Does not unbind the buffers
+	}
+
+	template <typename Data>
+	void create_uniform_buffer(Data data, GLuint usage, GLuint location = 0)
+	{
+		m_loc = location;
+		m_type = GL_UNIFORM_BUFFER;
+		m_usage = usage;
+		glGenBuffers(1, &m_buf);
+		glBindBuffer(m_type, m_buf);
+		glBufferData(m_type, sizeof(Data), &data, usage);
+
 	}
 
 	template <typename Data>

@@ -74,6 +74,16 @@ layout(std140, binding = 12) buffer symedge_buff
 	SymEdge sym_edges[];
 };
 //-----------------------------------------------------------
+// Uniforms
+//-----------------------------------------------------------
+layout (std140, binding = 0) uniform Sizes
+{
+	int num_tris;
+	int num_points;
+};
+
+
+//-----------------------------------------------------------
 // Access Functions
 //-----------------------------------------------------------
 void get_face(in int face_i, out vec2 face_v[3])

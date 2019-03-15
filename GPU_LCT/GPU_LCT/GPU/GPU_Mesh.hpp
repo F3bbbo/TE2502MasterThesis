@@ -27,6 +27,7 @@ namespace GPU
 		SegmentBuffers m_segment_bufs;
 		TriangleBuffers m_triangle_bufs;
 		Buffer m_sym_edges;
+		Buffer m_sizes;
 
 		GLuint m_location_program;
 		GLuint m_insertion_program;
