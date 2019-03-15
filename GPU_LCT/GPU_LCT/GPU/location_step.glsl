@@ -208,8 +208,18 @@ void oriented_walk(inout int symedge_i,in int point_i, out bool on_edge)
 void main(void)
 {
 	uint gid = gl_GlobalInvocationID.x;
-
-	point_positions[gid];
-
+	int index = int(gid);
+	if(index < num_points)
+	{
+		if(point_inserted[index] == 0)
+		{
+			bool on_edge;
+			int curr_e = tri_symedges[point_tri_index[index]].x;;
+			oriented_walk(
+				curr_e,
+				index,
+				on_edge);
+		}
+	}
 
 }
