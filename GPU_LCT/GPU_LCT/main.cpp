@@ -152,9 +152,10 @@ int main()
 	r_debug_edges_constraints.build(g_mesh);
 	r_debug_edges_constraints.set_draw_left_side(false);
 
-	/*DebugObject r_symedge_visualizer({ glm::vec2(-0.25f, 0.25f), glm::vec2(0.25f, -0.25f) }, DRAW_EDGES);
+	DebugObject r_symedge_visualizer({ glm::vec2(-0.25f, 0.25f), glm::vec2(0.25f, -0.25f) }, DRAW_EDGES);
 	r_symedge_visualizer.set_edge_thiccness(5.f);
-	r_symedge_visualizer.set_color({ 0.f, 0.f, 0.8f });*/
+	r_symedge_visualizer.set_color({ 0.f, 0.f, 0.8f });
+	r_symedge_visualizer.set_draw_left_side(false);
 
 	DebugObject r_debug_points(DRAW_POINTS);
 	r_debug_points.set_point_thiccness(10.f);
@@ -177,6 +178,7 @@ int main()
 	debug_pass.add_drawable(std::move(r_debug_faces));
 	debug_pass.add_drawable(std::move(r_debug_edges));
 	debug_pass.add_drawable(std::move(r_debug_edges_constraints));
+	debug_pass.add_drawable(std::move(r_symedge_visualizer));
 	debug_pass.add_drawable(std::move(r_debug_points));
 
 	DelaunayDebugObject ddo(m);
@@ -196,11 +198,13 @@ int main()
 	renderer.add_pipeline(std::move(ddp));
 	//set debug edge of renderer
 	renderer.set_debug_edge(m.first);
+	renderer.set_gpu_mesh(&g_mesh);
 
 	renderer.check_error();
 	while (!renderer.shut_down)
 	{
 		symedge_visualizer.update_edge({ m.get_vertex(renderer.m_current_edge->vertex), m.get_other_edge_vertex(renderer.m_current_edge->edge, renderer.m_current_edge->vertex) });
+		r_symedge_visualizer.update_edge(renderer.get_GPU_edge());
 		renderer.run();
 		// handle mouse click
 		if (renderer.mouse_clicked())

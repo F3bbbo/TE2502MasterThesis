@@ -131,6 +131,18 @@ namespace GPU
 		 return m_point_bufs.positions.get_buffer_data<glm::vec2>();
 	}
 
+	glm::vec2 GPUMesh::get_vertex(int index)
+	{
+		std::vector<glm::vec2> vertices = m_point_bufs.positions.get_buffer_data<glm::vec2>(index, 1);
+		return vertices[0];
+	}
+
+	SymEdge GPUMesh::get_symedge(int index)
+	{
+		std::vector<SymEdge> sym_edge_list = m_sym_edges.get_buffer_data<SymEdge>(index, 1);
+		return sym_edge_list[0];
+	}
+
 	std::vector<std::pair<glm::ivec2, bool>> GPUMesh::get_edges()
 	{
 		std::vector<SymEdge> sym_edge_list = m_sym_edges.get_buffer_data<SymEdge>();

@@ -104,12 +104,13 @@ public:
 			elements = m_num_elements - element_offset;
 		if (elements == 0)
 			elements = m_num_elements;
-		Data* ptr = (Data*)malloc(m_used_buffer_size);
+		Data* ptr = (Data*)malloc(elements * sizeof(Data));
 		bind_buffer();
 		glGetBufferSubData(m_type, element_offset * sizeof(Data), elements * sizeof(Data), ptr);
 		unbind_buffer();
 		std::vector<Data> data;
-		for (int i = element_offset; i < m_num_elements; i++)
+		int end_index = elements == 0 ? m_num_elements : glm::min(element_offset + elements, m_num_elements);
+		for (int i = 0; i < elements; i++)
 			data.push_back(ptr[i]);
 		free(ptr);
 		return data;

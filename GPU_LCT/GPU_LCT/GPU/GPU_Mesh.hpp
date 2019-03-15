@@ -16,6 +16,8 @@ namespace GPU
 		void initiate_buffers(glm::vec2 scale = {1.f, 1.f});
 		void build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
 		std::vector<glm::vec2> get_vertices();
+		glm::vec2 get_vertex(int index);
+		SymEdge get_symedge(int index);
 		std::vector<std::pair<glm::ivec2, bool>> get_edges();
 		std::vector<glm::ivec3> get_faces();
 	private:
