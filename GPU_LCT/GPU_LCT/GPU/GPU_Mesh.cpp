@@ -171,6 +171,20 @@ namespace GPU
 		return m_triangle_bufs.vertex_indices.get_buffer_data<glm::ivec3>();
 	}
 
+	int GPUMesh::locate_face(glm::vec2 p)
+	{
+		p = p - glm::vec2(2.f, 0.f);
+		std::vector<glm::ivec3> triangle_indices = m_triangle_bufs.vertex_indices.get_buffer_data<glm::ivec3>();
+		std::vector<glm::vec2> vertices = m_point_bufs.positions.get_buffer_data<glm::vec2>();
+
+		for (int i = 0; i < triangle_indices.size(); i++)
+		{
+			if (point_triangle_test(p, vertices[triangle_indices[i].x], vertices[triangle_indices[i].y], vertices[triangle_indices[i].z]))
+				return i;
+		}
+		return -1;
+	}
+
 	void GPUMesh::setup_compute_shaders()
 	{
 		// TODO, specify paths

@@ -214,7 +214,17 @@ int main()
 		// handle mouse click
 		if (renderer.mouse_clicked())
 		{
-			std::cout << "Clicked Triangle(index): " << m.locate_face(renderer.get_mouse_pos()) << std::endl;
+			int result = m.locate_face(renderer.get_mouse_pos());
+			if (result != -1)
+				std::cout << "Clicked CPU Triangle(index): " << result << std::endl;
+			else
+			{
+				result = g_mesh.locate_face(renderer.get_mouse_pos());
+				if (result != -1)
+					std::cout << "Clicked GPU Triangle(index): " << result << std::endl;
+				else
+					std::cout << "Clicked Triangle(index): -1" << std::endl;
+			}
 			//std::cout << "Mouse Location: {" << renderer.get_mouse_pos().x << ", " << renderer.get_mouse_pos().y << "}\n";
 		}
 	}

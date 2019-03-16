@@ -3,6 +3,7 @@
 #define GPU_MESH_HPP
 
 #include "data_structures.hpp"
+#include "../trig_functions.hpp"
 #include <glm/glm.hpp>
 #include <utility>
 
@@ -20,6 +21,7 @@ namespace GPU
 		SymEdge get_symedge(int index);
 		std::vector<std::pair<glm::ivec2, bool>> get_edges();
 		std::vector<glm::ivec3> get_faces();
+		int locate_face(glm::vec2 p);
 	private:
 		void setup_compute_shaders();
 		void compile_cs(GLuint& program, const char* path);
