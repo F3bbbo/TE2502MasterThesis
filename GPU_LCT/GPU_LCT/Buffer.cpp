@@ -33,7 +33,7 @@ void Buffer::set_vertex_attribute(GLuint location, GLuint size, GLuint type, GLu
 
 void Buffer::bind_buffer()
 {
-	if (GL_SHADER_STORAGE_BUFFER == m_type)
+	if (GL_SHADER_STORAGE_BUFFER == m_type || GL_UNIFORM_BUFFER == m_type)
 	{
 		glBindBufferBase(m_type, m_loc, m_buf);
 		return;

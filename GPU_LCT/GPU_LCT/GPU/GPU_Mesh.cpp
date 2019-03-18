@@ -131,10 +131,13 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-			//auto data_points = m_point_bufs.positions.get_buffer_data<glm::vec2>();
-			//auto data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
-			//auto data_tri_index = m_point_bufs.tri_index.get_buffer_data<int>();
-			//auto data_size = m_sizes.get_buffer_data<BufferSizes>();
+			// Retrieve GPU arrays for debugging
+			auto data_points = m_point_bufs.positions.get_buffer_data<glm::vec2>();
+			auto data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
+			auto data_tri_index = m_point_bufs.tri_index.get_buffer_data<int>();
+			auto data_symedges = m_sym_edges.get_buffer_data<SymEdge>();
+			auto data_triangles = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec3>();
+			auto data_size = m_sizes.get_buffer_data<BufferSizes>();
 			//glUseProgram(m_insertion_program);
 			//glDispatchCompute((GLuint)number, 1, 1);
 
@@ -148,7 +151,7 @@ namespace GPU
 
 	std::vector<glm::vec2> GPUMesh::get_vertices()
 	{
-		 return m_point_bufs.positions.get_buffer_data<glm::vec2>();
+		return m_point_bufs.positions.get_buffer_data<glm::vec2>();
 	}
 
 	glm::vec2 GPUMesh::get_vertex(int index)
@@ -178,9 +181,9 @@ namespace GPU
 			{
 				found_edges.push_back(edge);
 				if (is_constrained_edge_list[symedge.edge])
-					edge_list.push_back({edge, true});
+					edge_list.push_back({ edge, true });
 				else
-					edge_list.push_back({edge, false});
+					edge_list.push_back({ edge, false });
 			}
 		}
 		return edge_list;

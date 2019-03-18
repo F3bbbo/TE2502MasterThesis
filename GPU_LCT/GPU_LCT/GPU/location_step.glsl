@@ -89,15 +89,15 @@ layout (std140, binding = 0) uniform Sizes
 //-----------------------------------------------------------
 void get_face(in int face_i, out vec2 face_v[3])
 {
-	face_v[0] = point_positions[tri_symedges[face_i].x];
-	face_v[1] = point_positions[tri_symedges[face_i].y];
-	face_v[2] = point_positions[tri_symedges[face_i].z];
+	face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
+	face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
+	face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
 }
 
 //-----------------------------------------------------------
 // Intersection Functions
 //-----------------------------------------------------------
-#define EPSILON 0.00005f
+#define EPSILON 0.0005f
 
 void point_line_test(in vec2 p, in vec2 s1, in vec2 s2, out bool hit)
 {
@@ -122,14 +122,15 @@ void point_line_test(in vec2 p, in vec2 s1, in vec2 s2, out bool hit)
 	hit = true;
 }
 
-void orientation(in vec2 p1 , in vec2 p2 , in vec2 p3, out bool is_ccw)
+void orientation(in vec2 p1 , in vec2 p2 , in vec2 p3, out bool clockwise)
 {
 	float val = (p2.y - p1.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p3.y - p2.y);
-	is_ccw = (val > 0.0f) ? true : false;
+	clockwise = (val > 0.0f) ? true : false;
 }
 
 void line_line_test(in vec2 s1p1 , in vec2 s1p2, in vec2 s2p1, in vec2 s2p2, out bool hit)
 {
+	hit = false;
 	bool o1;
 	orientation(s1p1, s1p2, s2p1, o1);
 	bool o2;
@@ -148,16 +149,18 @@ void line_line_test(in vec2 s1p1 , in vec2 s1p2, in vec2 s2p1, in vec2 s2p2, out
 //-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------
-void oriented_walk(inout int symedge_i,in int point_i, out bool on_edge)
+void oriented_walk(inout int curr_e,in int point_i, out bool on_edge, out vec2 tri_cent)
 {
 	bool done = false;
-	int curr_e = symedge_i;
 	vec2 goal = point_positions[point_i];
+	int iter = 0;
+	on_edge = false;
 	while(!done){
+		on_edge = false;
 		// Loop through triangles edges to check if point is on the edge 
 		for(int i = 0; i < 3; i++)
 		{
-			bool hit;
+			bool hit = false;
 			point_line_test(goal,
 				point_positions[sym_edges[curr_e].vertex],
 				point_positions[sym_edges[sym_edges[curr_e].nxt].vertex],
@@ -165,7 +168,6 @@ void oriented_walk(inout int symedge_i,in int point_i, out bool on_edge)
 			if(hit)
 			{
 				on_edge = true;
-				symedge_i = curr_e;
 				return;
 			}
 			curr_e = sym_edges[curr_e].nxt;
@@ -173,11 +175,10 @@ void oriented_walk(inout int symedge_i,in int point_i, out bool on_edge)
 		// calculate triangle centroid
 		vec2 tri_points[3];
 		get_face(sym_edges[curr_e].face, tri_points);
-		vec2 tri_cent = (tri_points[0] +  tri_points[1] +  tri_points[2]) / 3.0f;
-
+		tri_cent = (tri_points[0] +  tri_points[1] +  tri_points[2]) / 3.0f;
 		// Loop through edges to see if we should continue through the edge
 		// to the neighbouring triangle 
-		bool hit;
+		bool line_line_hit = false;
 		for(int i = 0; i < 3; i++)
 		{
 			line_line_test(
@@ -185,23 +186,27 @@ void oriented_walk(inout int symedge_i,in int point_i, out bool on_edge)
 			goal,
 			point_positions[sym_edges[curr_e].vertex],
 			point_positions[sym_edges[sym_edges[curr_e].nxt].vertex],
-			hit);
+			line_line_hit);
 
-			if(hit)
-			{
+			if(line_line_hit)
+			{	
 				break;
 			}
 			curr_e = sym_edges[curr_e].nxt;
 		}
-		if(hit)
-		{
+
+		if(line_line_hit)
+		{	
 			curr_e = sym_edges[sym_edges[curr_e].nxt].rot; // sym
 		}
 		else
 		{
-			on_edge = false;
 			return;
 		}
+//	iter++;
+//	if(iter > 10)
+//		//symedge_i = curr_e;
+//		break;
 	}
 }
 
@@ -210,17 +215,25 @@ void main(void)
 {
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
+	point_tri_index[index] = index;
 	if(index < num_points)
 	{
+		
 		if(point_inserted[index] == 0)
 		{
 			bool on_edge;
+			vec2 tri_cent;
+			// find out which triangle the point is now
 			int curr_e = tri_symedges[point_tri_index[index]].x;;
 			oriented_walk(
 				curr_e,
 				index,
-				on_edge);
+				on_edge,
+				tri_cent);
+			point_tri_index[index] = sym_edges[curr_e].face;
+			// TODO: figure out if point should be the new point of the triangle 
 		}
+		
 	}
 
 }
