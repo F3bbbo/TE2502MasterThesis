@@ -86,12 +86,11 @@ int main()
 	Renderer renderer({ 1600, 800 });
 
 	GPU::GPUMesh g_mesh({ 1600, 800 });
-	g_mesh.initiate_buffers({0.5f, 0.5f});
-	g_mesh.build_CDT({ { 0.25f, -0.05f },
-		{ 0.15f, -0.05f },
-		{ 0.15f, -0.3f },
-		{ 0.25f, -0.3f },
-		{ 0.25f, -0.05f } }
+	g_mesh.initiate_buffers({ 0.5f, 0.5f });
+	g_mesh.build_CDT({ { 0.25f, 0.25f },
+		{ 0.25f, -0.25f },
+		{ -0.25f, -0.25f },
+		{ -0.25f, 0.25f } }
 	, {});
 
 
