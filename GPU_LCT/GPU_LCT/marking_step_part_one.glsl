@@ -75,6 +75,26 @@ layout(std140, binding = 12) buffer symedge_buff
 };
 
 //-----------------------------------------------------------
+// Access funcitons
+//-----------------------------------------------------------
+
+int nxt_symedge(int index)
+{
+	return sym_edges[index].nxt;
+}
+
+int rot_symedge(int index)
+{
+	return sym_edges[index].rot;
+}
+
+int crot_symedge(int index)
+{
+	int sym = rot_symedge(nxt_symedge(index));
+	return sym != -1 ? nxt_symedge(sym) : -1;
+}
+
+//-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
 
@@ -196,6 +216,62 @@ bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
 // Functions
 //-----------------------------------------------------------
 
+void oriented_walk_point(inout int curr_e, in vec2 goal_point, out bool on_edge, out vec2 tri_cent)
+{
+	bool done = false;
+	int iter = 0;
+	on_edge = false;
+	while(!done){
+		on_edge = false;
+		// Loop through triangles edges to check if point is on the edge 
+		for(int i = 0; i < 3; i++)
+		{
+			bool hit = false;
+			point_line_test(goal_point,
+				point_positions[sym_edges[curr_e].vertex],
+				point_positions[sym_edges[sym_edges[curr_e].nxt].vertex],
+				hit);
+			if(hit)
+			{
+				on_edge = true;
+				return;
+			}
+			curr_e = sym_edges[curr_e].nxt;
+		}
+		// calculate triangle centroid
+		vec2 tri_points[3];
+		get_face(sym_edges[curr_e].face, tri_points);
+		tri_cent = (tri_points[0] +  tri_points[1] +  tri_points[2]) / 3.0f;
+		// Loop through edges to see if we should continue through the edge
+		// to the neighbouring triangle 
+		bool line_line_hit = false;
+		for(int i = 0; i < 3; i++)
+		{
+			line_line_test(
+			tri_cent,
+			goal_point,
+			point_positions[sym_edges[curr_e].vertex],
+			point_positions[sym_edges[sym_edges[curr_e].nxt].vertex],
+			line_line_hit);
+
+			if(line_line_hit)
+			{	
+				break;
+			}
+			curr_e = sym_edges[curr_e].nxt;
+		}
+
+		if(line_line_hit)
+		{	
+			curr_e = sym_edges[sym_edges[curr_e].nxt].rot; // sym
+		}
+		else
+		{
+			return;
+		}
+	}
+}
+
 bool first_candidate_check(vec2 s1, vec2 s2, vec2 p1, vec2 e1, vec2 e2, vec2 p2)
 {
 	// input parameters forms a quadrilateral
@@ -216,6 +292,43 @@ bool third_candidate_check(vec2 p1, vec2 e1, vec2 e2, vec2 e3, vec2 p2)
 	return !polygonal_is_strictly_convex(4, p1, e1, e2, e3) && polygonal_is_strictly_convex(4, p1, e1, e2, p2) == true ? true : false;
 }
 
+bool points_connected(int edge, vec2 other_vertex)
+{
+	int curr_e = edge;
+	bool reverse_direction = false;
+	
+	while (true)
+	{
+		if (point_positions[sym_edges[nxt_symedge(curr_e)].vertex] == other_vertex)
+			return true;
+
+		else
+		{
+			if (!reverse_direction)
+			{
+				if (sym_edges[curr_e].rot == edge)
+					return false;
+
+				if (sym_edges[curr_e].rot != -1)
+					curr_e = rot_symedge(curr_e);
+				else
+				{
+					reverse_direction = true;
+					curr_e = crot_symedge(edge);
+					if (curr_e == -1)
+						return false;
+				}
+			}
+			else
+			{
+				curr_e = crot_symedge(edge);
+				if (curr_e == -1)
+					return true;
+			}
+		}
+	}
+}
+
 void main(void)
 {
 	// Each thread is responsible for a segment
@@ -227,13 +340,21 @@ void main(void)
 	// Check if the segment has not been inserted and if both endpoints has been inserted
 	if (index < num_points && seg_inserted[index] == 0 && endpoints_inserted == 1)
 	{
-//		if (connected = true)
-//		{
-//			
-//		}
-//		else
-//		{
-//		
-//		}
+		bool on_edge;
+		vec2 tri_cent;
+		
+		// TODO: starting at the first symedge might not always be preferred, find a better solution
+		int edge = 0;
+
+		oriented_walk(edge, point_positions[seg_endpoint_indices[index]], on_edge, tri_cent);
+
+		if (points_connected(edge, point_positions[seg_endpoint_indices[index + 1]]))
+		{
+			// mark edge as constrained
+		}
+		else
+		{
+			
+		}
 	}
 }
