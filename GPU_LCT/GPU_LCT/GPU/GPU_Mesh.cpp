@@ -127,7 +127,12 @@ namespace GPU
 		m_sizes.bind_buffer();
 		//while (false)
 		{
+			// Locate Step
 			glUseProgram(m_location_program);
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+			glUseProgram(m_location_tri_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
@@ -137,13 +142,18 @@ namespace GPU
 			auto data_tri_index = m_point_bufs.tri_index.get_buffer_data<int>();
 			auto data_symedges = m_sym_edges.get_buffer_data<SymEdge>();
 			auto data_triangles = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec3>();
+			auto data_tri_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
 			auto data_size = m_sizes.get_buffer_data<BufferSizes>();
+
+			// Insert Step
 			//glUseProgram(m_insertion_program);
 			//glDispatchCompute((GLuint)number, 1, 1);
 
+			// Marking Step
 			//glUseProgram(m_marking_program);
 			//glDispatchCompute((GLuint)number, 1, 1);
 
+			// Fliping Step
 			//glUseProgram(m_flip_edges_program);
 			//glDispatchCompute((GLuint)number, 1, 1);
 		}
@@ -212,6 +222,7 @@ namespace GPU
 	{
 		// TODO, specify paths
 		compile_cs(m_location_program, "GPU/location_step.glsl");
+		compile_cs(m_location_tri_program, "GPU/location_step_triangle.glsl");
 		compile_cs(m_insertion_program, "");
 		compile_cs(m_marking_program, "");
 		compile_cs(m_flip_edges_program, "");

@@ -34,6 +34,7 @@ namespace GPU
 		Buffer m_sizes;
 
 		GLuint m_location_program;
+		GLuint m_location_tri_program;
 		GLuint m_insertion_program;
 		GLuint m_marking_program;
 		GLuint m_flip_edges_program;

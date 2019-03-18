@@ -210,7 +210,7 @@ void oriented_walk(inout int curr_e,in int point_i, out bool on_edge, out vec2 t
 	}
 }
 
-
+// Each thread represents one point
 void main(void)
 {
 	uint gid = gl_GlobalInvocationID.x;
@@ -232,6 +232,7 @@ void main(void)
 				tri_cent);
 			point_tri_index[index] = sym_edges[curr_e].face;
 			// TODO: figure out if point should be the new point of the triangle 
+		
 		}
 		
 	}

@@ -204,6 +204,7 @@
     <None Include="debug_fragment_shader.glsl" />
     <None Include="debug_vertex_shader.glsl" />
     <None Include="GPU\location_step.glsl" />
+    <None Include="GPU\location_step_triangle.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
