@@ -231,7 +231,6 @@ void main(void)
 				on_edge,
 				tri_cent);
 			point_tri_index[index] = sym_edges[curr_e].face;
-			// TODO: figure out if point should be the new point of the triangle 
 		
 		}
 		
