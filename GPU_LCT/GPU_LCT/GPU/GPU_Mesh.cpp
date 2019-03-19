@@ -146,8 +146,8 @@ namespace GPU
 			auto data_size = m_sizes.get_buffer_data<BufferSizes>();
 
 			// Insert Step
-			//glUseProgram(m_insertion_program);
-			//glDispatchCompute((GLuint)number, 1, 1);
+			glUseProgram(m_insertion_program);
+			glDispatchCompute((GLuint)256, 1, 1);
 
 			// Marking Step
 			//glUseProgram(m_marking_program);
@@ -223,7 +223,7 @@ namespace GPU
 		// TODO, specify paths
 		compile_cs(m_location_program, "GPU/location_step.glsl");
 		compile_cs(m_location_tri_program, "GPU/location_step_triangle.glsl");
-		compile_cs(m_insertion_program, "");
+		compile_cs(m_insertion_program, "GPU/insertion_step.glsl");
 		compile_cs(m_marking_program, "");
 		compile_cs(m_flip_edges_program, "");
 	}
