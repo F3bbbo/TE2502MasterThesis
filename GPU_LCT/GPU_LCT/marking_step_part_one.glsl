@@ -51,7 +51,7 @@ layout(std140, binding = 6) buffer Seg1
 
 layout(std140, binding = 7) buffer Tri_buff_0
 {
-	int tri_vertex_indices[];
+	ivec3 tri_vertex_indices[];
 };
 layout(std140, binding = 8) buffer Tri_buff_1
 {
@@ -78,20 +78,35 @@ layout(std140, binding = 12) buffer symedge_buff
 // Access funcitons
 //-----------------------------------------------------------
 
-int nxt_symedge(int index)
+SymEdge get_symedge(int index)
 {
-	return sym_edges[index].nxt;
+	return sym_edges[index];
 }
 
-int rot_symedge(int index)
+SymEdge prev_symedge(SymEdge s)
 {
-	return sym_edges[index].rot;
+	return get_symedge(get_symedge(s.nxt).nxt);
 }
 
-int crot_symedge(int index)
+SymEdge sym_symedge(SymEdge s)
 {
-	int sym = rot_symedge(nxt_symedge(index));
-	return sym != -1 ? nxt_symedge(sym) : -1;
+	return get_symedge(get_symedge(s.nxt).rot);
+}
+
+int crot_symedge_i(SymEdge s)
+{
+	int index = get_symedge(s.nxt).rot;
+	return index != -1 ? get_symedge(index).nxt : -1;
+}
+
+vec2 get_vertex(int index)
+{
+	return point_positions[index];
+}
+
+int get_label(int index)
+{
+	return edge_label[index];
 }
 
 //-----------------------------------------------------------
@@ -212,6 +227,14 @@ bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
 	return test_one || test_two;
 }
 
+bool point_intersects_line(vec2 p, vec2 a, vec2 b, float epsilon = 0.0005f)
+{
+	float hypotenuse = length(project_point_on_line(p, a, b) - a);
+	float adjacent = length(p - a);
+
+	return sqrt(hypotenuse * hypotenuse - adjacent * adjacent) < epsilon;
+}
+
 //-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------
@@ -299,7 +322,7 @@ bool points_connected(int edge, vec2 other_vertex)
 	
 	while (true)
 	{
-		if (point_positions[sym_edges[nxt_symedge(curr_e)].vertex] == other_vertex)
+		if (point_positions[get_symedge(sym_edges[curr_e].nxt).vertex] == other_vertex)
 			return true;
 
 		else
@@ -310,20 +333,143 @@ bool points_connected(int edge, vec2 other_vertex)
 					return false;
 
 				if (sym_edges[curr_e].rot != -1)
-					curr_e = rot_symedge(curr_e);
+					curr_e = get_symedge(curr_e).rot;
 				else
 				{
 					reverse_direction = true;
-					curr_e = crot_symedge(edge);
+					curr_e = crot_symedge(get_symedge(edge));
 					if (curr_e == -1)
 						return false;
 				}
 			}
 			else
 			{
-				curr_e = crot_symedge(edge);
+				curr_e = crot_symedge(get_symedge(edge));
 				if (curr_e == -1)
 					return true;
+			}
+		}
+	}
+}
+
+bool face_contains_vertex(int vert, SymEdge s_triangle)
+{
+	ivec3 tri = ivec3(s_triangle.vertex, get_symedge(s_triangle.nxt).vertex, prev_symedge(s_triangle).vertex);
+	return vert == tri.x || vert == tri.y || vert == tri.z;
+}
+
+bool Qi_check(int segment_index, SymEdge ei1, SymEdge ei)
+{
+	vec2 s1 = get_vertex(seg_endpoint_indices[segment_index]);
+	vec2 s2 = get_vertex(seg_endpoint_indices[segment_index + 1]);
+	return true;
+}
+
+void process_triangle(int segment_index, SymEdge triangle)
+{
+	// Assumes that the provided symedge is the symedge between two triangles
+	if (get_label(s_triangle.edge) != 3 &&
+		get_label(get_symedge(s_triangle.nxt).edge) != 3 &&
+		get_label(prev_symedge(s_triangle).edge) != 3 &&
+		tri_seg_inters_index[triangle.face] > segment_index)
+		{
+			tri_seg_inters_index[triangle.face] = segment_index;
+			if (tri_seg_inters_index[triangle.face] == segment_index && tri_seg_inters_index[sym_symedge(triangle).face] == segment_index)
+			{
+				tri_edge_flip_index[triangle.face] = triangle.edge;
+				tri_edge_flip_index[sym_symedge(triangle).face] = triangle.edge;
+				edge_label[triangle.edge] = 2;
+			}
+		}
+}
+
+void straight_walk(int segment_index, SymEdge s_starting_point, SymEdge s_ending_point)
+{
+	SymEdge cur_edge = s_starting_point;
+	vec2 normalized_constrained_edge = normalize(get_vertex(s_ending_point.vertex) - get_vertex(s_starting_point.vertex));
+	while (true)
+	{
+		while (true)
+		{
+			// Check for parallel edge
+			vec2 v0 = get_vertex(cur_edge.vertex);
+			vec2 v1 = get_vertex(get_symedge(cur_edge.nxt).vertex);
+			if (dot(normalized_constrained_edge, normalize(v1 - v0)) > 1 - EPSILON)
+			{
+				if (face_contains_vertex(s_ending_point.vertex, cur_edge))
+				{
+					return;
+				}
+				else
+				{
+					cur_edge = get_symedge(sym_symedge(cur_edge).rot);
+					continue;
+				}
+			}
+			// Check for parallel next edge
+			v1 = get_vertex(prev_symedge(cur_edge).vertex);
+			if (dot(normalized_constrained_edge, normalize(v1 - v0)) > 1 - EPSILON)
+			{
+				if (face_contains_vertex(s_ending_point.vertex, cur_edge))
+				{
+					return;
+				}
+				else
+				{
+					continue;
+				}
+			}
+
+			// If not at endpoint, check to which edge we should walk
+			v0 = get_vertex(get_symedge(cur_edge.nxt).vertex);
+			v1 = get_vertex(prev_symedge(cur_edge).vertex);
+			if (line_seg_intersection_ccw(constraint_edge[0], constraint_edge[1], v0, v1))
+			{
+				process_triangle(segment_index, get_symedge(cur_edge.nxt));
+				if (Qi_check())
+					return;
+				cur_edge = get_symedge(sym_symedge(get_symedge(cur_edge.nxt)).nxt);
+				break;
+			}
+			cur_edge = get_symedge(cur_edge.rot);
+		}
+
+		// walk towards the constraint endpoins while gathering the intersected edges, stop if we reach the triangle that contains the segment endpoint
+		while (triangle != -1)
+		{
+			// Check if we have arrived to a triangle that contains the segment endpoint
+			if (face_contains_vertex(s_ending_point.vertex, cur_edge))
+			{
+				process_triangle(segment_index, prev_symedge(cur_edge));
+				return;
+			}
+
+			// Checks if the segment intersects a vertex
+			if (point_intersects_line(get_vertex(get_symedge(cur_edge.nxt).vertex), constraint_edge[0], constraint_edge[1]))
+			{
+				process_triangle(segment_index, prev_symedge(cur_edge));
+				cur_edge = get_symedge(sym_symedge(cur_edge).rot);
+				break;
+			}
+
+			int checks = 0;
+			while (checks < 2)
+			{
+				// Checks if the segment intersects an edge
+				v0 = get_vertex(cur_edge.vertex);
+				v1 = get_vertex(get_symedge(cur_edge.nxt).vertex);
+				
+				if (line_seg_intersection_ccw(constraint_edge[0], constraint_edge[1], v0, v1))
+				{
+					process_triangle(segment_index, cur_edge);
+					if (Qi_check())
+						return;
+					cur_edge = get_symedge(sym_symedge(cur_edge).nxt);
+					break;
+				}
+
+				cur_edge = get_symedge(cur_edge-nxt);
+				checks++;
 			}
 		}
 	}
@@ -350,11 +496,14 @@ void main(void)
 
 		if (points_connected(edge, point_positions[seg_endpoint_indices[index + 1]]))
 		{
-			// mark edge as constrained
+			edge_is_constrained[edge] = 1;
+			edge_label[edge] = 0;
 		}
 		else
 		{
-			
+			SymEdge s = get_symedge(edge);
+			straight_walk(index, s, get_symedge(s.nxt));
+			straight_walk(index, get_symedge(s.nxt), s);
 		}
 	}
 }
