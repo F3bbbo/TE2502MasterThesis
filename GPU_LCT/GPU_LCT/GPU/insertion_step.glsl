@@ -55,7 +55,7 @@ layout(std430, binding = 7) buffer Tri_buff_0
 };
 layout(std430, binding = 8) buffer Tri_buff_1
 {
-	ivec3 tri_symedges[];
+	ivec4 tri_symedges[];
 };
 layout(std430, binding = 9) buffer Tri_buff_2
 {
@@ -154,11 +154,12 @@ void main(void)
 			// Create symedge structure of the new triangles
 			for(int i = 0; i < 3; i++)
 			{
-				ivec3 tri_syms;			
+				ivec4 tri_syms;			
 				int next_id = (i + 1) % 3;
 				tri_syms.x = orig_face[i];
 				tri_syms.y = sym_edge_indices[2*i];
 				tri_syms.z = sym_edge_indices[2*i + 1];
+				tri_syms.w = -1;
 				// fix the first symedge of the triangle
 				sym_edges[tri_syms.y].vertex = sym_edges[orig_face[next_id]].vertex;
 				sym_edges[tri_syms.y].nxt = tri_syms.z;

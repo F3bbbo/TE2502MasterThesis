@@ -44,9 +44,9 @@ namespace GPU
 		std::vector<glm::ivec3> starting_triangle_indices = { {0, 1, 3}, {3, 1, 2} }; // ccw
 		m_triangle_bufs.vertex_indices.create_buffer(type, starting_triangle_indices, usage, 7, n);
 
-		std::vector<glm::ivec3> sym_edge_indices;
-		sym_edge_indices.push_back({ 0, 1, 2 });
-		sym_edge_indices.push_back({ 3, 4 ,5 });
+		std::vector<glm::ivec4> sym_edge_indices;
+		sym_edge_indices.push_back({ 0, 1, 2, -1 });
+		sym_edge_indices.push_back({ 3, 4 ,5, -1 });
 		m_triangle_bufs.symedge_indices.create_buffer(type, sym_edge_indices, usage, 8, n);
 
 		m_triangle_bufs.ins_point_index.create_buffer(type, std::vector<int>(2, -1), usage, 9, n);
@@ -145,7 +145,7 @@ namespace GPU
 			auto data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
 			auto data_tri_index = m_point_bufs.tri_index.get_buffer_data<int>();
 			auto data_symedges = m_sym_edges.get_buffer_data<SymEdge>();
-			auto data_triangles = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec3>();
+			auto data_triangles = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
 			auto data_tri_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
 			auto data_size = m_sizes.get_buffer_data<BufferSizes>();
 
