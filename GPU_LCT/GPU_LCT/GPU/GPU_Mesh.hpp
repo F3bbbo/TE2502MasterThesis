@@ -36,7 +36,8 @@ namespace GPU
 		GLuint m_location_program;
 		GLuint m_location_tri_program;
 		GLuint m_insertion_program;
-		GLuint m_marking_program;
+		GLuint m_marking_part_one_program;
+		GLuint m_marking_part_two_program;
 		GLuint m_flip_edges_program;
 	};
 }
