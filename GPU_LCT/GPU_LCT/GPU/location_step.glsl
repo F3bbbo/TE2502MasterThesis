@@ -215,8 +215,8 @@ void main(void)
 {
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
-	point_tri_index[index] = index;
-	if(index < num_points)
+	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
+	while(index < num_points)
 	{
 		
 		if(point_inserted[index] == 0)
@@ -233,6 +233,7 @@ void main(void)
 			point_tri_index[index] = sym_edges[curr_e].face;
 		
 		}
+		index += num_threads;
 		
 	}
 

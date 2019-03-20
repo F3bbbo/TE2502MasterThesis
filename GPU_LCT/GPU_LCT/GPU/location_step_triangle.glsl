@@ -100,7 +100,8 @@ void main(void)
 {
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
-	if(index < num_tris)
+	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
+	while(index < num_tris)
 	{
 		
 		if(tri_symedges[index].x != -1)
@@ -128,6 +129,7 @@ void main(void)
 			}
 			tri_ins_point_index[index] = point_index;
 		}
+		index += num_threads;
 	}
 
 }
