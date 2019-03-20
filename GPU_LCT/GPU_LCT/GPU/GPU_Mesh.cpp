@@ -136,6 +136,10 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
+			// Insert Step
+			glUseProgram(m_insertion_program);
+			glDispatchCompute((GLuint)256, 1, 1);
+
 			// Retrieve GPU arrays for debugging
 			auto data_points = m_point_bufs.positions.get_buffer_data<glm::vec2>();
 			auto data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
@@ -144,10 +148,6 @@ namespace GPU
 			auto data_triangles = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec3>();
 			auto data_tri_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
 			auto data_size = m_sizes.get_buffer_data<BufferSizes>();
-
-			// Insert Step
-			glUseProgram(m_insertion_program);
-			glDispatchCompute((GLuint)256, 1, 1);
 
 			// Marking Step
 			//glUseProgram(m_marking_program);

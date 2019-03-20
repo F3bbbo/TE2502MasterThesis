@@ -177,15 +177,30 @@ void main(void)
 				curr_e = orig_face[i];
 				int next_id = (i + 1) % 3;
 				int new_edge = edge_indices[i];
-
-
-				
+				// get both symedges of one new inner edge
+				int inner_edge = orig_face[i];
+				nxt(inner_edge);
+				int inner_edge_sym = orig_face[next_id];
+				nxt(inner_edge_sym);
+				nxt(inner_edge_sym);
+				// set same edge index to both symedges
+				sym_edges[inner_edge].edge = new_edge;
+				sym_edges[inner_edge_sym].edge = new_edge;
+				// connect the edges syms together
+				int rot_connect_edge = inner_edge;
+				nxt(rot_connect_edge);
+				sym_edges[rot_connect_edge].rot = inner_edge_sym;
+				int rot_connect_edge_sym = inner_edge_sym;
+				nxt(rot_connect_edge_sym);
+				sym_edges[rot_connect_edge_sym].rot = inner_edge;
+				// connect original edge with its sym
+				sym_edges[inner_edge].rot = orig_sym[i];
 			}
 
-
+			// Set point as inserted
+			point_inserted[point_index] = 1;
 
 		}
-
 		index += num_threads;
 	}
 
