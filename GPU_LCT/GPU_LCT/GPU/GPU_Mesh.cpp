@@ -99,6 +99,7 @@ namespace GPU
 		auto buff_size = m_sizes.get_buffer_data<BufferSizes>();
 		buff_size.front().num_points += points.size();
 		int num_new_tri = points.size() * 2;
+		buff_size.front().num_tris += num_new_tri;
 		// TODO, fix setting number of triangles: buff_size.front().num_tris 
 		m_sizes.bind_buffer();
 		m_sizes.update_buffer(buff_size);
