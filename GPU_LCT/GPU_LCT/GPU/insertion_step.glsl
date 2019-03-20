@@ -111,11 +111,11 @@ void main(void)
 	uint gid = gl_GlobalInvocationID.x;
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
 	int index = int(gid);
-	if(index < num_threads)
+	while(index < num_tris)
 	{
 		// If triangle has a point assigned to it add the point to it
 		int point_index = tri_ins_point_index[index];
-		if(tri_ins_point_index[index] > -1 )
+		if(point_index > -1 )
 		{
 			// Create array of the indices of the three new triangles
 			int tri_indices[3];
@@ -168,6 +168,7 @@ void main(void)
 				sym_edges[tri_syms.z].nxt = tri_syms.x;
 
 				sym_edges[tri_syms.x].nxt = tri_syms.y;
+				//sym_edges[tri_syms.x].nxt = 1;
 				
 				// add symedges to current face
 				tri_symedges[tri_indices[i]] = tri_syms;

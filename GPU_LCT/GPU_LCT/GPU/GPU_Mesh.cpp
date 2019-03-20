@@ -98,10 +98,25 @@ namespace GPU
 		// uppdating ubo containing sizes
 		auto buff_size = m_sizes.get_buffer_data<BufferSizes>();
 		buff_size.front().num_points += points.size();
+		int num_new_tri = points.size() * 2;
 		// TODO, fix setting number of triangles: buff_size.front().num_tris 
 		m_sizes.bind_buffer();
 		m_sizes.update_buffer(buff_size);
 		m_sizes.unbind_buffer();
+
+		// fix new sizes of triangle buffers
+		m_triangle_bufs.symedge_indices.append_to_buffer(std::vector<glm::ivec4>(num_new_tri, { -1, -1, -1, -1 }));
+		m_triangle_bufs.ins_point_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
+
+		// fix new sizes of edge buffers 
+		// TODO: fix so it can handle repeated insertions
+		int num_new_edges = points.size() * 3;
+		m_edge_bufs.is_constrained.append_to_buffer(std::vector<int>(num_new_edges, 0));
+		m_edge_bufs.label.append_to_buffer(std::vector<int>(num_new_edges, -1));
+		// fix new size of symedges buffer
+		// TODO: fix so it can handle repeated insertions
+		int num_new_sym_edges = points.size() * 6;
+		m_sym_edges.append_to_buffer(std::vector<SymEdge>(num_new_sym_edges));
 		// TODO, maybe need to check if triangle buffers needs to grow
 
 		// Bind all ssbo's
@@ -136,9 +151,13 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
+
+
+
 			// Insert Step
 			glUseProgram(m_insertion_program);
 			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 			// Retrieve GPU arrays for debugging
 			auto data_points = m_point_bufs.positions.get_buffer_data<glm::vec2>();
