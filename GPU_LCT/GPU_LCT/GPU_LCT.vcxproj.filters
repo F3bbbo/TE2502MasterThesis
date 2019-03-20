@@ -160,7 +160,7 @@
     <None Include="GPU\location_step_triangle.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
-    <None Include="insertion_step.glsl">
+    <None Include="GPU\insertion_step.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
   </ItemGroup>
