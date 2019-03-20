@@ -167,6 +167,7 @@ namespace GPU
 			auto data_symedges = m_sym_edges.get_buffer_data<SymEdge>();
 			auto data_triangles = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
 			auto data_tri_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
+			auto data_edge_label = m_edge_bufs.label.get_buffer_data<int>();
 			auto data_size = m_sizes.get_buffer_data<BufferSizes>();
 
 			// Marking Step

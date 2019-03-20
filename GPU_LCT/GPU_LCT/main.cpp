@@ -87,9 +87,9 @@ int main()
 
 	GPU::GPUMesh g_mesh({ 1600, 800 });
 	g_mesh.initiate_buffers({ 0.5f, 0.5f });
-	g_mesh.build_CDT({ { 0.25f, 0.25f },
+	g_mesh.build_CDT({ /*{ 0.25f, 0.25f },*/
 		{ 0.25f, -0.25f },
-		{ -0.25f, -0.25f },
+		/*{ -0.25f, -0.25f },*/
 		{ -0.25f, 0.25f } }
 	, {});
 

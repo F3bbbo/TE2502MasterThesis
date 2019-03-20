@@ -231,7 +231,10 @@ void main(void)
 				on_edge,
 				tri_cent);
 			point_tri_index[index] = sym_edges[curr_e].face;
-		
+			if(on_edge)
+			{
+				edge_label[sym_edges[curr_e].edge] = 3; // Priority 3 because point on the edge.	
+			}		
 		}
 		index += num_threads;
 		
