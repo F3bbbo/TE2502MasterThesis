@@ -42,7 +42,7 @@ layout(std140, binding = 4) buffer Edge1
 
 layout(std140, binding = 5) buffer Seg0
 {
-	int seg_endpoint_indices[];
+	ivec2 seg_endpoint_indices[];
 };
 
 layout(std140, binding = 6) buffer Seg1
@@ -247,10 +247,11 @@ bool point_intersects_line(vec2 p, vec2 a, vec2 b, float epsilon = EPSILON)
 // Functions
 //-----------------------------------------------------------
 
-void oriented_walk_point(inout int curr_e, in vec2 goal_point, out vec2 tri_cent)
+void oriented_walk_point(inout int curr_e, in vec2 goal_point)
 {
 	bool done = false;
 	int iter = 0;
+	vec2 tri_cent;
 	while(!done){
 		// calculate triangle centroid
 		vec2 tri_points[3];
@@ -285,56 +286,57 @@ void oriented_walk_point(inout int curr_e, in vec2 goal_point, out vec2 tri_cent
 	}
 }
 
-bool pre_candidate_check(vec2 p1, vec2 e2, vec2 e3, vec2 p2)
-{
-	return polygonal_is_strictly_convex(4, p1, e2, e3, p2); 
-}
-
 bool pre_candidate_check(SymEdge s)
 {
 	vec2 p1 = get_vertex(get_symedge(get_symedge(s.nxt).nxt).vertex);
-	vec2 e2 = get_vertex(s.vertex);
-	vec2 e3 = get_vertex(get_symedge(s.nxt).vertex);
+	vec2 e1 = get_vertex(s.vertex);
+	vec2 e2 = get_vertex(get_symedge(s.nxt).vertex);
 	vec2 p2 = get_vertex(get_symedge(get_symedge(sym_symedge(s).nxt).nxt).vertex);
-	return polygonal_is_strictly_convex(4, p1, e2, e3, p2); 
+	return polygonal_is_strictly_convex(4, p1, e1, p2, e2); 
 }
 
-bool first_candidate_check(vec2 s1, vec2 s2, vec2 p1, vec2 e1, vec2 e2, vec2 p2)
+bool first_candidate_check(vec2 s1, vec2 s2, SymEdge ei)
 {
-	// input parameters forms a quadrilateral
+	vec2 p1 = get_vertex(prev_symedge(ei).vertex);
+	vec2 e1 = get_vertex(ei.vertex);
+	vec2 e2 = get_vertex(get_symedge(ei.nxt).vertex);
+	vec2 p2 = get_vertex(prev_symedge(sym_symedge(ei)).vertex);
+
 	bool intersects_first = segment_triangle_test(s1, s2, p1, e1, p2);
-	bool intersects_second = segment_triangle_test(s1, s2, p1, e2, p2);
+	bool intersects_second = segment_triangle_test(s1, s2, p1, p2, e2);
 	return intersects_first ^^ intersects_second;
 }
 
-bool second_candidate_check(vec2 p1, vec2 e1, vec2 e2, vec2 e3, vec2 p2)
+bool second_candidate_check(vec2 p1, vec2 p2, vec2 p3, vec2 p4, vec2 p5)
 {
 	// input parameters forms a pentagonal polygonal
-	return polygonal_is_strictly_convex(5, p1, e1, e2, e3, p2);
+	return polygonal_is_strictly_convex(5, p1, p2, p3, p4, p5);
 }
 
-bool third_candidate_check(vec2 p1, vec2 e1, vec2 e2, vec2 e3, vec2 p2)
+bool third_candidate_check(bool edges_connected, vec2 p1, vec2 p2, vec2 p3, vec2 p4, vec2 p5)
 {
-	// Assumes that the input points are ordered starting from the triangle with the lowest index.
-	return !polygonal_is_strictly_convex(4, p1, e1, e2, e3) && polygonal_is_strictly_convex(4, p1, e1, e2, p2) == true ? true : false;
+	if (edges_connected)
+		return !polygonal_is_strictly_convex(4, p1, p2, p4, p5) && polygonal_is_strictly_convex(4, p1, p2, p3, p5) == true ? true : false;
+	else
+		return !polygonal_is_strictly_convex(4, p1, p2, p3, p5) && polygonal_is_strictly_convex(4, p1, p2, p4, p5) == true ? true : false;
 }
 
-bool points_connected(int edge, vec2 other_vertex)
+int points_connected(int edge, int other_vertex)
 {
 	int curr_e = edge;
 	bool reverse_direction = false;
 	
 	while (true)
 	{
-		if (point_positions[get_symedge(sym_edges[curr_e].nxt).vertex] == other_vertex)
-			return true;
+		if (get_symedge(sym_edges[curr_e].nxt).vertex == other_vertex)
+			return sym_edges[curr_e].edge;
 
 		else
 		{
 			if (!reverse_direction)
 			{
 				if (sym_edges[curr_e].rot == edge)
-					return false;
+					return -1;
 
 				if (sym_edges[curr_e].rot != -1)
 					curr_e = get_symedge(curr_e).rot;
@@ -343,14 +345,14 @@ bool points_connected(int edge, vec2 other_vertex)
 					reverse_direction = true;
 					curr_e = crot_symedge_i(get_symedge(edge));
 					if (curr_e == -1)
-						return false;
+						return -1;
 				}
 			}
 			else
 			{
 				curr_e = crot_symedge_i(get_symedge(edge));
 				if (curr_e == -1)
-					return true;
+					return -1;
 			}
 		}
 	}
@@ -364,36 +366,70 @@ bool face_contains_vertex(int vert, SymEdge s_triangle)
 
 bool Qi_check(int segment_index, SymEdge ei1, SymEdge ei)
 {
-	vec2 s1 = get_vertex(seg_endpoint_indices[segment_index]);
-	vec2 s2 = get_vertex(seg_endpoint_indices[segment_index + 1]);
-	return true;
+	vec2 s1 = get_vertex(seg_endpoint_indices[segment_index].x);
+	vec2 s2 = get_vertex(seg_endpoint_indices[segment_index].y);
+
+	vec2 vertices[5];
+
+	vertices[0] = get_vertex(prev_symedge(ei1).vertex);
+	bool edges_connected = ei1.vertex == ei.vertex;
+	if (edges_connected)
+	{
+		vertices[1] = get_vertex(ei.vertex);
+		vertices[2] = get_vertex(prev_symedge(sym_symedge(ei)).vertex);
+		vertices[3] = get_vertex(get_symedge(ei.nxt).vertex);
+		vertices[4] = get_vertex(get_symedge(ei1.nxt).vertex);	
+	}
+	else
+	{
+		vertices[1] = get_vertex(ei1.vertex);
+		vertices[2] = get_vertex(ei.vertex);
+		vertices[3] = get_vertex(prev_symedge(sym_symedge(ei)).vertex);
+		vertices[4] = get_vertex(get_symedge(ei.nxt).vertex);
+	}
+
+	if (polygonal_is_strictly_convex(4, vertices[1], vertices[2], vertices[3], vertices[4]))
+	{
+		if (first_candidate_check(s1, s2, ei) ||
+			second_candidate_check(vertices[0], vertices[1], vertices[2], vertices[3], vertices[4]) ||
+			third_candidate_check(edges_connected, vertices[0], vertices[1], vertices[2], vertices[3], vertices[4]))
+			{
+				return true;
+			}
+		return false;
+	}
+	return false;
+}
+
+bool will_be_flipped(int segment_index, SymEdge triangle)
+{
+	if (tri_seg_inters_index[triangle.face] == segment_index && tri_seg_inters_index[sym_symedge(triangle).face] == segment_index)
+	{
+		edge_label[triangle.edge] = 2;
+		return true;
+	}
+	return false;
 }
 
 void process_triangle(int segment_index, SymEdge triangle)
 {
-	// Assumes that the provided symedge is the symedge between two triangles
+	// Assumes that the provided symedge is the symedge between the trianlges T, T+1
 	if (get_label(triangle.edge) != 3 &&
 		get_label(get_symedge(triangle.nxt).edge) != 3 &&
 		get_label(prev_symedge(triangle).edge) != 3 &&
 		tri_seg_inters_index[triangle.face] > segment_index)
 		{
 			tri_seg_inters_index[triangle.face] = segment_index;
-			if (tri_seg_inters_index[triangle.face] == segment_index && tri_seg_inters_index[sym_symedge(triangle).face] == segment_index)
-			{
-				tri_edge_flip_index[triangle.face] = triangle.edge;
-				tri_edge_flip_index[sym_symedge(triangle).face] = triangle.edge;
-				edge_label[triangle.edge] = 2;
-			}
 		}
 }
 
-void straight_walk(int segment_index, SymEdge s_starting_point, SymEdge s_ending_point)
+void straight_walk(int segment_index, SymEdge s_starting_point, int ending_point_i)
 {
 	SymEdge cur_edge = s_starting_point;
-	SymEdge prev_inter_edge = s_starting_point;
+	SymEdge prev_intersecting_edge = s_starting_point;
 	vec2 constraint_edge[2];
 	constraint_edge[0] = get_vertex(s_starting_point.vertex);
-	constraint_edge[1] = get_vertex(s_ending_point.vertex);
+	constraint_edge[1] = get_vertex(ending_point_i);
 	vec2 normalized_constrained_edge = normalize(constraint_edge[1] - constraint_edge[0]);
 
 	while (true)
@@ -403,11 +439,24 @@ void straight_walk(int segment_index, SymEdge s_starting_point, SymEdge s_ending
 		if (line_seg_intersection_ccw(constraint_edge[0], constraint_edge[1], v0, v1))
 		{
 			cur_edge = get_symedge(cur_edge.nxt);
+
+			// Check if the sym triangle contains the segment endpoint
+			if (face_contains_vertex(ending_point_i, sym_symedge(cur_edge)))
+			{
+				process_triangle(segment_index, cur_edge);
+				process_triangle(segment_index, sym_symedge(cur_edge));
+				
+				// check if the edge satisfies to conditions and mark it to be flipped if needed, should always return here.
+				if (pre_candidate_check(cur_edge))
+					will_be_flipped(segment_index, cur_edge);
+				return;
+			}
+
+			prev_intersecting_edge = cur_edge;
 			process_triangle(segment_index, cur_edge);
-			if (pre_candidate_check(cur_edge))
+			if (pre_candidate_check(cur_edge) && will_be_flipped(segment_index, cur_edge))
 				return;
 			cur_edge = get_symedge(sym_symedge(cur_edge).nxt);
-			prev_inter_edge = cur_edge;
 			break;
 		}
 		cur_edge = get_symedge(cur_edge.rot);
@@ -418,16 +467,20 @@ void straight_walk(int segment_index, SymEdge s_starting_point, SymEdge s_ending
 	// walk towards the constraint endpoins and stop if we reach the triangle that contains the segment endpoint
 	while (true)
 	{
-		// Check if we have arrived to a triangle that contains the segment endpoint
-		if (face_contains_vertex(s_ending_point.vertex, cur_edge))
+		int checks;
+		for (checks = 0; checks < 2; checks++)
 		{
-			process_triangle(segment_index, prev_symedge(cur_edge));
-			return;
-		}
+			// Check if the sym triangle contains the segment endpoint
+			if (face_contains_vertex(ending_point_i, sym_symedge(cur_edge)))
+			{
+				process_triangle(segment_index, cur_edge);
+				process_triangle(segment_index, sym_symedge(cur_edge));
+				
+				if (pre_candidate_check(cur_edge))
+					will_be_flipped(segment_index, cur_edge);
+				return;
+			}
 
-		int checks = 0;
-		while (checks < 2)
-		{
 			// Checks if the segment intersects an edge
 			vec2 v0 = get_vertex(cur_edge.vertex);
 			vec2 v1 = get_vertex(get_symedge(cur_edge.nxt).vertex);
@@ -435,18 +488,16 @@ void straight_walk(int segment_index, SymEdge s_starting_point, SymEdge s_ending
 			if (line_seg_intersection_ccw(constraint_edge[0], constraint_edge[1], v0, v1))
 			{
 				process_triangle(segment_index, cur_edge);
-				if (Qi_check(segment_index, prev_inter_edge, cur_edge))
+				if (Qi_check(segment_index, prev_intersecting_edge, cur_edge) && will_be_flipped(segment_index, cur_edge))
 					return;
-				prev_inter_edge = cur_edge;
+				prev_intersecting_edge = cur_edge;
 				cur_edge = get_symedge(sym_symedge(cur_edge).nxt);
 				break;
 			}
-
 			cur_edge = get_symedge(cur_edge.nxt);
-			checks++;
 		}
 
-		if (checks == 2)
+		if (checks == 2) // something is wrong
 			return;
 	}
 }
@@ -457,28 +508,27 @@ void main(void)
 
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
-	int endpoints_inserted = point_inserted[seg_endpoint_indices[index]] * point_inserted[seg_endpoint_indices[index + 1]];
+	int endpoints_inserted = point_inserted[seg_endpoint_indices[index].x] * point_inserted[seg_endpoint_indices[index].y];
 
 	// Check if the segment has not been inserted and if both endpoints has been inserted
 	if (index < seg_inserted.length() && seg_inserted[index] == 0 && endpoints_inserted == 1)
 	{
-		vec2 tri_cent;
-		
 		// TODO: starting at the first symedge might not always be preferred, find a better solution
-		int edge = 0;
+		int starting_symedge = 0;
+		int ending_symedge = 0;
+		oriented_walk_point(starting_symedge, point_positions[seg_endpoint_indices[index].x]);
+		oriented_walk_point(starting_symedge, point_positions[seg_endpoint_indices[index].y]);
 
-		oriented_walk_point(edge, point_positions[seg_endpoint_indices[index]], tri_cent);
-
-		if (points_connected(edge, point_positions[seg_endpoint_indices[index + 1]]))
+		int connecting_edge = points_connected(starting_symedge, seg_endpoint_indices[index].y);
+		if (connecting_edge != -1)
 		{
-			edge_is_constrained[edge] = 1;
-			edge_label[edge] = 0;
+			edge_is_constrained[connecting_edge] = 1;
+			edge_label[connecting_edge] = 0;
 		}
 		else
 		{
-			SymEdge s = get_symedge(edge);
-			straight_walk(index, s, get_symedge(s.nxt));
-			straight_walk(index, get_symedge(s.nxt), s);
+			straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
+			straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
 		}
 	}
 }

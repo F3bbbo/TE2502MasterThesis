@@ -42,7 +42,7 @@ layout(std140, binding = 4) buffer Edge1
 
 layout(std140, binding = 5) buffer Seg0
 {
-	int seg_endpoint_indices[];
+	ivec2 seg_endpoint_indices[];
 };
 
 layout(std140, binding = 6) buffer Seg1
@@ -89,6 +89,11 @@ SymEdge prev_symedge(SymEdge s)
 	return get_symedge(get_symedge(s.nxt).nxt);
 }
 
+SymEdge sym_symedge(SymEdge s)
+{
+	return get_symedge(get_symedge(s.nxt).rot);
+}
+
 vec2 get_vertex(int index)
 {
 	return point_positions[index];
@@ -112,6 +117,70 @@ layout (std140, binding = 0) uniform Sizes
 };
 
 //-----------------------------------------------------------
+// Math Functions
+//-----------------------------------------------------------
+
+float sign(vec2 p1, vec2 p2, vec2 p3)
+{
+	return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+}
+
+bool point_triangle_test(vec2 p1, vec2 t1, vec2 t2, vec2 t3)
+{
+	float d1, d2, d3;
+	bool has_neg, has_pos;
+
+	d1 = sign(p1, t1, t2);
+	d2 = sign(p1, t2, t3);
+	d3 = sign(p1, t3, t1);
+
+	has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+	has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+	return !(has_neg && has_pos);
+}
+
+#define COLINEAR 0
+#define CLOCKWISE 1
+#define COUNTER_CLOCKWISE 2
+
+int orientation(vec2 p1, vec2 p2, vec2 p3)
+{
+	float val = (p2.y - p1.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p3.y - p2.y);
+
+	int ret_val = val == 0.f ? COLINEAR : -1;
+	ret_val = val > 0.f ? CLOCKWISE : COUNTER_CLOCKWISE;
+	return ret_val;
+}
+
+bool line_seg_intersection_ccw(vec2 p1, vec2 q1, vec2 p2, vec2 q2)
+{
+	int o1 = orientation(p1, q1, p2);
+	int o2 = orientation(p1, q1, q2);
+	int o3 = orientation(p2, q2, p1);
+	int o4 = orientation(p2, q2, q1);
+
+	return o1 != o2 && o3 != o4 ? true : false;
+}
+
+//-----------------------------------------------------------
+// Intersection Functions
+//-----------------------------------------------------------
+
+bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
+{
+	bool test_one, test_two = false;
+
+	test_one = point_triangle_test(p1, t1, t2, t3) && point_triangle_test(p2, t1, t2, t3);
+		
+	test_two = line_seg_intersection_ccw(p1, p2, t1, t2) ||
+		line_seg_intersection_ccw(p1, p2, t2, t3) ||
+		line_seg_intersection_ccw(p1, p2, t3, t1);
+
+	return test_one || test_two;
+}
+
+//-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------
 
@@ -119,30 +188,30 @@ bool is_delaunay(SymEdge sym)
 {
 	int index = get_symedge(sym.nxt).rot;
 	if (index != -1)
+	{
+		mat4x4 mat;
+
+		vec2 face_vertices[3];
+		get_face(sym.face, face_vertices);
+
+		for (int i = 0; i < 3; i++)
 		{
-			mat4x4 mat;
-
-			vec2 face_vertices[3];
-			get_face(sym.face, face_vertices);
-
-			for (int i = 0; i < 3; i++)
-			{
-				mat[0][i] = face_vertices[i].x;
-				mat[1][i] = face_vertices[i].y;
-				mat[2][i] = mat[0][i] * mat[0][i] + mat[1][i] * mat[1][i];
-				mat[3][i] = 1.f;
-			}
-
-			vec2 other = get_vertex(prev_symedge(get_symedge(index)).vertex);
-			mat[0][3] = other.x;
-			mat[1][3] = other.y;
-			mat[2][3] = mat[0][3] * mat[0][3] + mat[1][3] * mat[1][3];
-			mat[3][3] = 1.f;
-
-			if (determinant(mat) > 0)
-				return false;
+			mat[0][i] = face_vertices[i].x;
+			mat[1][i] = face_vertices[i].y;
+			mat[2][i] = mat[0][i] * mat[0][i] + mat[1][i] * mat[1][i];
+			mat[3][i] = 1.f;
 		}
-		return true;
+
+		vec2 other = get_vertex(prev_symedge(get_symedge(index)).vertex);
+		mat[0][3] = other.x;
+		mat[1][3] = other.y;
+		mat[2][3] = mat[0][3] * mat[0][3] + mat[1][3] * mat[1][3];
+		mat[3][3] = 1.f;
+
+		if (determinant(mat) > 0)
+			return false;
+	}
+	return true;
 }
 
 void main(void)
@@ -173,14 +242,20 @@ void main(void)
 			{
 				for (int i = 0; i < 3; i++)
 				{
-					int sym_index = get_symedge(tri_sym.nxt).rot;
-					if (sym_index != -1)
+					int adjacent_triangle = get_symedge(tri_sym.nxt).rot;
+					if (adjacent_triangle != -1 && edge_label[tri_sym.edge] == 2)
 					{
-						if (edge_label[tri_sym.edge] == 2)
-							tri_seg_inters_index[get_symedge(sym_index).face] == tri_seg_inters_index[index];
-						else
+						vec2 segment_vertices[2];
+						segment_vertices[0] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].x);
+						segment_vertices[1] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].y);
+
+						vec2 face_vertices[3];
+						get_face(sym_symedge(tri_sym).face, face_vertices);
+
+						if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]))
 							edge_label[tri_sym.edge] = 0;
 					}
+					tri_sym = get_symedge(tri_sym.nxt);
 				}
 			}
 		}
