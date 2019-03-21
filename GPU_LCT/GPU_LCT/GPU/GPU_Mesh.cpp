@@ -244,8 +244,9 @@ namespace GPU
 		// TODO, specify paths
 		compile_cs(m_location_program, "GPU/location_step.glsl");
 		compile_cs(m_location_tri_program, "GPU/location_step_triangle.glsl");
-		compile_cs(m_insertion_program, "");
-		compile_cs(m_marking_program, "");
+		compile_cs(m_insertion_program, "GPU/insertion_step.glsl");
+		compile_cs(m_marking_part_one_program, "GPU/marking_step_part_one.glsl");
+		compile_cs(m_marking_part_two_program, "GPU/marking_step_part_two.glsl");
 		compile_cs(m_flip_edges_program, "");
 	}
 
@@ -290,6 +291,3 @@ namespace GPU
 		}
 	}
 }
-		compile_cs(m_insertion_program, "GPU/insertion_step.glsl");
-		compile_cs(m_marking_part_one_program, "GPU/marking_step_part_one.glsl");
-		compile_cs(m_marking_part_two_program, "GPU/marking_step_part_two.glsl");

@@ -163,10 +163,10 @@
     <None Include="GPU\insertion_step.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
-    <None Include="marking_step_part_one.glsl">
+    <None Include="GPU\marking_step_part_two.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
-    <None Include="GPU\marking_step_part_two.glsl">
+    <None Include="GPU\marking_step_part_one.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
   </ItemGroup>
