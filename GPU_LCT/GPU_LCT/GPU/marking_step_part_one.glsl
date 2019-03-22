@@ -125,6 +125,7 @@ layout (std140, binding = 0) uniform Sizes
 {
 	int num_tris;
 	int num_points;
+	vec2 pad;
 };
 
 //-----------------------------------------------------------
