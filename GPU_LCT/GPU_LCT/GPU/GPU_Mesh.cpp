@@ -247,7 +247,9 @@ namespace GPU
 		compile_cs(m_insertion_program, "GPU/insertion_step.glsl");
 		compile_cs(m_marking_part_one_program, "GPU/marking_step_part_one.glsl");
 		compile_cs(m_marking_part_two_program, "GPU/marking_step_part_two.glsl");
-		compile_cs(m_flip_edges_program, "");
+		compile_cs(m_flip_edges_part_one_program, "GPU/flipping_part_one.glsl");
+		//compile_cs(m_flip_edges_part_two_program, "GPU/.glsl");
+		//compile_cs(m_flip_edges_part_three_program, "GPU/.glsl");
 	}
 
 	void GPUMesh::compile_cs(GLuint & program, const char * path)

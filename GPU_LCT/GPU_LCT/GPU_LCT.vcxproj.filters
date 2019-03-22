@@ -169,5 +169,8 @@
     <None Include="GPU\marking_step_part_one.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="GPU\flipping_part_one.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
