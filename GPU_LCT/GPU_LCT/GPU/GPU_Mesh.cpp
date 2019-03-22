@@ -222,18 +222,37 @@ namespace GPU
 
 	std::vector<glm::ivec3> GPUMesh::get_faces()
 	{
-		return m_triangle_bufs.vertex_indices.get_buffer_data<glm::ivec3>();
+		std::vector<BufferSizes> buff_size = m_sizes.get_buffer_data<BufferSizes>();
+		std::vector<SymEdge> sym_edge_list = m_sym_edges.get_buffer_data<SymEdge>();
+		std::vector<glm::ivec4> sym_edge_tri_indices = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
+
+		std::vector<glm::ivec3> face_indices;
+		for (int i = 0; i < buff_size[0].num_tris; i++)
+		{
+			glm::ivec3 s_face_i = { sym_edge_tri_indices[i].x, sym_edge_tri_indices[i].y, sym_edge_tri_indices[i].z };
+			face_indices.emplace_back(sym_edge_list[s_face_i.x].vertex, sym_edge_list[s_face_i.y].vertex, sym_edge_list[s_face_i.z].vertex);
+		}
+		return face_indices;
 	}
 
 	int GPUMesh::locate_face(glm::vec2 p)
 	{
 		p = p - glm::vec2(2.f, 0.f);
-		std::vector<glm::ivec3> triangle_indices = m_triangle_bufs.vertex_indices.get_buffer_data<glm::ivec3>();
-		std::vector<glm::vec2> vertices = m_point_bufs.positions.get_buffer_data<glm::vec2>();
 
-		for (int i = 0; i < triangle_indices.size(); i++)
+		std::vector<BufferSizes> buff_size = m_sizes.get_buffer_data<BufferSizes>();
+		std::vector<SymEdge> sym_edge_list = m_sym_edges.get_buffer_data<SymEdge>();
+		std::vector<glm::ivec4> sym_edge_tri_indices = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
+		std::vector<glm::vec2> vertex_list = m_point_bufs.positions.get_buffer_data<glm::vec2>();
+
+		for (int i = 0; i < buff_size[0].num_tris; i++)
 		{
-			if (point_triangle_test(p, vertices[triangle_indices[i].x], vertices[triangle_indices[i].y], vertices[triangle_indices[i].z]))
+			glm::ivec3 s_face_i = { sym_edge_tri_indices[i].x, sym_edge_tri_indices[i].y, sym_edge_tri_indices[i].z };
+			std::array<glm::vec2, 3> vertices;
+			vertices[0] = vertex_list[sym_edge_list[s_face_i.x].vertex];
+			vertices[1] = vertex_list[sym_edge_list[s_face_i.y].vertex];
+			vertices[2] = vertex_list[sym_edge_list[s_face_i.z].vertex];
+
+			if (point_triangle_test(p, vertices[0], vertices[1], vertices[2]))
 				return i;
 		}
 		return -1;
