@@ -175,5 +175,8 @@
     <None Include="GPU\flipping_part_two.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="GPU\flipping_part_three.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

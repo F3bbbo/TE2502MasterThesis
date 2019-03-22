@@ -33,6 +33,7 @@ namespace GPU
 		Buffer m_sym_edges;
 		Buffer m_sizes;
 
+		// CDT shaders
 		GLuint m_location_program;
 		GLuint m_location_tri_program;
 		GLuint m_insertion_program;
@@ -40,6 +41,10 @@ namespace GPU
 		GLuint m_marking_part_two_program;
 		GLuint m_flip_edges_part_one_program;
 		GLuint m_flip_edges_part_two_program;
+		GLuint m_flip_edges_part_three_program;
+
+		// LCT shaders
+
 	};
 }
 #endif
