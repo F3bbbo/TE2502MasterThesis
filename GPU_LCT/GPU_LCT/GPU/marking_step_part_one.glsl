@@ -56,7 +56,7 @@ layout(std140, binding = 7) buffer Tri_buff_0
 };
 layout(std140, binding = 8) buffer Tri_buff_1
 {
-	ivec3 tri_symedges[];
+	ivec4 tri_symedges[];
 };
 layout(std140, binding = 9) buffer Tri_buff_2
 {
