@@ -198,7 +198,11 @@ void main(void)
 				// connect original edge with its sym
 				sym_edges[inner_edge].rot = orig_sym[i];
 			}
-
+			// Mark original edges as potential not delaunay
+			for(int i = 0; i < 3; i++)
+			{
+				edge_label[sym_edges[orig_face[i]].edge] = 1; // candidate for not delaunay. 
+			}
 			// Set point as inserted
 			point_inserted[point_index] = 1;
 
