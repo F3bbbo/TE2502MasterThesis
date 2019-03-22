@@ -39,6 +39,7 @@ namespace GPU
 		GLuint m_marking_part_one_program;
 		GLuint m_marking_part_two_program;
 		GLuint m_flip_edges_part_one_program;
+		GLuint m_flip_edges_part_two_program;
 	};
 }
 #endif
