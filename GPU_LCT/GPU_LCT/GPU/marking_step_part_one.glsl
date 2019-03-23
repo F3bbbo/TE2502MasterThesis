@@ -15,62 +15,62 @@ struct SymEdge{
 // Inputs
 //-----------------------------------------------------------
 
-layout(std140, binding = 0) buffer Point_position
+layout(std430, binding = 0) buffer Point_position
 {
 	vec2 point_positions[];
 };
 
-layout(std140, binding = 1) buffer Points1
+layout(std430, binding = 1) buffer Points1
 {
 	int point_inserted[];
 };
 
-layout(std140, binding = 2) buffer Points2
+layout(std430, binding = 2) buffer Points2
 {
 	int point_tri_index[];
 };
 
-layout(std140, binding = 3) buffer Edge0
+layout(std430, binding = 3) buffer Edge0
 {
 	int edge_label[];
 };
 
-layout(std140, binding = 4) buffer Edge1
+layout(std430, binding = 4) buffer Edge1
 {
 	int edge_is_constrained[];
 };
 
-layout(std140, binding = 5) buffer Seg0
+layout(std430, binding = 5) buffer Seg0
 {
 	ivec2 seg_endpoint_indices[];
 };
 
-layout(std140, binding = 6) buffer Seg1
+layout(std430, binding = 6) buffer Seg1
 {
 	int seg_inserted[];
 };
 
-layout(std140, binding = 7) buffer Tri_buff_0
+layout(std430, binding = 7) buffer Tri_buff_0
 {
 	ivec3 tri_vertex_indices[];
 };
-layout(std140, binding = 8) buffer Tri_buff_1
+layout(std430, binding = 8) buffer Tri_buff_1
 {
 	ivec4 tri_symedges[];
 };
-layout(std140, binding = 9) buffer Tri_buff_2
+layout(std430, binding = 9) buffer Tri_buff_2
 {
 	int tri_ins_point_index[];
 };
-layout(std140, binding = 10) buffer Tri_buff_3
+layout(std430, binding = 10) buffer Tri_buff_3
 {
 	int tri_seg_inters_index[];
 };
-layout(std140, binding = 11) buffer Tri_buff_4
+layout(std430, binding = 11) buffer Tri_buff_4
 {
 	int tri_edge_flip_index[];
 };
-layout(std140, binding = 12) buffer symedge_buff
+layout(std430, binding = 12) buffer symedge_buff
 {
 	SymEdge sym_edges[];
 };
@@ -117,6 +117,11 @@ void get_face(in int face_i, out vec2 face_v[3])
 	face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
 }
 
+int get_index(SymEdge s)
+{
+	return prev_symedge(s).nxt;
+}
+
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
@@ -152,27 +157,26 @@ bool point_triangle_test(vec2 p1, vec2 t1, vec2 t2, vec2 t3)
 	return !(has_neg && has_pos);
 }
 
-#define COLINEAR 0
-#define CLOCKWISE 1
-#define COUNTER_CLOCKWISE 2
-
-int orientation(vec2 p1, vec2 p2, vec2 p3)
+bool orientation(in vec2 p1 , in vec2 p2 , in vec2 p3)
 {
 	float val = (p2.y - p1.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p3.y - p2.y);
-
-	int ret_val = val == 0.f ? COLINEAR : -1;
-	ret_val = val > 0.f ? CLOCKWISE : COUNTER_CLOCKWISE;
-	return ret_val;
+	return (val > 0.0f) ? true : false;
 }
 
-bool line_seg_intersection_ccw(vec2 p1, vec2 q1, vec2 p2, vec2 q2)
+bool line_line_test(in vec2 s1p1 , in vec2 s1p2, in vec2 s2p1, in vec2 s2p2)
 {
-	int o1 = orientation(p1, q1, p2);
-	int o2 = orientation(p1, q1, q2);
-	int o3 = orientation(p2, q2, p1);
-	int o4 = orientation(p2, q2, q1);
+	bool hit = false;
+	bool o1 = orientation(s1p1, s1p2, s2p1);
+	bool o2 = orientation(s1p1, s1p2, s2p2);
+	bool o3 = orientation(s2p1, s2p2, s1p1);
+	bool o4 = orientation(s2p1, s2p2, s1p2);
 
-	return o1 != o2 && o3 != o4 ? true : false;
+	if (o1 != o2 && o3 != o4)
+		hit = true;
+	else
+		hit = false;
+
+	return hit;
 }
 
 vec2 project_point_on_line(vec2 point, vec2 a, vec2 b)
@@ -229,9 +233,9 @@ bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
 
 	test_one = point_triangle_test(p1, t1, t2, t3) && point_triangle_test(p2, t1, t2, t3);
 		
-	test_two = line_seg_intersection_ccw(p1, p2, t1, t2) ||
-		line_seg_intersection_ccw(p1, p2, t2, t3) ||
-		line_seg_intersection_ccw(p1, p2, t3, t1);
+	test_two = line_line_test(p1, p2, t1, t2) ||
+		line_line_test(p1, p2, t2, t3) ||
+		line_line_test(p1, p2, t3, t1);
 
 	return test_one || test_two;
 }
@@ -248,43 +252,62 @@ bool point_intersects_line(vec2 p, vec2 a, vec2 b, float epsilon = EPSILON)
 // Functions
 //-----------------------------------------------------------
 
-void oriented_walk_point(inout int curr_e, in vec2 goal_point)
+bool face_contains_vertice(int face, int vertex)
 {
-	bool done = false;
-	int iter = 0;
+	SymEdge s = sym_edges[tri_symedges[face].x];
+	return s.vertex == vertex || get_symedge(s.nxt).vertex == vertex || prev_symedge(s).vertex == vertex;
+}
+
+int get_face_vertex_symedge(int face, int vertex)
+{
+	SymEdge s = sym_edges[tri_symedges[face].x];
+	if (s.vertex == vertex)
+		return get_index(s);
+	else if (get_symedge(s.nxt).vertex == vertex)
+		return s.nxt;
+	else if (prev_symedge(s).vertex == vertex)
+		return get_index(prev_symedge(s));
+	else
+		return -1;
+}
+
+int oriented_walk_point(int curr_e, int goal_point_i)
+{
 	vec2 tri_cent;
-	while(!done){
+	vec2 goal_point = get_vertex(goal_point_i);
+	int i = 0;
+	while (i != 3)
+	{
+		if (face_contains_vertice(get_symedge(curr_e).face, goal_point_i))
+			return get_face_vertex_symedge(get_symedge(curr_e).face, goal_point_i);
+		
 		// calculate triangle centroid
 		vec2 tri_points[3];
 		get_face(sym_edges[curr_e].face, tri_points);
-		tri_cent = (tri_points[0] +  tri_points[1] +  tri_points[2]) / 3.0f;
+		tri_cent = (tri_points[0] +  tri_points[1] +  tri_points[2]) / 3.f;
+		
 		// Loop through edges to see if we should continue through the edge
 		// to the neighbouring triangle 
 		bool line_line_hit = false;
-		for(int i = 0; i < 3; i++)
+		for (i = 0; i < 3; i++)
 		{
-			line_line_hit = line_seg_intersection_ccw(
+			if (sym_edges[sym_edges[curr_e].nxt].rot == -1)
+				continue;
+			line_line_hit = line_line_test(
 				tri_cent,
 				goal_point,
 				point_positions[sym_edges[curr_e].vertex],
 				point_positions[sym_edges[sym_edges[curr_e].nxt].vertex]);
 
 			if(line_line_hit)
-			{	
+			{
+				curr_e = sym_edges[sym_edges[curr_e].nxt].rot;
 				break;
 			}
 			curr_e = sym_edges[curr_e].nxt;
 		}
-
-		if(line_line_hit)
-		{	
-			curr_e = sym_edges[sym_edges[curr_e].nxt].rot; // sym
-		}
-		else
-		{
-			return;
-		}
 	}
+	return -1;
 }
 
 bool pre_candidate_check(SymEdge s)
@@ -437,7 +460,7 @@ void straight_walk(int segment_index, SymEdge s_starting_point, int ending_point
 	{
 		vec2 v0 = get_vertex(get_symedge(cur_edge.nxt).vertex);
 		vec2 v1 = get_vertex(prev_symedge(cur_edge).vertex);
-		if (line_seg_intersection_ccw(constraint_edge[0], constraint_edge[1], v0, v1))
+		if (line_line_test(constraint_edge[0], constraint_edge[1], v0, v1))
 		{
 			cur_edge = get_symedge(cur_edge.nxt);
 
@@ -486,7 +509,7 @@ void straight_walk(int segment_index, SymEdge s_starting_point, int ending_point
 			vec2 v0 = get_vertex(cur_edge.vertex);
 			vec2 v1 = get_vertex(get_symedge(cur_edge.nxt).vertex);
 				
-			if (line_seg_intersection_ccw(constraint_edge[0], constraint_edge[1], v0, v1))
+			if (line_line_test(constraint_edge[0], constraint_edge[1], v0, v1))
 			{
 				process_triangle(segment_index, cur_edge);
 				if (Qi_check(segment_index, prev_intersecting_edge, cur_edge) && will_be_flipped(segment_index, cur_edge))
@@ -510,15 +533,18 @@ void main(void)
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	int endpoints_inserted = point_inserted[seg_endpoint_indices[index].x] * point_inserted[seg_endpoint_indices[index].y];
-
+//	seg_inserted[index] = seg_endpoint_indices[index].y;
+//	return;
 	// Check if the segment has not been inserted and if both endpoints has been inserted
 	if (index < seg_inserted.length() && seg_inserted[index] == 0 && endpoints_inserted == 1)
 	{
 		// TODO: starting at the first symedge might not always be preferred, find a better solution
 		int starting_symedge = 0;
 		int ending_symedge = 0;
-		oriented_walk_point(starting_symedge, point_positions[seg_endpoint_indices[index].x]);
-		oriented_walk_point(starting_symedge, point_positions[seg_endpoint_indices[index].y]);
+//		
+		oriented_walk_point(starting_symedge, seg_endpoint_indices[index].x);
+		ending_symedge = starting_symedge;
+		oriented_walk_point(ending_symedge, seg_endpoint_indices[index].y);
 
 		int connecting_edge = points_connected(starting_symedge, seg_endpoint_indices[index].y);
 		if (connecting_edge != -1)
@@ -528,8 +554,8 @@ void main(void)
 		}
 		else
 		{
-			straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
-			straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
+//			straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
+//			straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
 		}
 	}
 }
