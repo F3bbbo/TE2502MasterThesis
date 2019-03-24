@@ -175,22 +175,22 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-			//glUseProgram(m_marking_part_two_program);
-			//glDispatchCompute((GLuint)256, 1, 1);
-			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glUseProgram(m_marking_part_two_program);
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-			//// Flipping Step
-			//glUseProgram(m_flip_edges_part_one_program);
-			//glDispatchCompute((GLuint)256, 1, 1);
-			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			// Flipping Step
+			glUseProgram(m_flip_edges_part_one_program);
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-			//glUseProgram(m_flip_edges_part_two_program);
-			//glDispatchCompute((GLuint)256, 1, 1);
-			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glUseProgram(m_flip_edges_part_two_program);
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-			//glUseProgram(m_flip_edges_part_three_program);
-			//glDispatchCompute((GLuint)256, 1, 1);
-			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glUseProgram(m_flip_edges_part_three_program);
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			i++;
 		}
 

@@ -110,11 +110,14 @@ int get_label(int index)
 	return edge_label[index];
 }
 
-void get_face(in int face_i, out vec2 face_v[3])
+vec2 get_face_center(int face_i)
 {
+	vec2 face_v[3];
 	face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
 	face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
 	face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
+
+	return (face_v[0] + face_v[1] + face_v[2]) / 3.f; 
 }
 
 int get_index(SymEdge s)
@@ -281,10 +284,7 @@ int oriented_walk_point(int curr_e, int goal_point_i)
 		if (face_contains_vertice(get_symedge(curr_e).face, goal_point_i))
 			return get_face_vertex_symedge(get_symedge(curr_e).face, goal_point_i);
 		
-		// calculate triangle centroid
-		vec2 tri_points[3];
-		get_face(sym_edges[curr_e].face, tri_points);
-		tri_cent = (tri_points[0] +  tri_points[1] +  tri_points[2]) / 3.f;
+		tri_cent = get_face_center(sym_edges[curr_e].face);
 		
 		// Loop through edges to see if we should continue through the edge
 		// to the neighbouring triangle 
@@ -292,14 +292,18 @@ int oriented_walk_point(int curr_e, int goal_point_i)
 		for (i = 0; i < 3; i++)
 		{
 			if (sym_edges[sym_edges[curr_e].nxt].rot == -1)
+			{
+				curr_e = sym_edges[curr_e].nxt;
 				continue;
+			}
+
 			line_line_hit = line_line_test(
 				tri_cent,
 				goal_point,
 				point_positions[sym_edges[curr_e].vertex],
 				point_positions[sym_edges[sym_edges[curr_e].nxt].vertex]);
 
-			if(line_line_hit)
+			if (line_line_hit)
 			{
 				curr_e = sym_edges[sym_edges[curr_e].nxt].rot;
 				break;
@@ -345,11 +349,12 @@ bool third_candidate_check(bool edges_connected, vec2 p1, vec2 p2, vec2 p3, vec2
 		return !polygonal_is_strictly_convex(4, p1, p2, p3, p5) && polygonal_is_strictly_convex(4, p1, p2, p4, p5) == true ? true : false;
 }
 
-int points_connected(int edge, int other_vertex)
+int points_connected(int e1, int e2)
 {
-	int curr_e = edge;
+	int curr_e = e1;
 	bool reverse_direction = false;
-	
+	int other_vertex = get_symedge(e2).vertex;
+
 	while (true)
 	{
 		if (get_symedge(sym_edges[curr_e].nxt).vertex == other_vertex)
@@ -359,7 +364,7 @@ int points_connected(int edge, int other_vertex)
 		{
 			if (!reverse_direction)
 			{
-				if (sym_edges[curr_e].rot == edge)
+				if (sym_edges[curr_e].rot == e1)
 					return -1;
 
 				if (sym_edges[curr_e].rot != -1)
@@ -367,14 +372,14 @@ int points_connected(int edge, int other_vertex)
 				else
 				{
 					reverse_direction = true;
-					curr_e = crot_symedge_i(get_symedge(edge));
+					curr_e = crot_symedge_i(get_symedge(e1));
 					if (curr_e == -1)
 						return -1;
 				}
 			}
 			else
 			{
-				curr_e = crot_symedge_i(get_symedge(edge));
+				curr_e = crot_symedge_i(get_symedge(curr_e));
 				if (curr_e == -1)
 					return -1;
 			}
@@ -432,6 +437,7 @@ bool will_be_flipped(int segment_index, SymEdge triangle)
 		edge_label[triangle.edge] = 2;
 		return true;
 	}
+
 	return false;
 }
 
@@ -441,10 +447,9 @@ void process_triangle(int segment_index, SymEdge triangle)
 	if (get_label(triangle.edge) != 3 &&
 		get_label(get_symedge(triangle.nxt).edge) != 3 &&
 		get_label(prev_symedge(triangle).edge) != 3 &&
-		tri_seg_inters_index[triangle.face] > segment_index)
-		{
+		(tri_seg_inters_index[triangle.face] > segment_index ||
+		tri_seg_inters_index[triangle.face] == -1))
 			tri_seg_inters_index[triangle.face] = segment_index;
-		}
 }
 
 void straight_walk(int segment_index, SymEdge s_starting_point, int ending_point_i)
@@ -499,7 +504,6 @@ void straight_walk(int segment_index, SymEdge s_starting_point, int ending_point
 			{
 				process_triangle(segment_index, cur_edge);
 				process_triangle(segment_index, sym_symedge(cur_edge));
-				
 				if (pre_candidate_check(cur_edge))
 					will_be_flipped(segment_index, cur_edge);
 				return;
@@ -533,20 +537,15 @@ void main(void)
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	int endpoints_inserted = point_inserted[seg_endpoint_indices[index].x] * point_inserted[seg_endpoint_indices[index].y];
-//	seg_inserted[index] = seg_endpoint_indices[index].y;
-//	return;
+	
 	// Check if the segment has not been inserted and if both endpoints has been inserted
-	if (index < seg_inserted.length() && seg_inserted[index] == 0 && endpoints_inserted == 1)
+	if (index > 3 && index < seg_inserted.length() && seg_inserted[index] == 0 && endpoints_inserted == 1)
 	{
 		// TODO: starting at the first symedge might not always be preferred, find a better solution
-		int starting_symedge = 0;
-		int ending_symedge = 0;
-//		
-		oriented_walk_point(starting_symedge, seg_endpoint_indices[index].x);
-		ending_symedge = starting_symedge;
-		oriented_walk_point(ending_symedge, seg_endpoint_indices[index].y);
+		int starting_symedge = oriented_walk_point(0, seg_endpoint_indices[index].x);
+		int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y);
 
-		int connecting_edge = points_connected(starting_symedge, seg_endpoint_indices[index].y);
+		int connecting_edge = points_connected(starting_symedge, ending_symedge);
 		if (connecting_edge != -1)
 		{
 			edge_is_constrained[connecting_edge] = 1;
@@ -554,8 +553,8 @@ void main(void)
 		}
 		else
 		{
-//			straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
-//			straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
+			straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
+			straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
 		}
 	}
 }
