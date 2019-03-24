@@ -169,7 +169,11 @@ void main(void)
 
 				sym_edges[tri_syms.x].nxt = tri_syms.y;
 				//sym_edges[tri_syms.x].nxt = 1;
-				
+				// add face index to symedges in this face
+				sym_edges[tri_syms.x].face = tri_indices[i];
+				sym_edges[tri_syms.y].face = tri_indices[i];
+				sym_edges[tri_syms.z].face = tri_indices[i];
+
 				// add symedges to current face
 				tri_symedges[tri_indices[i]] = tri_syms;
 			}
