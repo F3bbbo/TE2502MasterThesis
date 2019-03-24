@@ -106,6 +106,12 @@ void Renderer::processInput()
 	{
 		m_update_both_symedges = m_update_both_symedges ? false : true;
 	}
+
+	if (glfwGetKey(m_window, GLFW_KEY_E) == GLFW_PRESS)
+	{
+		LOG(std::to_string(m_current_GPU_edge.edge));
+	}
+
 	if (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS)
 	{
 		m_pressed_r = true;
