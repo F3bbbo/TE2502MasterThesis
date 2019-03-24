@@ -140,7 +140,8 @@ void main(void)
 			int sym = nxt(edge_sym).rot;
 			if (sym != -1 && tri_edge_flip_index[get_symedge(sym).face] == edge_sym.edge)
 			{
-				tri_edge_flip_index[index] = edge_label[edge_sym.edge];
+				// This feels like bullshit
+				// tri_edge_flip_index[index] = edge_label[edge_sym.edge];
 				set_quad_edges_label(1, edge_sym);
 				break;
 			}

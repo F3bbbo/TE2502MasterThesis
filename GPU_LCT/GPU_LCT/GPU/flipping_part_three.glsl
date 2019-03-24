@@ -188,6 +188,10 @@ void flip_edge(SymEdge edge)
 	// update face symedges
 	tri_symedges[t_prim] = ivec4(curr, e4, e1, -1);
 	tri_symedges[t] = ivec4(curr_sym, e2, e3, -1);
+
+	// reset
+	tri_seg_inters_index[t_prim] = -1;
+	tri_seg_inters_index[t] = -1;
 }
 
 // Each thread represents one triangle
@@ -195,7 +199,7 @@ void main(void)
 {
 	int index = int(gl_GlobalInvocationID.x);
 	if (index < num_tris && tri_edge_flip_index[index] != -1 && edge_label[tri_edge_flip_index[index]] != -1)
-	{	
+	{
 		// find the symedge that constains the edge that should get flipped
 		SymEdge edge_to_be_flipped = get_symedge(tri_symedges[index].x);
 		SymEdge cur_edge = edge_to_be_flipped;
@@ -205,9 +209,7 @@ void main(void)
 			cur_edge = nxt(cur_edge);
 		}
 
+		tri_edge_flip_index[index] = -1;
 		flip_edge(edge_to_be_flipped);
-
-		tri_seg_inters_index[edge_to_be_flipped.face] = -1;
-		tri_seg_inters_index[sym(edge_to_be_flipped).face] = -1;
 	}
 }

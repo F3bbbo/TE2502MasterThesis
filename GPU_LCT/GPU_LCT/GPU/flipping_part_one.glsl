@@ -88,6 +88,16 @@ SymEdge nxt(SymEdge s)
 	return get_symedge(s.nxt);
 }
 
+SymEdge prev_symedge(SymEdge s)
+{
+	return nxt(nxt(s));
+}
+
+int get_index(SymEdge s)
+{
+	return prev_symedge(s).nxt;
+}
+
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
@@ -112,7 +122,7 @@ void main(void)
 		SymEdge edge_sym = get_symedge(tri_symedges[index].x);
 		for (int i = 0; i < 3; i++)
 		{
-			highest_priority_s_edge = h < edge_label[edge_sym.edge] ? edge_sym.edge : highest_priority_s_edge;
+			highest_priority_s_edge = h < edge_label[edge_sym.edge] ? get_index(edge_sym) : highest_priority_s_edge;
 			h = max(edge_label[edge_sym.edge], h);
 			edge_sym = nxt(edge_sym);
 		}

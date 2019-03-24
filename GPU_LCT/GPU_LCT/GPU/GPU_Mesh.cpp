@@ -144,7 +144,7 @@ namespace GPU
 		// Bind all ubo's
 		m_sizes.bind_buffer();
 		int i = 0;
-		while (i < 1)
+		while (i < 20)
 		{
 			// Locate Step
 			glUseProgram(m_location_program);
@@ -160,16 +160,6 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-			//// Retrieve GPU arrays for debugging
-			//auto data_points = m_point_bufs.positions.get_buffer_data<glm::vec2>();
-			//auto data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
-			//auto data_tri_index = m_point_bufs.tri_index.get_buffer_data<int>();
-			//auto data_symedges = m_sym_edges.get_buffer_data<SymEdge>();
-			//auto data_triangles = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
-			//auto data_tri_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
-			//auto data_edge_label = m_edge_bufs.label.get_buffer_data<int>();
-			//auto data_size = m_sizes.get_buffer_data<BufferSizes>();
-
 			// Marking Step
 			glUseProgram(m_marking_part_one_program);
 			glDispatchCompute((GLuint)256, 1, 1);
@@ -183,7 +173,7 @@ namespace GPU
 			glUseProgram(m_flip_edges_part_one_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
+			
 			glUseProgram(m_flip_edges_part_two_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -191,23 +181,34 @@ namespace GPU
 			glUseProgram(m_flip_edges_part_three_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			
 			i++;
 		}
 
-		auto data_points = m_point_bufs.positions.get_buffer_data<glm::vec2>();
-		auto data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
-		auto data_tri_index = m_point_bufs.tri_index.get_buffer_data<int>();
-		auto data_symedges = m_sym_edges.get_buffer_data<SymEdge>();
-		auto data_triangles = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
-		auto data_tri_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
-		/*auto data_edge_label = m_edge_bufs.label.get_buffer_data<int>();*/
-		auto data_size = m_sizes.get_buffer_data<BufferSizes>();
+		// points
+		auto point_data_pos = m_point_bufs.positions.get_buffer_data<glm::vec2>();
+		auto point_data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
+		auto point_data__triangle_index = m_point_bufs.tri_index.get_buffer_data<int>();
 
-		auto d1 = m_triangle_bufs.edge_flip_index.get_buffer_data<int>();
-		auto d2 = m_triangle_bufs.seg_inters_index.get_buffer_data<int>();
-		auto d3 = m_edge_bufs.label.get_buffer_data<int>();
-		auto d4 = m_segment_bufs.inserted.get_buffer_data<int>();
-		auto d5 = m_segment_bufs.endpoint_indices.get_buffer_data<glm::ivec2>();
+		// symedges
+		auto symedges = m_sym_edges.get_buffer_data<SymEdge>();
+		
+		// edges
+		auto edge_data_labels = m_edge_bufs.label.get_buffer_data<int>();
+		auto edge_data_is_constrained = m_edge_bufs.is_constrained.get_buffer_data<int>();
+
+		// segments
+		auto segment_data_inserted = m_segment_bufs.inserted.get_buffer_data<int>();
+		auto segment_data_endpoint_indices = m_segment_bufs.endpoint_indices.get_buffer_data<glm::ivec2>();
+
+		// triangles
+		auto triangle_data_symedge_indices = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
+		auto triangle_data_insert_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
+		auto triangle_data_edge_flip_index = m_triangle_bufs.edge_flip_index.get_buffer_data<int>();
+		auto triangle_data_intersecting_segment = m_triangle_bufs.seg_inters_index.get_buffer_data<int>();
+
+		// number of elements
+		auto data_size = m_sizes.get_buffer_data<BufferSizes>();
 	}
 
 	std::vector<glm::vec2> GPUMesh::get_vertices()

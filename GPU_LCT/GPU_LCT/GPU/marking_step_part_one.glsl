@@ -534,6 +534,11 @@ void main(void)
 {
 	// Each thread is responsible for a segment
 
+	// The purpose of this shader is to mark triangles that intersects a not yet inserted segment, but whose endpoints has been inserted,
+	// an edge is marked to be flipped if it is intersected by a segment and if both of its adjacent triangles also are being intersected.
+
+	// If both endpoint already have an edge beweeen them then the edge is marked to be a segment and to not get flipped.
+
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	int endpoints_inserted = point_inserted[seg_endpoint_indices[index].x] * point_inserted[seg_endpoint_indices[index].y];
