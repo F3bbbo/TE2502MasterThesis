@@ -233,6 +233,8 @@ namespace GPU
 
 		for (SymEdge& symedge : sym_edge_list)
 		{
+			if (symedge.nxt == -1)
+				continue;
 			glm::ivec2 edge = { symedge.vertex, sym_edge_list[symedge.nxt].vertex };
 			if (std::find(found_edges.begin(), found_edges.end(), edge) == found_edges.end())
 			{
@@ -256,6 +258,8 @@ namespace GPU
 		for (int i = 0; i < buff_size[0].num_tris; i++)
 		{
 			glm::ivec3 s_face_i = { sym_edge_tri_indices[i].x, sym_edge_tri_indices[i].y, sym_edge_tri_indices[i].z };
+			if (s_face_i.x == -1)
+				continue;
 			face_indices.emplace_back(sym_edge_list[s_face_i.x].vertex, sym_edge_list[s_face_i.y].vertex, sym_edge_list[s_face_i.z].vertex);
 		}
 		return face_indices;

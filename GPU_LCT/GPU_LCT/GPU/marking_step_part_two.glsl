@@ -188,7 +188,7 @@ bool is_delaunay(SymEdge sym)
 	{
 		vec2 point1 = get_vertex(prev_symedge(sym).vertex);
 		vec2 point2 = get_vertex(prev_symedge(sym_symedge(sym)).vertex);
-		vec2 center = (point1 + point2) / 2.f;
+		vec2 center = (get_vertex(sym.vertex) + get_vertex(sym_symedge(sym).vertex)) / 2.f;
 
 		float len = length(get_vertex(sym.vertex) - get_vertex(sym_symedge(sym).vertex)) / 2.f;
 		if (length(center - point1) <= len && length(center - point2) <= len)
