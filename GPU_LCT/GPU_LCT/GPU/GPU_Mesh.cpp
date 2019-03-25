@@ -154,7 +154,7 @@ namespace GPU
 			glUseProgram(m_insertion_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
+			
 			// Marking Step
 			glUseProgram(m_marking_part_one_program);
 			glDispatchCompute((GLuint)256, 1, 1);
@@ -168,7 +168,7 @@ namespace GPU
 			glUseProgram(m_flip_edges_part_one_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
-			
+
 			glUseProgram(m_flip_edges_part_two_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -183,7 +183,7 @@ namespace GPU
 		// points
 		auto point_data_pos = m_point_bufs.positions.get_buffer_data<glm::vec2>();
 		auto point_data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
-		auto point_data__triangle_index = m_point_bufs.tri_index.get_buffer_data<int>();
+		auto point_data_triangle_index = m_point_bufs.tri_index.get_buffer_data<int>();
 
 		// symedges
 		auto symedges = m_sym_edges.get_buffer_data<SymEdge>();
@@ -278,6 +278,8 @@ namespace GPU
 		{
 			glm::ivec3 s_face_i = { sym_edge_tri_indices[i].x, sym_edge_tri_indices[i].y, sym_edge_tri_indices[i].z };
 			std::array<glm::vec2, 3> vertices;
+			if (s_face_i.x == -1)
+				continue;
 			vertices[0] = vertex_list[sym_edge_list[s_face_i.x].vertex];
 			vertices[1] = vertex_list[sym_edge_list[s_face_i.y].vertex];
 			vertices[2] = vertex_list[sym_edge_list[s_face_i.z].vertex];

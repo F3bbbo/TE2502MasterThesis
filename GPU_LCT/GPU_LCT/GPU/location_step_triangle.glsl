@@ -136,29 +136,32 @@ void main(void)
 			// Figure out which point should be the new point of this triangle
 			for(int i = 0; i < num_points; i++)
 			{
-				// Check so it is an uninserted point.
-				if(point_inserted[i] == 0)
+				if(point_tri_index[i] == index)
 				{
-					vec2 pos = point_positions[i];
-					float dist = distance(pos, tri_cent);
-					if(dist < best_dist)
+					// Check so it is an uninserted point.
+					if(point_inserted[i] == 0)
 					{
-						bool on_edge = false;
-
-						// Check so point is not on an edge
-						for(int edge_i = 0; edge_i < 3; edge_i++){
-							if(point_line_test(pos, tri_points[edge_i], tri_points[(edge_i + 1) % 3]))
-							{
-								on_edge = true;
-								break;
-							}
-						}
-						if(!on_edge)
+						vec2 pos = point_positions[i];
+						float dist = distance(pos, tri_cent);
+						if(dist < best_dist)
 						{
-							best_dist = dist;
-							point_index = i;
-						}
-					}	
+							bool on_edge = false;
+
+							// Check so point is not on an edge
+							for(int edge_i = 0; edge_i < 3; edge_i++){
+								if(point_line_test(pos, tri_points[edge_i], tri_points[(edge_i + 1) % 3]))
+								{
+									on_edge = true;
+									break;
+								}
+							}
+							if(!on_edge)
+							{
+								best_dist = dist;
+								point_index = i;
+							}
+						}	
+					}
 				}
 			}
 			tri_ins_point_index[index] = point_index;

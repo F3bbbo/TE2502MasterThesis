@@ -205,6 +205,7 @@ void main(void)
 			cur_edge = nxt(cur_edge);
 		}
 
+		edge_label[edge_to_be_flipped.edge] = 0;
 		tri_edge_flip_index[index] = -1;
 		flip_edge(edge_to_be_flipped);
 	}
