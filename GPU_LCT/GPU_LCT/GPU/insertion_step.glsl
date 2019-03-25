@@ -202,7 +202,8 @@ void main(void)
 			for(int i = 0; i < 3; i++)
 			{
 				if(edge_is_constrained[sym_edges[orig_face[i]].edge] == 0)
-					edge_label[sym_edges[orig_face[i]].edge] = 1; // candidate for not delaunay. 
+					if(edge_label[sym_edges[orig_face[i]].edge] < 1)
+						edge_label[sym_edges[orig_face[i]].edge] = 1; // candidate for not delaunay. 
 			}
 			// Set point as inserted
 			point_inserted[point_index] = 1;
