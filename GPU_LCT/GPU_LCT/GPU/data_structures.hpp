@@ -44,7 +44,6 @@ namespace GPU
 
 	struct TriangleBuffers
 	{
-		Buffer vertex_indices;
 		Buffer symedge_indices;
 		Buffer ins_point_index;
 		Buffer seg_inters_index;

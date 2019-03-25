@@ -52,25 +52,21 @@ layout(std430, binding = 6) buffer Seg1
 
 layout(std430, binding = 7) buffer Tri_buff_0
 {
-	ivec3 tri_vertex_indices[];
+	ivec4 tri_symedges[];
 };
 layout(std430, binding = 8) buffer Tri_buff_1
 {
-	ivec4 tri_symedges[];
+	int tri_ins_point_index[];
 };
 layout(std430, binding = 9) buffer Tri_buff_2
 {
-	int tri_ins_point_index[];
+	int tri_seg_inters_index[];
 };
 layout(std430, binding = 10) buffer Tri_buff_3
 {
-	int tri_seg_inters_index[];
-};
-layout(std430, binding = 11) buffer Tri_buff_4
-{
 	int tri_edge_flip_index[];
 };
-layout(std430, binding = 12) buffer symedge_buff
+layout(std430, binding = 11) buffer symedge_buff
 {
 	SymEdge sym_edges[];
 };

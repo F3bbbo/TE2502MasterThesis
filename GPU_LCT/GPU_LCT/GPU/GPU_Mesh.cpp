@@ -40,18 +40,14 @@ namespace GPU
 		m_segment_bufs.endpoint_indices.create_buffer(type, starting_contraints, usage, 5, n);
 		m_segment_bufs.inserted.create_buffer(type, std::vector<int>(4, 1), usage, 6, n);
 
-		// Fill triangle buffers
-		std::vector<glm::ivec3> starting_triangle_indices = { {0, 1, 3}, {3, 1, 2} }; // ccw
-		m_triangle_bufs.vertex_indices.create_buffer(type, starting_triangle_indices, usage, 7, n);
-
 		std::vector<glm::ivec4> sym_edge_indices;
 		sym_edge_indices.push_back({ 0, 1, 2, -1 });
 		sym_edge_indices.push_back({ 3, 4 ,5, -1 });
-		m_triangle_bufs.symedge_indices.create_buffer(type, sym_edge_indices, usage, 8, n);
+		m_triangle_bufs.symedge_indices.create_buffer(type, sym_edge_indices, usage, 7, n);
 
-		m_triangle_bufs.ins_point_index.create_buffer(type, std::vector<int>(2, -1), usage, 9, n);
-		m_triangle_bufs.seg_inters_index.create_buffer(type, std::vector<int>(2, -1), usage, 10, n);
-		m_triangle_bufs.edge_flip_index.create_buffer(type, std::vector<int>(2, -1), usage, 11, n);
+		m_triangle_bufs.ins_point_index.create_buffer(type, std::vector<int>(2, -1), usage, 8, n);
+		m_triangle_bufs.seg_inters_index.create_buffer(type, std::vector<int>(2, -1), usage, 9, n);
+		m_triangle_bufs.edge_flip_index.create_buffer(type, std::vector<int>(2, -1), usage, 10, n);
 
 		// Separate sym edge list
 		std::vector<SymEdge> sym_edges;
@@ -66,7 +62,7 @@ namespace GPU
 		sym_edges.push_back({ 5,  1, 1, 1, 1 });
 		sym_edges.push_back({ 3, -1, 2, 2, 1 });
 
-		m_sym_edges.create_buffer(type, sym_edges, usage, 12, n);
+		m_sym_edges.create_buffer(type, sym_edges, usage, 11, n);
 
 		// create uniform buffer to store size of other buffers
 		BufferSizes bs;
@@ -133,7 +129,6 @@ namespace GPU
 		m_segment_bufs.endpoint_indices.bind_buffer();
 		m_segment_bufs.inserted.bind_buffer();
 
-		m_triangle_bufs.vertex_indices.bind_buffer();
 		m_triangle_bufs.symedge_indices.bind_buffer();
 		m_triangle_bufs.ins_point_index.bind_buffer();
 		m_triangle_bufs.seg_inters_index.bind_buffer();
