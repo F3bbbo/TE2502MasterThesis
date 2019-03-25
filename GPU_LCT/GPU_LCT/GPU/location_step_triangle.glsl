@@ -1,4 +1,6 @@
 #version 430
+#define FLT_MAX 3.402823466e+38
+#define EPSILON 0.00005f
 layout(local_size_x = 1, local_size_y= 1) in;
 
 struct SymEdge{
@@ -93,7 +95,30 @@ void get_face(in int face_i, out vec2 face_v[3])
 	face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
 	face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
 }
-#define FLT_MAX 3.402823466e+38
+
+//-----------------------------------------------------------
+// Intersection Functions
+//-----------------------------------------------------------
+bool point_line_test(in vec2 p, in vec2 s1, in vec2 s2)
+{
+	vec3 v1 = vec3(s1 - p, 0.0f);
+	vec3 v2 = vec3(s1 - s2, 0.0f);
+	if (abs(length(cross(v1, v2))) > EPSILON)
+	{
+		return false;
+	}
+	float dot_p = dot(v1, v2);
+	if (dot_p < EPSILON)
+	{
+		return false;
+	}
+	if (dot_p > (dot(v2, v2) - EPSILON))
+	{
+		return false;
+	}
+	return true;
+}
+
 
 // Each thread represents one triangle
 void main(void)
@@ -122,8 +147,21 @@ void main(void)
 					float dist = distance(pos, tri_cent);
 					if(dist < best_dist)
 					{
-						best_dist = dist;
-						point_index = i;
+						bool on_edge = false;
+
+						// Check so point is not on an edge
+						for(int edge_i = 0; edge_i < 3; edge_i++){
+							if(point_line_test(pos, tri_points[edge_i], tri_points[(edge_i + 1) % 3]))
+							{
+								on_edge = true;
+								break;
+							}
+						}
+						if(!on_edge)
+						{
+							best_dist = dist;
+							point_index = i;
+						}
 					}	
 				}
 			}

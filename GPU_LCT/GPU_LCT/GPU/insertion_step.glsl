@@ -205,7 +205,8 @@ void main(void)
 			// Mark original edges as potential not delaunay
 			for(int i = 0; i < 3; i++)
 			{
-				edge_label[sym_edges[orig_face[i]].edge] = 1; // candidate for not delaunay. 
+				if(edge_is_constrained[sym_edges[orig_face[i]].edge] == 0)
+					edge_label[sym_edges[orig_face[i]].edge] = 1; // candidate for not delaunay. 
 			}
 			// Set point as inserted
 			point_inserted[point_index] = 1;
