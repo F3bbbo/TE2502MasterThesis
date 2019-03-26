@@ -194,12 +194,65 @@ bool no_collinear_constraints(int v){
 	return true;
 }
 
+vec2 project_point_on_line(vec2 point, vec2 a, vec2 b)
+{
+	vec2 ab = b - a;
+	vec2 ap = point - a;
+	return a + dot(ap, ab) / dot(ab, ab) * ab;
+}
+
+bool is_orthogonally_projectable(vec2 v, vec2 a, vec2 b)
+{
+	vec2 line = b - a;
+	vec2 projected_point = project_point_on_line(v, a, b);
+
+	float projected_length = dot(normalize(line), projected_point - a);
+
+	if (projected_length < 0.f || projected_length * projected_length > dot(line, line))
+		return false;
+
+	return true;
+}
+
+bool orientation(in vec2 p1 , in vec2 p2 , in vec2 p3)
+{
+	float val = (p2.y - p1.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p3.y - p2.y);
+	return (val > 0.0f) ? true : false;
+}
+
+bool line_line_test(in vec2 s1p1 , in vec2 s1p2, in vec2 s2p1, in vec2 s2p2)
+{
+	bool o1 = orientation(s1p1, s1p2, s2p1);
+	bool o2 = orientation(s1p1, s1p2, s2p2);
+	bool o3 = orientation(s2p1, s2p2, s1p1);
+	bool o4 = orientation(s2p1, s2p2, s1p2);
+
+	return (o1 != o2 && o3 != o4) ? true : false;
+}
+
 
 float is_disturbed(int constraint, int b_sym, int v_sym, vec2 e)
 {
+	// 1
 	if(no_collinear_constraints(v_sym))
+		return -1.0f;
+
+	// 2
+	vec2 v = point_positions[sym_edges[v_sym].vertex];
+	vec2 a = point_positions[sym_edges[prev(b_sym)].vertex];
+	vec2 b = point_positions[sym_edges[b_sym].vertex];
+	vec2 c = point_positions[sym_edges[nxt(b_sym)].vertex];
+
+	if(!is_orthogonally_projectable(v, a, c))
+		return -1.0f;
+
+	// 3
+
+	
 	return 1.0f;
 }
+
+
 
 
 
