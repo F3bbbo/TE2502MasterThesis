@@ -68,6 +68,7 @@ namespace GPU
 		BufferSizes bs;
 		bs.num_points = 4;
 		bs.num_tris = 2;
+		bs.num_segs = 4;
 		m_sizes.create_uniform_buffer(bs, usage);
 
 		// Probably not needed?
@@ -96,6 +97,8 @@ namespace GPU
 		buff_size.front().num_points += points.size();
 		int num_new_tri = points.size() * 2;
 		buff_size.front().num_tris += num_new_tri;
+		int num_new_segs = segments.size();
+		buff_size.front().num_segs += num_new_segs;
 		// TODO, fix setting number of triangles: buff_size.front().num_tris 
 		m_sizes.bind_buffer();
 		m_sizes.update_buffer(buff_size);
@@ -154,7 +157,7 @@ namespace GPU
 			glUseProgram(m_insertion_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
-			
+
 			// Marking Step
 			glUseProgram(m_marking_part_one_program);
 			glDispatchCompute((GLuint)256, 1, 1);
@@ -176,7 +179,7 @@ namespace GPU
 			glUseProgram(m_flip_edges_part_three_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
-			
+
 			i++;
 		}
 
@@ -187,7 +190,7 @@ namespace GPU
 
 		// symedges
 		auto symedges = m_sym_edges.get_buffer_data<SymEdge>();
-		
+
 		// edges
 		auto edge_data_labels = m_edge_bufs.label.get_buffer_data<int>();
 		auto edge_data_is_constrained = m_edge_bufs.is_constrained.get_buffer_data<int>();

@@ -178,5 +178,8 @@
     <None Include="GPU\flipping_part_three.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="GPU\locate_disturbances.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
