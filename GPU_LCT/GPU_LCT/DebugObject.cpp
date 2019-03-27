@@ -11,7 +11,8 @@ DebugObject::DebugObject(DRAW_TYPES mode) : Drawable(mode)
 
 DebugObject::DebugObject(std::array<glm::vec2, 2> vertices, DRAW_TYPES mode) : Drawable(mode)
 {
-	m_vertex_input.create_unitialized_buffer(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
+	// Creates an empty buffer
+	m_vertex_input.create_buffer(GL_ARRAY_BUFFER, std::vector<DrawVertex>(), GL_DYNAMIC_DRAW);
 
 	std::vector<glm::ivec2> edges_indices = { {0, 1} };
 	m_index_buffer.create_buffer(GL_ELEMENT_ARRAY_BUFFER, edges_indices, GL_STATIC_DRAW);
@@ -20,12 +21,12 @@ DebugObject::DebugObject(std::array<glm::vec2, 2> vertices, DRAW_TYPES mode) : D
 
 void DebugObject::update_edge(std::array<glm::vec2, 2> vertices)
 {
-	m_vertex_input.bind_buffer();
 	std::vector<DrawVertex> dv;
 	dv.push_back({ vertices[0], glm::vec4(m_color.r, m_color.g, m_color.b, 1.f) });
 	dv.push_back({ vertices[1], glm::vec4(m_color.r, m_color.g, m_color.b, 0.f) });
 
 	m_vertex_input.update_buffer(dv);
+	m_vertex_input.bind_buffer();
 	m_vertex_input.set_vertex_attribute(0, 2, GL_FLOAT, 6 * sizeof(float), 0);
 	m_vertex_input.set_vertex_attribute(1, 4, GL_FLOAT, 6 * sizeof(float), 2 * sizeof(float));
 	m_vertex_input.unbind_buffer();
@@ -110,9 +111,11 @@ void DebugObject::build(CPU::Mesh& mesh)
 		vertices.push_back({ vertex.vertice, {m_color.r, m_color.g, m_color.b, 1.f} });
 
 	m_vertex_input.create_buffer(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+	m_vertex_input.bind_buffer();
 	m_vertex_input.set_vertex_attribute(0, 2, GL_FLOAT, 6 * sizeof(float), 0);
 	m_vertex_input.set_vertex_attribute(1, 4, GL_FLOAT, 6 * sizeof(float), 2 * sizeof(float));
-	
+	m_vertex_input.unbind_buffer();
+
 	if (m_mode == DRAW_EDGES)
 	{
 		std::vector<CPU::Edge> const&  mesh_edges = mesh.get_edge_list();
@@ -155,9 +158,11 @@ void DebugObject::build(GPU::GPUMesh & mesh)
 		vertices.push_back({ vertex, {m_color.r, m_color.g, m_color.b, 1.f} });
 
 	m_vertex_input.create_buffer(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+	m_vertex_input.bind_buffer();
 	m_vertex_input.set_vertex_attribute(0, 2, GL_FLOAT, 6 * sizeof(float), 0);
 	m_vertex_input.set_vertex_attribute(1, 4, GL_FLOAT, 6 * sizeof(float), 2 * sizeof(float));
-	
+	m_vertex_input.unbind_buffer();
+
 	if (m_mode == DRAW_EDGES)
 	{
 		std::vector<std::pair<glm::ivec2, bool>> edges = mesh.get_edges();

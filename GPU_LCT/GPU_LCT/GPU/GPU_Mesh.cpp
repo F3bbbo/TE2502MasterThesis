@@ -70,16 +70,6 @@ namespace GPU
 		bs.num_tris = 2;
 		bs.num_segs = 4;
 		m_sizes.create_uniform_buffer(bs, usage);
-
-		// Probably not needed?
-
-		//m_sizes.bind_buffer();
-		//m_sizes.set_unitform_buffer_block(m_location_program, "Sizes");
-		//// TODO: uncomment when ready
-		////m_sizes.set_unitform_buffer_block(m_insertion_program, "Sizes");
-		////m_sizes.set_unitform_buffer_block(m_marking_program, "Sizes");
-		////m_sizes.set_unitform_buffer_block(m_flip_edges_program, "Sizes");
-		//m_sizes.unbind_buffer();
 	}
 
 	void GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
@@ -100,9 +90,7 @@ namespace GPU
 		int num_new_segs = segments.size();
 		buff_size.front().num_segs += num_new_segs;
 		// TODO, fix setting number of triangles: buff_size.front().num_tris 
-		m_sizes.bind_buffer();
 		m_sizes.update_buffer(buff_size);
-		m_sizes.unbind_buffer();
 
 		// fix new sizes of triangle buffers
 		m_triangle_bufs.symedge_indices.append_to_buffer(std::vector<glm::ivec4>(num_new_tri, { -1, -1, -1, -1 }));
@@ -120,6 +108,8 @@ namespace GPU
 		int num_new_sym_edges = points.size() * 6;
 		m_sym_edges.append_to_buffer(std::vector<SymEdge>(num_new_sym_edges));
 		// TODO, maybe need to check if triangle buffers needs to grow
+
+		
 
 		// Bind all ssbo's
 		m_point_bufs.positions.bind_buffer();
@@ -141,6 +131,7 @@ namespace GPU
 
 		// Bind all ubo's
 		m_sizes.bind_buffer();
+
 		int i = 0;
 		while (i < 20)
 		{
@@ -183,7 +174,26 @@ namespace GPU
 			i++;
 		}
 
-		// points
+		m_point_bufs.positions.unbind_buffer();
+		m_point_bufs.inserted.unbind_buffer();
+		m_point_bufs.tri_index.unbind_buffer();
+
+		m_edge_bufs.label.unbind_buffer();
+		m_edge_bufs.is_constrained.unbind_buffer();
+
+		m_segment_bufs.endpoint_indices.unbind_buffer();
+		m_segment_bufs.inserted.unbind_buffer();
+
+		m_triangle_bufs.symedge_indices.unbind_buffer();
+		m_triangle_bufs.ins_point_index.unbind_buffer();
+		m_triangle_bufs.seg_inters_index.unbind_buffer();
+		m_triangle_bufs.edge_flip_index.unbind_buffer();
+
+		m_sym_edges.unbind_buffer();
+
+		// Unbind all ubo's
+		m_sizes.unbind_buffer();
+
 		auto point_data_pos = m_point_bufs.positions.get_buffer_data<glm::vec2>();
 		auto point_data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
 		auto point_data_triangle_index = m_point_bufs.tri_index.get_buffer_data<int>();
@@ -248,6 +258,7 @@ namespace GPU
 					edge_list.push_back({ edge, false });
 			}
 		}
+
 		return edge_list;
 	}
 
@@ -265,6 +276,7 @@ namespace GPU
 				continue;
 			face_indices.emplace_back(sym_edge_list[s_face_i.x].vertex, sym_edge_list[s_face_i.y].vertex, sym_edge_list[s_face_i.z].vertex);
 		}
+
 		return face_indices;
 	}
 
@@ -277,6 +289,8 @@ namespace GPU
 		std::vector<glm::ivec4> sym_edge_tri_indices = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
 		std::vector<glm::vec2> vertex_list = m_point_bufs.positions.get_buffer_data<glm::vec2>();
 
+		int ret_val = -1;
+
 		for (int i = 0; i < buff_size[0].num_tris; i++)
 		{
 			glm::ivec3 s_face_i = { sym_edge_tri_indices[i].x, sym_edge_tri_indices[i].y, sym_edge_tri_indices[i].z };
@@ -288,9 +302,13 @@ namespace GPU
 			vertices[2] = vertex_list[sym_edge_list[s_face_i.z].vertex];
 
 			if (point_triangle_test(p, vertices[0], vertices[1], vertices[2]))
-				return i;
+			{
+				ret_val = i;
+				break;
+			}
 		}
-		return -1;
+
+		return ret_val;
 	}
 
 	void GPUMesh::setup_compute_shaders()

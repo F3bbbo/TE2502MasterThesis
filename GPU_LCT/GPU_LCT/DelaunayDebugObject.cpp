@@ -98,7 +98,9 @@ void DelaunayDebugObject::build(CPU::Mesh & mesh)
 	};
 
 	m_vertex_buffer.create_buffer(GL_ARRAY_BUFFER, NDC_vertices, GL_STATIC_DRAW);
+	m_vertex_buffer.bind_buffer();
 	m_vertex_buffer.set_vertex_attribute(0, 2, GL_FLOAT, 2 * sizeof(float), 0);
+	m_vertex_buffer.unbind_buffer();
 	m_circle_buffer.create_buffer(GL_SHADER_STORAGE_BUFFER, circle_data, GL_STATIC_DRAW, 1);
 }
 
@@ -136,6 +138,8 @@ void DelaunayDebugObject::build(GPU::GPUMesh& mesh)
 	};
 
 	m_vertex_buffer.create_buffer(GL_ARRAY_BUFFER, NDC_vertices, GL_STATIC_DRAW);
+	m_vertex_buffer.bind_buffer();
 	m_vertex_buffer.set_vertex_attribute(0, 2, GL_FLOAT, 2 * sizeof(float), 0);
+	m_vertex_buffer.unbind_buffer();
 	m_circle_buffer.create_buffer(GL_SHADER_STORAGE_BUFFER, circle_data, GL_STATIC_DRAW, 1);
 }
