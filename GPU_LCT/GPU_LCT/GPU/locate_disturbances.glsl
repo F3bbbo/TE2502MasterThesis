@@ -80,6 +80,55 @@ layout(std430, binding = 12) buffer status_buff
 //-----------------------------------------------------------
 
 //-----------------------------------------------------------
+// Access funcitons
+//-----------------------------------------------------------
+
+SymEdge get_symedge(int index)
+{
+	return sym_edges[index];
+}
+SymEdge prev_symedge(SymEdge s)
+{
+	return get_symedge(get_symedge(s.nxt).nxt);
+}
+
+SymEdge sym_symedge(SymEdge s)
+{
+	return get_symedge(get_symedge(s.nxt).rot);
+}
+
+int crot_symedge_i(SymEdge s)
+{
+	int index = get_symedge(s.nxt).rot;
+	return index != -1 ? get_symedge(index).nxt : -1;
+}
+
+vec2 get_vertex(int index)
+{
+	return point_positions[index];
+}
+
+int get_label(int index)
+{
+	return edge_label[index];
+}
+
+vec2 get_face_center(int face_i)
+{
+	vec2 face_v[3];
+	face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
+	face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
+	face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
+
+	return (face_v[0] + face_v[1] + face_v[2]) / 3.f; 
+}
+
+int get_index(SymEdge s)
+{
+	return prev_symedge(s).nxt;
+}
+
+//-----------------------------------------------------------
 // Symedge functions
 //-----------------------------------------------------------
 int nxt(int edge)
@@ -275,7 +324,85 @@ float is_disturbed(int constraint, int b_sym, int v_sym, vec2 e)
 	return dist_v_segment;
 }
 
+float sign_test(vec2 p1, vec2 p2, vec2 p3)
+{
+	return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+}
 
+bool point_triangle_test(vec2 p1, vec2[3] tri)
+{
+	float d1, d2, d3;
+	bool has_neg, has_pos;
+
+	d1 = sign_test(p1, tri[0], tri[1]);
+	d2 = sign_test(p1, tri[1], tri[2]);
+	d3 = sign_test(p1, tri[2], tri[0]);
+
+	has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+	has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+	return !(has_neg && has_pos);
+
+}
+
+bool face_contains_vertice(int face, int vertex)
+{
+	SymEdge s = sym_edges[tri_symedges[face].x];
+	return s.vertex == vertex || get_symedge(s.nxt).vertex == vertex || prev_symedge(s).vertex == vertex;
+}
+
+int get_face_vertex_symedge(int face, int vertex)
+{
+	SymEdge s = sym_edges[tri_symedges[face].x];
+	if (s.vertex == vertex)
+		return get_index(s);
+	else if (get_symedge(s.nxt).vertex == vertex)
+		return s.nxt;
+	else if (prev_symedge(s).vertex == vertex)
+		return get_index(prev_symedge(s));
+	else
+		return -1;
+}
+
+int oriented_walk_point(int curr_e, int goal_point_i)
+{
+	vec2 tri_cent;
+	vec2 goal_point = get_vertex(goal_point_i);
+	int i = 0;
+	while (i != 3)
+	{
+		if (face_contains_vertice(get_symedge(curr_e).face, goal_point_i))
+			return get_face_vertex_symedge(get_symedge(curr_e).face, goal_point_i);
+		
+		tri_cent = get_face_center(sym_edges[curr_e].face);
+		
+		// Loop through edges to see if we should continue through the edge
+		// to the neighbouring triangle 
+		bool line_line_hit = false;
+		for (i = 0; i < 3; i++)
+		{
+			if (sym_edges[sym_edges[curr_e].nxt].rot == -1)
+			{
+				curr_e = sym_edges[curr_e].nxt;
+				continue;
+			}
+
+			line_line_hit = line_line_test(
+				tri_cent,
+				goal_point,
+				point_positions[sym_edges[curr_e].vertex],
+				point_positions[sym_edges[sym_edges[curr_e].nxt].vertex]);
+
+			if (line_line_hit)
+			{
+				curr_e = sym_edges[sym_edges[curr_e].nxt].rot;
+				break;
+			}
+			curr_e = sym_edges[curr_e].nxt;
+		}
+	}
+	return -1;
+}
 
 
 
@@ -307,7 +434,12 @@ int find_constraint_disturbance(int constraint, int edge_ac, bool right)
 	int first_disturb = -1;
 	for(int i = 0; i < point_positions.length(); i++)
 	{
-		
+		// check if point is inside of R
+		if(point_triangle_test(point_positions[i], R))
+		{
+			// TODO: Change oriented walk to start from last point instead of the constraint
+			int v_edge = oriented_walk_point(constraint, i);
+		}
 	}
 
 	return first_disturb;
