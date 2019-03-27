@@ -235,6 +235,12 @@ vec2[2] get_edge(int s_edge)
 	return edge;
 }
 
+float local_clearance(vec2 b, vec2[2] segment)
+{
+	vec2 b_prim = project_point_on_line(b, segment[0], segment[1]);
+	return length(b - b_prim);
+}
+
 
 float is_disturbed(int constraint, int b_sym, int v_sym, vec2 e)
 {
@@ -256,6 +262,13 @@ float is_disturbed(int constraint, int b_sym, int v_sym, vec2 e)
 	vec2 v_prim = project_point_on_line(v, c_endpoints[0], c_endpoints[1]);
 	if (!(line_line_test(v, v_prim, a, c) && line_line_test(v, v_prim, b, c)))
 			return -1.0f;
+
+	// 4
+	float dist_v_segment = length(v_prim - v);
+	if (!(dist_v_segment < local_clearance(b, c_endpoints)))
+			return -1.0f;
+
+
 
 	return 1.0f;
 }
