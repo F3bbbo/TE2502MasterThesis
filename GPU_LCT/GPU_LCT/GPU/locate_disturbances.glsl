@@ -80,6 +80,15 @@ layout(std430, binding = 12) buffer status_buff
 //-----------------------------------------------------------
 
 //-----------------------------------------------------------
+// Math funcitons
+//-----------------------------------------------------------
+
+bool point_equal(vec2 p1, vec2 p2)
+{
+	return abs(distance(p1, p2)) < EPSILON;
+}
+
+//-----------------------------------------------------------
 // Access funcitons
 //-----------------------------------------------------------
 
@@ -459,12 +468,12 @@ int find_constraint_disturbance(int constraint, int edge_ac, bool right)
 	{
 		R[0] = point_positions[sym_edges[edge_ac].vertex];
 		R[1] = point_positions[sym_edges[prev(edge_ac)].vertex];
-		a = point_positions[sym_edges[nxt(edge_ac)]];
+		a = point_positions[sym_edges[nxt(edge_ac)].vertex];
 	}
 	else{
 		R[0] = point_positions[sym_edges[nxt(edge_ac)].vertex];
 		R[1] = point_positions[sym_edges[prev(edge_ac)].vertex];
-		a = point_positions[sym_edges[edge_ac]];
+		a = point_positions[sym_edges[edge_ac].vertex];
 	}
 	// Calculate R
 	vec2 ac = R[0] - a;
@@ -498,8 +507,103 @@ int find_constraint_disturbance(int constraint, int edge_ac, bool right)
 
 	return first_disturb;
 }
+vec2 line_line_intersection_point(vec2 a, vec2 b, vec2 c, vec2 d, float epsi)
+{
+	// Line AB represented as a1x + b1y = c1 
+	float a1 = b.y - a.y;
+	float b1 = a.x - b.x;
+	float c1 = a1 * a.x + b1 * a.y;
 
+	// Line CD represented as a2x + b2y = c2 
+	float a2 = d.y - c.y;
+	float b2 = c.x - d.x;
+	float c2 = a2 * (c.x) + b2 * (c.y);
 
+	float determinant = a1 * b2 - a2 * b1;
+
+	if ( abs(determinant) < epsi )
+	{
+		// The lines are parallel. This is simplified 
+		// by returning a pair of FLT_MAX 
+		return vec2(FLT_MAX, FLT_MAX);
+	}
+	else
+	{
+		float x = (b2 * c1 - b1 * c2) / determinant;
+		float y = (a1 * c2 - a2 * c1) / determinant;
+		return vec2(x, y);
+	}
+}
+
+bool edge_intersects_sector(vec2 a, vec2 b, vec2 c, vec2[2] segment)
+{
+	// Assumes that b is the origin of the sector
+	vec2 center_prim = project_point_on_line(b, segment[0], segment[1]);
+	float center_prim_length = length(center_prim - b);
+	float sector_radius = min(length(a - b), length(c - b));
+
+	if (length(a - b) < length(c - b))
+		c = b + normalize(c - b) * sector_radius;
+	else
+		a = b + normalize(a - b) * sector_radius;
+	vec2 tri[3] = {a, b, c};
+	bool inside_triangle = point_triangle_test(center_prim, tri);
+	bool inside_circle = center_prim_length <= sector_radius;
+	vec2 point = line_line_intersection_point(b, center_prim, a, c, EPSILON);
+	bool other_side_of_ac = dot(point - b, center_prim - b) > 0 && center_prim_length > length(point - b);
+	if (inside_triangle || (inside_circle && other_side_of_ac))
+		return true;
+	return false;
+}
+
+vec2 get_symmetrical_corner(vec2 a, vec2 b, vec2 c)
+{
+	vec2 ac = c - a;
+	vec2 half_v = a + (ac / 2.f);
+	float len = length(half_v - project_point_on_line(b, a, c));
+	return b + 2.f * len * normalize(ac);
+}
+
+bool possible_disturbance(vec2 a, vec2 b, vec2 c, vec2[2] s)
+{
+		vec2 sector_c = project_point_on_line(b, a, c);
+		float dist = 2.f * length(sector_c - a);
+		sector_c = a + normalize(c - a) * dist;
+		if (edge_intersects_sector(a, b, sector_c, s))
+			return true;
+
+		vec2 p = get_symmetrical_corner(a, b, c);
+		sector_c = c + normalize(a - c) * dist;
+
+		if (edge_intersects_sector(a, b, sector_c, s))
+			return true;
+
+		return false;
+}
+
+int find_closest_constraint(vec2 a, vec2 b, vec2 c)
+{
+	float dist = FLT_MAX;
+	int ret = -1;
+	for(int i = 0; i < num_segs; i++)
+	{
+		ivec2 seg_i = seg_endpoint_indices[i];
+		vec2[2] s;
+		s[0] = point_positions[seg_i[0]];
+		s[1] = point_positions[seg_i[1]];
+		if(possible_disturbance(a, b, c, s))
+		{
+			vec2 b_prim = project_point_on_line(b, s[0], s[1]);
+			float b_dist = length(b_prim - b);
+			if(b_dist < dist && !(point_equal(b_prim, a) || point_equal(b_prim, c)))
+			{
+				dist = b_dist;
+				ret = i;
+			}
+		}
+	}
+	return ret;
+}
 
 // Each thread represents one triangle
 void main(void)
@@ -509,13 +613,13 @@ void main(void)
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
 	while(index < tri_seg_inters_index.length())
 	{
-		int num_constraints;
+		int num_constraints = 0;
 		int c_edge_i = -1;
 		// loop checking for segments in triangle
 		for(int i = 0; i < 3; i++)
 		{
 			// Checking if edge of triangle is constrained.
-			if(edge_is_constrained[sym_edges[tri_symedges[index][i]]] > 0)
+			if(edge_is_constrained[sym_edges[tri_symedges[index][i]].edge] > 0)
 			{
 				num_constraints++;
 				c_edge_i = tri_symedges[index][i];
@@ -524,7 +628,12 @@ void main(void)
 
 		if(num_constraints == 0)
 		{
-			// TODO: Look for close constraints
+			// Loop through edges of the triangles finding the closest constraints
+			// to each traversal.
+			for(int i = 0; i < 3; i++)
+			{
+
+			}
 		}
 		else if(num_constraints == 1)
 		{
