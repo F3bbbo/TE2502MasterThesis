@@ -63,6 +63,8 @@ namespace GPU
 		sym_edges.push_back({ 3, -1, 2, 2, 1 });
 
 		m_sym_edges.create_buffer(type, sym_edges, usage, 11, n);
+
+		m_status.create_buffer(type, std::vector<int>(1, 1), GL_DYNAMIC_DRAW, 12, 1);
 	}
 
 	void GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
@@ -97,8 +99,6 @@ namespace GPU
 		m_sym_edges.append_to_buffer(std::vector<SymEdge>(num_new_sym_edges));
 		// TODO, maybe need to check if triangle buffers needs to grow
 
-		
-
 		// Bind all ssbo's
 		m_point_bufs.positions.bind_buffer();
 		m_point_bufs.inserted.bind_buffer();
@@ -117,9 +117,16 @@ namespace GPU
 
 		m_sym_edges.bind_buffer();
 
-		int i = 0;
-		while (i < 20)
+		m_status.bind_buffer();
+
+		int counter = 0;
+
+		int cont = 1;
+		while (cont)
 		{
+			counter++;
+			m_status.update_buffer<int>({0});
+
 			// Locate Step
 			glUseProgram(m_location_program);
 			glDispatchCompute((GLuint)256, 1, 1);
@@ -156,8 +163,10 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-			i++;
+			cont = m_status.get_buffer_data<int>()[0];
 		}
+
+		LOG(std::string("Number of iterations: ") +  std::to_string(counter));
 
 		m_point_bufs.positions.unbind_buffer();
 		m_point_bufs.inserted.unbind_buffer();
@@ -175,6 +184,8 @@ namespace GPU
 		m_triangle_bufs.edge_flip_index.unbind_buffer();
 
 		m_sym_edges.unbind_buffer();
+
+		m_status.unbind_buffer();
 
 		auto point_data_pos = m_point_bufs.positions.get_buffer_data<glm::vec2>();
 		auto point_data_inserted = m_point_bufs.inserted.get_buffer_data<int>();

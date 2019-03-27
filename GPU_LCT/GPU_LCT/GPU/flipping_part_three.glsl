@@ -69,6 +69,10 @@ layout(std430, binding = 11) buffer symedge_buff
 {
 	SymEdge sym_edges[];
 };
+layout(std430, binding = 12) buffer status_buff
+{
+	int status;
+};
 
 //-----------------------------------------------------------
 // Access Functions
@@ -190,6 +194,8 @@ void main(void)
 	int index = int(gl_GlobalInvocationID.x);
 	if (index < tri_seg_inters_index.length() && tri_edge_flip_index[index] != -1 && edge_label[tri_edge_flip_index[index]] != -1)
 	{
+		status = 1;
+
 		// find the symedge that constains the edge that should get flipped
 		SymEdge edge_to_be_flipped = get_symedge(tri_symedges[index].x);
 		SymEdge cur_edge = edge_to_be_flipped;

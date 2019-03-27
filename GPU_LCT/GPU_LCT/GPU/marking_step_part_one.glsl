@@ -70,7 +70,10 @@ layout(std430, binding = 11) buffer symedge_buff
 {
 	SymEdge sym_edges[];
 };
-
+layout(std430, binding = 12) buffer status_buff
+{
+	int status;
+};
 //-----------------------------------------------------------
 // Access funcitons
 //-----------------------------------------------------------
@@ -544,6 +547,8 @@ void main(void)
 		{
 			edge_is_constrained[connecting_edge] = 1;
 			edge_label[connecting_edge] = 0;
+			seg_inserted[index] = 1;
+			status = 1;
 		}
 		else
 		{

@@ -69,6 +69,10 @@ layout(std430, binding = 11) buffer symedge_buff
 {
 	SymEdge sym_edges[];
 };
+layout(std430, binding = 12) buffer status_buff
+{
+	int status;
+};
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------

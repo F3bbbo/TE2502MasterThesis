@@ -69,6 +69,11 @@ layout(std430, binding = 11) buffer symedge_buff
 {
 	SymEdge sym_edges[];
 };
+layout(std430, binding = 12) buffer status_buff
+{
+	int status;
+};
+
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
@@ -106,6 +111,8 @@ void main(void)
 		int point_index = tri_ins_point_index[index];
 		if(point_index > -1 )
 		{
+			status = 1;
+
 			// Create array of the indices of the three new triangles
 			int tri_indices[3];
 			tri_indices[0] = index;
