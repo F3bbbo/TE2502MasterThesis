@@ -4,6 +4,7 @@
 
 #include "data_structures.hpp"
 #include "../trig_functions.hpp"
+#include "..//Timer.hpp"
 #include <glm/glm.hpp>
 #include <utility>
 

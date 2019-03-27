@@ -90,6 +90,9 @@
     <ClCompile Include="Shapes.cpp">
       <Filter>Source Files\Test</Filter>
     </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="trig_functions.hpp">
@@ -139,6 +142,9 @@
     </ClInclude>
     <ClInclude Include="TestMap.hpp">
       <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

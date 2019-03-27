@@ -121,6 +121,9 @@ namespace GPU
 
 		int counter = 0;
 
+		Timer timer;
+		timer.start();
+
 		int cont = 1;
 		while (cont)
 		{
@@ -165,8 +168,10 @@ namespace GPU
 
 			cont = m_status.get_buffer_data<int>()[0];
 		}
+		timer.stop();
 
 		LOG(std::string("Number of iterations: ") +  std::to_string(counter));
+		LOG(std::string("Elapsed time in ms: ") +  std::to_string(timer.elapsed_time()));
 
 		m_point_bufs.positions.unbind_buffer();
 		m_point_bufs.inserted.unbind_buffer();
