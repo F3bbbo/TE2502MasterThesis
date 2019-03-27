@@ -106,13 +106,6 @@ void get_face(in int face_i, out vec2 face_v[3])
 // Uniforms
 //-----------------------------------------------------------
 
-layout (std140, binding = 0) uniform Sizes
-{
-	int num_tris;
-	int num_points;
-	vec2 pad;
-};
-
 //-----------------------------------------------------------
 // Math Functions
 //-----------------------------------------------------------
@@ -231,7 +224,7 @@ void main(void)
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	
-	if (index < num_tris)
+	if (index < tri_seg_inters_index.length())
 	{
 		SymEdge tri_sym = get_symedge(tri_symedges[index].x);
 		bool no_point_in_edges = edge_label[tri_sym.edge] != 3 &&

@@ -62,15 +62,6 @@ namespace GPU
 	{
 		glm::ivec3 vert_i;
 	};
-
-	struct BufferSizes
-	{
-		int num_tris;
-		int num_points;
-		int num_segs;
-		int pad;
-	};
-
 }
 
 #endif

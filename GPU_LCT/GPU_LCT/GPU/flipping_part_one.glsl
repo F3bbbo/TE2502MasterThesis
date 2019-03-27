@@ -97,12 +97,6 @@ int get_index(SymEdge s)
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
-layout (std140, binding = 0) uniform Sizes
-{
-	int num_tris;
-	int num_points;
-	vec2 pad;
-};
 
 // Each thread represents one triangle
 void main(void)
@@ -110,7 +104,7 @@ void main(void)
 	uint gid = gl_GlobalInvocationID.x;
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
 	int index = int(gid);
-	if (index < num_tris)
+	if (index < tri_seg_inters_index.length())
 	{	
 		int highest_priority_s_edge = -1;
 		int h = -1;

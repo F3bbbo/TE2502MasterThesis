@@ -72,13 +72,6 @@ layout(std430, binding = 11) buffer symedge_buff
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
-layout (std140, binding = 0) uniform Sizes
-{
-	int num_tris;
-	int num_points;
-	vec2 pad;
-};
-
 
 //-----------------------------------------------------------
 // Access Functions
@@ -212,7 +205,7 @@ void main(void)
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
-	while(index < num_points)
+	while(index < point_positions.length())
 	{
 		
 		if(point_inserted[index] == 0)

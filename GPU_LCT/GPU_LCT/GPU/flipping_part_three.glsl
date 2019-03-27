@@ -112,12 +112,6 @@ int get_vertex(int sym_edge_i)
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
-layout (std140, binding = 0) uniform Sizes
-{
-	int num_tris;
-	int num_points;
-	vec2 pad;
-};
 
 //-----------------------------------------------------------
 // Functions
@@ -194,7 +188,7 @@ void flip_edge(SymEdge edge)
 void main(void)
 {
 	int index = int(gl_GlobalInvocationID.x);
-	if (index < num_tris && tri_edge_flip_index[index] != -1 && edge_label[tri_edge_flip_index[index]] != -1)
+	if (index < tri_seg_inters_index.length() && tri_edge_flip_index[index] != -1 && edge_label[tri_edge_flip_index[index]] != -1)
 	{
 		// find the symedge that constains the edge that should get flipped
 		SymEdge edge_to_be_flipped = get_symedge(tri_symedges[index].x);

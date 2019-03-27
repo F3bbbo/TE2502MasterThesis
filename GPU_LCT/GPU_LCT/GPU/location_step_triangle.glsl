@@ -74,13 +74,6 @@ layout(std430, binding = 11) buffer symedge_buff
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
-layout (std140, binding = 0) uniform Sizes
-{
-	int num_tris;
-	int num_points;
-	vec2 pad;
-};
-
 
 //-----------------------------------------------------------
 // Access Functions
@@ -122,7 +115,7 @@ void main(void)
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
-	while(index < num_tris)
+	while(index < tri_seg_inters_index.length())
 	{
 		
 		if(tri_symedges[index].x != -1)
@@ -134,7 +127,7 @@ void main(void)
 			int point_index = -1;
 			float best_dist = FLT_MAX;
 			// Figure out which point should be the new point of this triangle
-			for(int i = 0; i < num_points; i++)
+			for(int i = 0; i < point_positions.length(); i++)
 			{
 				if(point_tri_index[i] == index)
 				{

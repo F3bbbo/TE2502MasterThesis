@@ -72,13 +72,6 @@ layout(std430, binding = 11) buffer symedge_buff
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
-layout (std140, binding = 0) uniform Sizes
-{
-	int num_tris;
-	int num_points;
-	vec2 pad;
-};
-
 
 //-----------------------------------------------------------
 // Access Functions
@@ -107,7 +100,7 @@ void main(void)
 	uint gid = gl_GlobalInvocationID.x;
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
 	int index = int(gid);
-	while(index < num_tris)
+	while(index < tri_seg_inters_index.length())
 	{
 		// If triangle has a point assigned to it add the point to it
 		int point_index = tri_ins_point_index[index];

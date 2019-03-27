@@ -63,13 +63,6 @@ namespace GPU
 		sym_edges.push_back({ 3, -1, 2, 2, 1 });
 
 		m_sym_edges.create_buffer(type, sym_edges, usage, 11, n);
-
-		// create uniform buffer to store size of other buffers
-		BufferSizes bs;
-		bs.num_points = 4;
-		bs.num_tris = 2;
-		bs.num_segs = 4;
-		m_sizes.create_uniform_buffer(bs, usage);
 	}
 
 	void GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
@@ -83,14 +76,9 @@ namespace GPU
 		m_segment_bufs.endpoint_indices.append_to_buffer(segments);
 		m_segment_bufs.inserted.append_to_buffer(std::vector<int>(segments.size(), 0));
 		// uppdating ubo containing sizes
-		auto buff_size = m_sizes.get_buffer_data<BufferSizes>();
-		buff_size.front().num_points += points.size();
+		
 		int num_new_tri = points.size() * 2;
-		buff_size.front().num_tris += num_new_tri;
 		int num_new_segs = segments.size();
-		buff_size.front().num_segs += num_new_segs;
-		// TODO, fix setting number of triangles: buff_size.front().num_tris 
-		m_sizes.update_buffer(buff_size);
 
 		// fix new sizes of triangle buffers
 		m_triangle_bufs.symedge_indices.append_to_buffer(std::vector<glm::ivec4>(num_new_tri, { -1, -1, -1, -1 }));
@@ -128,9 +116,6 @@ namespace GPU
 		m_triangle_bufs.edge_flip_index.bind_buffer();
 
 		m_sym_edges.bind_buffer();
-
-		// Bind all ubo's
-		m_sizes.bind_buffer();
 
 		int i = 0;
 		while (i < 20)
@@ -191,9 +176,6 @@ namespace GPU
 
 		m_sym_edges.unbind_buffer();
 
-		// Unbind all ubo's
-		m_sizes.unbind_buffer();
-
 		auto point_data_pos = m_point_bufs.positions.get_buffer_data<glm::vec2>();
 		auto point_data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
 		auto point_data_triangle_index = m_point_bufs.tri_index.get_buffer_data<int>();
@@ -214,9 +196,6 @@ namespace GPU
 		auto triangle_data_insert_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
 		auto triangle_data_edge_flip_index = m_triangle_bufs.edge_flip_index.get_buffer_data<int>();
 		auto triangle_data_intersecting_segment = m_triangle_bufs.seg_inters_index.get_buffer_data<int>();
-
-		// number of elements
-		auto data_size = m_sizes.get_buffer_data<BufferSizes>();
 	}
 
 	std::vector<glm::vec2> GPUMesh::get_vertices()
@@ -264,12 +243,11 @@ namespace GPU
 
 	std::vector<glm::ivec3> GPUMesh::get_faces()
 	{
-		std::vector<BufferSizes> buff_size = m_sizes.get_buffer_data<BufferSizes>();
 		std::vector<SymEdge> sym_edge_list = m_sym_edges.get_buffer_data<SymEdge>();
 		std::vector<glm::ivec4> sym_edge_tri_indices = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
 
 		std::vector<glm::ivec3> face_indices;
-		for (int i = 0; i < buff_size[0].num_tris; i++)
+		for (int i = 0; i < sym_edge_tri_indices.size(); i++)
 		{
 			glm::ivec3 s_face_i = { sym_edge_tri_indices[i].x, sym_edge_tri_indices[i].y, sym_edge_tri_indices[i].z };
 			if (s_face_i.x == -1)
@@ -284,14 +262,13 @@ namespace GPU
 	{
 		p = p - glm::vec2(2.f, 0.f);
 
-		std::vector<BufferSizes> buff_size = m_sizes.get_buffer_data<BufferSizes>();
 		std::vector<SymEdge> sym_edge_list = m_sym_edges.get_buffer_data<SymEdge>();
 		std::vector<glm::ivec4> sym_edge_tri_indices = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
 		std::vector<glm::vec2> vertex_list = m_point_bufs.positions.get_buffer_data<glm::vec2>();
 
 		int ret_val = -1;
 
-		for (int i = 0; i < buff_size[0].num_tris; i++)
+		for (int i = 0; i < sym_edge_tri_indices.size(); i++)
 		{
 			glm::ivec3 s_face_i = { sym_edge_tri_indices[i].x, sym_edge_tri_indices[i].y, sym_edge_tri_indices[i].z };
 			std::array<glm::vec2, 3> vertices;

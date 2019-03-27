@@ -102,12 +102,6 @@ SymEdge sym(SymEdge s)
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
-layout (std140, binding = 0) uniform Sizes
-{
-	int num_tris;
-	int num_points;
-	vec2 pad;
-};
 
 //-----------------------------------------------------------
 // Functions
@@ -128,7 +122,7 @@ void set_quad_edges_label(int label, SymEdge edge)
 void main(void)
 {
 	int index = int(gl_GlobalInvocationID.x);
-	if (index < num_tris && tri_edge_flip_index[index] == -1)
+	if (index < tri_seg_inters_index.length() && tri_edge_flip_index[index] == -1)
 	{	
 		SymEdge edge_sym = get_symedge(tri_symedges[index].x);
 		for (int i = 0; i < 3; i++)

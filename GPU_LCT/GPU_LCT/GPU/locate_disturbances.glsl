@@ -74,13 +74,6 @@ layout(std430, binding = 11) buffer symedge_buff
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
-layout (std140, binding = 0) uniform Sizes
-{
-	int num_tris;
-	int num_points;
-	int num_segs;
-	int pad;
-};
 
 //-----------------------------------------------------------
 // Symedge functions
@@ -282,7 +275,7 @@ int find_constraint_disturbance(int constraint, int edge_ac, bool right)
 	// Loop through points trying to find disturbance to current traversal
 	float best_dist = FLT_MAX;
 	int first_disturb = -1;
-	for(int i = 0; i < num_points; i++)
+	for(int i = 0; i < point_positions.length(); i++)
 	{
 		
 	}
@@ -298,7 +291,7 @@ void main(void)
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
-	while(index < num_tris)
+	while(index < tri_seg_inters_index.length())
 	{
 		int num_constraints;
 		int c_edge_i = -1;

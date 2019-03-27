@@ -31,7 +31,7 @@ namespace GPU
 		SegmentBuffers m_segment_bufs;
 		TriangleBuffers m_triangle_bufs;
 		Buffer m_sym_edges;
-		Buffer m_sizes;
+		//Buffer m_sizes;
 
 		// CDT shaders
 		GLuint m_location_program;
