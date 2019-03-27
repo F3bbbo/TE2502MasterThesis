@@ -168,6 +168,9 @@ namespace GPU
 
 			cont = m_status.get_buffer_data<int>()[0];
 		}
+		// TODO: remove this creation of lct
+		refine_LCT();
+		// points
 		timer.stop();
 
 		LOG(std::string("Number of iterations: ") +  std::to_string(counter));
@@ -212,6 +215,13 @@ namespace GPU
 		auto triangle_data_insert_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
 		auto triangle_data_edge_flip_index = m_triangle_bufs.edge_flip_index.get_buffer_data<int>();
 		auto triangle_data_intersecting_segment = m_triangle_bufs.seg_inters_index.get_buffer_data<int>();
+	}
+
+	void GPUMesh::refine_LCT()
+	{
+		glUseProgram(m_locate_disturbances_program);
+		glDispatchCompute((GLuint)256, 1, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
 	std::vector<glm::vec2> GPUMesh::get_vertices()
@@ -317,6 +327,8 @@ namespace GPU
 		compile_cs(m_flip_edges_part_three_program, "GPU/flipping_part_three.glsl");
 
 		// LCT
+		compile_cs(m_locate_disturbances_program, "GPU/locate_disturbances.glsl");
+
 	}
 
 	void GPUMesh::compile_cs(GLuint & program, const char * path)

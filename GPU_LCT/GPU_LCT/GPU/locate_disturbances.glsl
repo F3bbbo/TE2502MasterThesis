@@ -361,7 +361,6 @@ float is_disturbed(int constraint, int b_sym, int v_sym)
 		return -1.0f;
 
 	// 5 
-	// TODO: Loop through edges until e in dve is found such that vv' crosses edge de.
 	vec2 e = find_e_point(v_sym, v, v_prim);
 	if (!(dist_v_segment < length(v - e)))
 		return -1.0f;

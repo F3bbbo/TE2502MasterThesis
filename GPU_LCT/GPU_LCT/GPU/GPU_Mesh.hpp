@@ -15,8 +15,9 @@ namespace GPU
 	public:
 		GPUMesh(glm::ivec2 screen_res);
 		~GPUMesh();
-		void initiate_buffers(glm::vec2 scale = {1.f, 1.f});
+		void initiate_buffers(glm::vec2 scale = { 1.f, 1.f });
 		void build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
+		void refine_LCT();
 		std::vector<glm::vec2> get_vertices();
 		glm::vec2 get_vertex(int index);
 		SymEdge get_symedge(int index);
@@ -45,7 +46,7 @@ namespace GPU
 		GLuint m_flip_edges_part_three_program;
 
 		// LCT shaders
-
+		GLuint m_locate_disturbances_program;
 	};
 }
 #endif
