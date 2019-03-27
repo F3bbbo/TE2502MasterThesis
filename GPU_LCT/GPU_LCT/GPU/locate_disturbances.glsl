@@ -291,7 +291,50 @@ float local_clearance(vec2 b, vec2[2] segment)
 }
 
 
-float is_disturbed(int constraint, int b_sym, int v_sym, vec2 e)
+vec2 find_e_point(int v_sym, vec2 v, vec2 v_prim)
+{
+	vec2 e;
+	int edge = v_sym;
+	bool reverse = false;
+	while(true)
+	{
+		// Check if edge leads to finding point e
+		e = point_positions[sym_edges[nxt(edge)].vertex];
+		vec2 d = point_positions[sym_edges[prev(edge)].vertex];
+		if(line_line_test(v, v_prim, e, d))
+		{
+			return e;
+		}
+			
+		// Move to next edge
+		if(reverse)
+		{	
+			edge = crot(edge);
+			if(edge == -1)
+			{
+				break;
+			}
+		}
+		else
+		{
+			edge = rot(edge);
+			if(edge == v_sym)
+			{
+				break;
+			}
+			else if(edge == -1)
+			{
+				reverse = true;
+				edge = v_sym;
+			}
+		}
+	}
+	// should not happen, error
+	e = vec2(FLT_MAX);
+	return e;
+}
+
+float is_disturbed(int constraint, int b_sym, int v_sym)
 {
 	// 1
 	if(no_collinear_constraints(v_sym))
@@ -318,6 +361,8 @@ float is_disturbed(int constraint, int b_sym, int v_sym, vec2 e)
 		return -1.0f;
 
 	// 5 
+	// TODO: Loop through edges until e in dve is found such that vv' crosses edge de.
+	vec2 e = find_e_point(v_sym, v, v_prim);
 	if (!(dist_v_segment < length(v - e)))
 		return -1.0f;
 
@@ -439,6 +484,16 @@ int find_constraint_disturbance(int constraint, int edge_ac, bool right)
 		{
 			// TODO: Change oriented walk to start from last point instead of the constraint
 			int v_edge = oriented_walk_point(constraint, i);
+			float dist = is_disturbed(constraint, prev(edge_ac), v_edge);
+			if(dist > 0.0f)
+			{
+				if(dist < best_dist)
+				{
+					first_disturb = v_edge;
+					best_dist = dist;
+				}
+			}
+
 		}
 	}
 
@@ -474,7 +529,10 @@ void main(void)
 		}
 		else if(num_constraints == 1)
 		{
-			//
+			int right_disturb = find_constraint_disturbance(c_edge_i , c_edge_i, true);
+			int left_disturb = find_constraint_disturbance(c_edge_i , c_edge_i, false);
+
+			// TODO: add closest constraints to a buffer.
 		}
 		
 		index += num_threads;
