@@ -227,6 +227,14 @@ bool line_line_test(in vec2 s1p1 , in vec2 s1p2, in vec2 s2p1, in vec2 s2p2)
 	return (o1 != o2 && o3 != o4) ? true : false;
 }
 
+vec2[2] get_edge(int s_edge)
+{
+	vec2 edge[2];
+	edge[0] = point_positions[sym_edges[s_edge].vertex];
+	edge[1] = point_positions[sym_edges[nxt(s_edge)].vertex];
+	return edge;
+}
+
 
 float is_disturbed(int constraint, int b_sym, int v_sym, vec2 e)
 {
@@ -244,8 +252,11 @@ float is_disturbed(int constraint, int b_sym, int v_sym, vec2 e)
 		return -1.0f;
 
 	// 3
+	vec2 c_endpoints[2] = get_edge(constraint);
+	vec2 v_prim = project_point_on_line(v, c_endpoints[0], c_endpoints[1]);
+	if (!(line_line_test(v, v_prim, a, c) && line_line_test(v, v_prim, b, c)))
+			return -1.0f;
 
-	
 	return 1.0f;
 }
 
