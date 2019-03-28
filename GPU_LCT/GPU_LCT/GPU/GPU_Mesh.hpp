@@ -48,6 +48,7 @@ namespace GPU
 		// LCT shaders
 		GLuint m_locate_disturbances_program;
 		GLuint m_add_new_points_program;
+		GLuint m_insert_in_edge_program;
 	};
 }
 #endif

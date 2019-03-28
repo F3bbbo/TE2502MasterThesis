@@ -190,5 +190,8 @@
     <None Include="GPU\add_new_points.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="GPU\insert_in_edge.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

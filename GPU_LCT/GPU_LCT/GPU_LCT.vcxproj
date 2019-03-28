@@ -210,6 +210,7 @@
     <None Include="GPU\flipping_part_three.glsl" />
     <None Include="GPU\flipping_part_two.glsl" />
     <None Include="GPU\insertion_step.glsl" />
+    <None Include="GPU\insert_in_edge.glsl" />
     <None Include="GPU\locate_disturbances.glsl" />
     <None Include="GPU\location_step.glsl" />
     <None Include="GPU\location_step_triangle.glsl" />
