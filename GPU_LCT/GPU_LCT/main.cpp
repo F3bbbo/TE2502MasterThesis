@@ -9,7 +9,7 @@
 #include "TestMap.hpp"
 
 #include "GPU/GPU_Mesh.hpp"
-void lct_example(CPU::Mesh &m)
+void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 {
 	/*glm::vec2 point = { 0.4f, -0.4f };
 	LocateRes lr = m.Locate_point(point);
@@ -64,6 +64,38 @@ void lct_example(CPU::Mesh &m)
 
 	m.insert_constraint(std::move(points), 3);
 
+	// GPU
+	std::vector<glm::ivec2> segments;
+	points = {
+		{ -0.35f, 0.2f},
+	{ 0.35f, 0.2f},
+	{ 0.4f, 0.1f},
+	{ -0.4f, 0.1f}, //end
+	{ -0.1f, -0.06f },
+	{ -0.0f, -0.06f },
+	{ -0.0f, -0.4f },
+	{ -0.1f, -0.379f }, // end
+	{ 0.25f, -0.05f },
+	{ 0.15f, -0.05f },
+	{ 0.15f, -0.3f },
+	{ 0.25f, -0.3f }
+	};
+	segments = {
+		{0,1},
+	{1,2},
+	{2,3},
+	{3,0}, // end
+	{4,5},
+	{5,6},
+	{6,7},
+	{7,4}, //end
+	{8,9},
+	{9,10},
+	{10,11},
+	{11,8}
+	};
+	g_m.build_CDT(points, segments);
+
 }
 
 void test_test_map(CPU::Mesh &m)
@@ -87,13 +119,13 @@ int main()
 
 	GPU::GPUMesh g_mesh({ 1600, 800 });
 	g_mesh.initiate_buffers({ 0.5f, 0.5f });
-	g_mesh.build_CDT({ { -0.25f, -0.25f }, { -0.25f, 0.25f }, { 0.25f, 0.25f }, { 0.25f, -0.25f } }, { {0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 2} });
+	//g_mesh.build_CDT({ { -0.25f, -0.25f }, { -0.25f, 0.25f }, { 0.25f, 0.25f }, { 0.25f, -0.25f } }, { {0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 2} });
 
 
 	CPU::Mesh m;
 	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
 
-	lct_example(m);
+	lct_example(m, g_mesh);
 
 	//test_test_map(m);
 
