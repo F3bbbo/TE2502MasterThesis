@@ -11,7 +11,7 @@ struct SymEdge{
 	int edge;
 	int face;
 };
-
+uint gid;
 //-----------------------------------------------------------
 // Inputs
 //-----------------------------------------------------------
@@ -152,7 +152,7 @@ int rot(int edge)
 
 int sym(int edge)
 {
-	return nxt(rot(edge));
+	return rot(nxt(edge));
 }
 
 int prev(int edge)
@@ -169,43 +169,45 @@ int crot(int edge)
 //-----------------------------------------------------------
 // Locate disturbance functions
 //-----------------------------------------------------------
+int find_next_rot(int start, int curr, in out bool reverse)
+{	
+	int edge = curr;
+	//Move to nxt edge to check if it is a constraint
+	if(reverse) // reverse
+	{
+		edge = crot(edge);
+	}
+	else // forward
+	{
+		edge = rot(edge);
+		if(edge == start)
+		{
+			return -1;
+		}
+		else if(edge == -1)
+		{
+			reverse = true;
+			edge = start;
+			edge = crot(edge);
+		}
+	}
+	return edge;
+}
+
 int find_next_rot_constraint(int start, int curr, in out bool reverse)
 {
-	int edge = curr;
-	while(true)
+	curr = find_next_rot(start, curr, reverse);
+	while(curr!=-1)
 	{
-	
-		//Move to nxt edge to check if it is a constraint
-		if(reverse) // reverse
+		if(edge_is_constrained[sym_edges[curr].edge] != 0)
 		{
-			edge = crot(edge);
-			if(edge == -1) // if there is no more edges 
-			{
-				return -1;
-			}
+			return curr;
 		}
-		else // forward
-		{
-			edge = rot(edge);
-			if(edge == start)
-			{
-				return -1;
-			}
-			else if(edge == -1)
-			{
-				reverse = true;
-				edge = start;
-				continue;
-			}
-		}
-		//if edge is constrained set it to curr_constraint
-		if(edge_is_constrained[sym_edges[edge].edge] != 0)
-		{
-			return edge;
-		}
-
-	}		
+		curr = find_next_rot(start, curr, reverse);
+	}
+	return curr;
 }
+
 
 bool no_collinear_constraints(int v){
 	int edge;
@@ -229,15 +231,12 @@ bool no_collinear_constraints(int v){
 		edge = find_next_rot_constraint(v, curr_constraint, explore_rd);
 		while(edge != -1)
 		{
-			// check if edge is a constraint
-			if(edge_is_constrained[sym_edges[edge].edge] != 0)
+
+			//if it is a constraint check if it is collinear with curr_constraint
+			vec2 other_vec = normalize(point_positions[sym_edges[nxt(edge)].vertex] - point);
+			if(dot(curr_vec, other_vec) < - 1 + EPSILON)
 			{
-				//if it is a constraint check if it is collinear with curr_constraint
-				vec2 other_vec = normalize(point_positions[sym_edges[nxt(edge)].vertex] - point);
-				if(dot(curr_vec, other_vec) < - 1 + EPSILON)
-				{
-					return false;
-				}
+				return false;
 			}
 			// find next constraint
 			edge = find_next_rot_constraint(v, edge, explore_rd);
@@ -492,7 +491,9 @@ int find_constraint_disturbance(int constraint, int edge_ac, bool right)
 		{
 			// TODO: Change oriented walk to start from last point instead of the constraint
 			int v_edge = oriented_walk_point(constraint, i);
+			//int v_edge = constraint;
 			float dist = is_disturbed(constraint, prev(edge_ac), v_edge);
+			//float dist = -1.0f;
 			if(dist > 0.0f)
 			{
 				if(dist < best_dist)
@@ -585,7 +586,7 @@ int find_closest_constraint(vec2 a, vec2 b, vec2 c)
 {
 	float dist = FLT_MAX;
 	int ret = -1;
-	for(int i = 0; i < num_segs; i++)
+	for(int i = 0; i < seg_endpoint_indices.length() ; i++)
 	{
 		ivec2 seg_i = seg_endpoint_indices[i];
 		vec2[2] s;
@@ -608,7 +609,7 @@ int find_closest_constraint(vec2 a, vec2 b, vec2 c)
 // Each thread represents one triangle
 void main(void)
 {
-	uint gid = gl_GlobalInvocationID.x;
+	gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
 	while(index < tri_seg_inters_index.length())
@@ -638,7 +639,8 @@ void main(void)
 		else if(num_constraints == 1)
 		{
 			int right_disturb = find_constraint_disturbance(c_edge_i , c_edge_i, true);
-			int left_disturb = find_constraint_disturbance(c_edge_i , c_edge_i, false);
+			tri_ins_point_index[gid] = right_disturb;
+			//int left_disturb = find_constraint_disturbance(c_edge_i , c_edge_i, false);
 
 			// TODO: add closest constraints to a buffer.
 		}
