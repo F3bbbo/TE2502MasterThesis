@@ -345,7 +345,7 @@ vec2 find_e_point(int v_sym, vec2 v, vec2 v_prim)
 float is_disturbed(int constraint, int b_sym, int v_sym)
 {
 	// 1
-	if(no_collinear_constraints(v_sym))
+	if(!no_collinear_constraints(v_sym))
 		return -1.0f;
 
 	// 2
