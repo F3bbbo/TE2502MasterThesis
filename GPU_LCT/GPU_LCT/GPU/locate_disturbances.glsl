@@ -137,6 +137,17 @@ int get_index(SymEdge s)
 	return prev_symedge(s).nxt;
 }
 
+vec2[3] get_triangle(int index)
+{
+	vec2[3] tri;
+	ivec4 tri_index = tri_symedges[index];
+	for (int i = 0; i < 3; i++)
+	{
+		tri[i] = point_positions[sym_edges[i].vertex];
+	}
+	return tri;
+}
+
 //-----------------------------------------------------------
 // Symedge functions
 //-----------------------------------------------------------
@@ -299,7 +310,7 @@ float local_clearance(vec2 b, vec2[2] segment)
 }
 
 
-vec2 find_e_point(int v_sym, vec2 v, vec2 v_prim)
+vec2 find_e_point(in out int v_sym, vec2 v, vec2 v_prim)
 {
 	vec2 e;
 	int edge = v_sym;
@@ -311,6 +322,7 @@ vec2 find_e_point(int v_sym, vec2 v, vec2 v_prim)
 		vec2 d = point_positions[sym_edges[prev(edge)].vertex];
 		if(line_line_test(v, v_prim, e, d))
 		{
+			v_sym = edge;
 			return e;
 		}
 			
@@ -342,7 +354,7 @@ vec2 find_e_point(int v_sym, vec2 v, vec2 v_prim)
 	return e;
 }
 
-float is_disturbed(int constraint, int b_sym, int v_sym)
+float is_disturbed(int constraint, int b_sym, in out int v_sym)
 {
 	// 1
 	if(!no_collinear_constraints(v_sym))
@@ -604,6 +616,62 @@ int find_closest_constraint(vec2 a, vec2 b, vec2 c)
 		}
 	}
 	return ret;
+}
+
+vec2 circle_center_from_points(vec2 a, vec2 b, vec2 c)
+{
+	vec2 ab = b - a;
+	vec2 bc = c - b;
+
+	vec2[2] midpoints = { a + ab / 2.f, b + bc / 2.f };
+	vec2[2] normals;
+	// rotate vectors 90 degrees
+	vec3 vec = cross(vec3(ab.x, ab.y, 0.f), vec3(0.f, 0.f, 1.f));
+	normals[0] = vec2(vec.x, vec.y);
+
+	vec = cross(vec3(bc.x, bc.y, 0.f), vec3(0.f, 0.f, 1.f));
+	normals[1] = vec2(vec.x, vec.y);
+
+	return line_line_intersection_point(midpoints[0], midpoints[0] + normals[0], midpoints[1], midpoints[1] + normals[1], EPSILON);
+}
+
+vec2[2] ray_circle_intersection(vec2[2] ray, vec2 center, float r)
+{
+	// Solution
+	// https://math.stackexchange.com/questions/311921/get-location-of-vector-circle-intersection
+
+	float a = (ray[1].x - ray[0].x) * (ray[1].x - ray[0].x) + (ray[1].y - ray[0].y) * (ray[1].y - ray[0].y);
+	float b = 2.f * (ray[1].x - ray[0].x) * (ray[0].x - center.x) + 2.f * (ray[1].y - ray[0].y) * (ray[0].y - center.y);
+	float c = (ray[0].x - center.x) * (ray[0].x - center.x) + (ray[0].y - center.y) * (ray[0].y - center.y) - r * r;
+
+	float disc = b * b - 4.f * a * c;
+	vec2 result[2];
+	if (disc < 0.f)
+	{
+		for(int i = 0; i < 2; i++)
+			result[i] = vec2(FLT_MAX);
+		return result;
+	}
+	// Alternative quadratic formula for more numerical precision
+	// http://mathworld.wolfram.com/QuadraticFormula.html
+	float t[2] = { (2.f * c) / (-b + sqrt(disc)), (2.f * c) / (-b - sqrt(disc)) };
+
+	for (int i = 0; i < 2; i++)
+	{
+		if (t[i] >= 0.f && t[i] <= 1.f)
+			result[i] = (ray[0] + ((ray[1] - ray[0])* t[i]));
+	}
+	return result;
+}
+
+vec2 calculate_refinement(int c,int v_sym)
+{
+	vec2 tri[3] = get_triangle(sym_edges[v_sym].face);
+	vec2 circle_center = circle_center_from_points(tri[0], tri[1], tri[2]);
+	float radius = distance(circle_center, tri[0]);
+	vec2 constraint_edge[2] = get_edge(c);
+	vec2 inter_points[2] = ray_circle_intersection(constraint_edge, circle_center, radius);
+	return (inter_points[0] + inter_points[1]) / 2.0f;
 }
 
 // Each thread represents one triangle
