@@ -48,6 +48,7 @@ namespace GPU
 		Buffer ins_point_index;
 		Buffer seg_inters_index;
 		Buffer edge_flip_index;
+		Buffer new_points;
 	};
 
 	struct Edge
@@ -61,6 +62,13 @@ namespace GPU
 	struct Face
 	{
 		glm::ivec3 vert_i;
+	};
+
+	struct NewPoint
+	{
+		glm::vec2 pos;
+		int index = -1;
+		int pad = -1;
 	};
 }
 

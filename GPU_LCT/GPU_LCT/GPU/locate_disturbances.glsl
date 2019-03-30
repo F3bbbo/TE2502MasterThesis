@@ -11,6 +11,14 @@ struct SymEdge{
 	int edge;
 	int face;
 };
+
+struct NewPoint
+{
+	vec2 pos;
+	int index;
+	int pad;
+};
+
 uint gid;
 //-----------------------------------------------------------
 // Inputs
@@ -75,6 +83,11 @@ layout(std430, binding = 12) buffer status_buff
 {
 	int status;
 };
+layout(std430, binding = 13) buffer Tri_buff_4
+{
+	NewPoint tri_insert_points[];
+};
+
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
@@ -143,7 +156,7 @@ vec2[3] get_triangle(int index)
 	ivec4 tri_index = tri_symedges[index];
 	for (int i = 0; i < 3; i++)
 	{
-		tri[i] = point_positions[sym_edges[i].vertex];
+		tri[i] = point_positions[sym_edges[tri_index[i]].vertex];
 	}
 	return tri;
 }
@@ -671,7 +684,8 @@ vec2 calculate_refinement(int c,int v_sym)
 	float radius = distance(circle_center, tri[0]);
 	vec2 constraint_edge[2] = get_edge(c);
 	vec2 inter_points[2] = ray_circle_intersection(constraint_edge, circle_center, radius);
-	return (inter_points[0] + inter_points[1]) / 2.0f;
+	//return (inter_points[0] + inter_points[1]) / 2.0f;
+	return circle_center;
 }
 
 // Each thread represents one triangle
@@ -701,16 +715,31 @@ void main(void)
 			// to each traversal.
 			for(int i = 0; i < 3; i++)
 			{
-
+				
 			}
 		}
 		else if(num_constraints == 1)
 		{
-			int right_disturb = find_constraint_disturbance(c_edge_i , c_edge_i, true);
-			tri_ins_point_index[gid] = right_disturb;
-			//int left_disturb = find_constraint_disturbance(c_edge_i , c_edge_i, false);
-
+			int disturb = find_constraint_disturbance(c_edge_i , c_edge_i, true);
+			if(disturb <= -1)
+			{
+				disturb = find_constraint_disturbance(c_edge_i , c_edge_i, false);
+			}
 			// TODO: add closest constraints to a buffer.
+			NewPoint tmp;
+			if(disturb >= 0)
+			{
+				tmp.pos = calculate_refinement(c_edge_i, disturb);
+				//tmp.pos = get_triangle(sym_edges[disturb].face)[0];
+				tmp.index = atomicAdd(status, 1);
+				tmp.pad = sym_edges[disturb].face;
+				tri_insert_points[gid] = tmp;
+//				tmp.pos = get_triangle(sym_edges[disturb].face)[1];
+//				tri_insert_points[gid+1] = tmp;
+//				tmp.pos = get_triangle(sym_edges[disturb].face)[2];
+//				tri_insert_points[gid+2] = tmp;
+			}
+
 		}
 		
 		index += num_threads;

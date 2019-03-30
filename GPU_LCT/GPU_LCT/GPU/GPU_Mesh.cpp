@@ -48,6 +48,7 @@ namespace GPU
 		m_triangle_bufs.ins_point_index.create_buffer(type, std::vector<int>(2, -1), usage, 8, n);
 		m_triangle_bufs.seg_inters_index.create_buffer(type, std::vector<int>(2, -1), usage, 9, n);
 		m_triangle_bufs.edge_flip_index.create_buffer(type, std::vector<int>(2, -1), usage, 10, n);
+		m_triangle_bufs.new_points.create_buffer(type, std::vector<NewPoint>(2), usage, 13, n);
 
 		// Separate sym edge list
 		std::vector<SymEdge> sym_edges;
@@ -78,7 +79,7 @@ namespace GPU
 		m_segment_bufs.endpoint_indices.append_to_buffer(segments);
 		m_segment_bufs.inserted.append_to_buffer(std::vector<int>(segments.size(), 0));
 		// uppdating ubo containing sizes
-		
+
 		int num_new_tri = points.size() * 2;
 		int num_new_segs = segments.size();
 
@@ -87,6 +88,7 @@ namespace GPU
 		m_triangle_bufs.ins_point_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
 		m_triangle_bufs.edge_flip_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
 		m_triangle_bufs.seg_inters_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
+		m_triangle_bufs.new_points.append_to_buffer(std::vector<NewPoint>(num_new_tri));
 
 		// fix new sizes of edge buffers 
 		// TODO: fix so it can handle repeated insertions
@@ -114,6 +116,7 @@ namespace GPU
 		m_triangle_bufs.ins_point_index.bind_buffer();
 		m_triangle_bufs.seg_inters_index.bind_buffer();
 		m_triangle_bufs.edge_flip_index.bind_buffer();
+		m_triangle_bufs.new_points.bind_buffer();
 
 		m_sym_edges.bind_buffer();
 
@@ -128,7 +131,7 @@ namespace GPU
 		while (cont)
 		{
 			counter++;
-			m_status.update_buffer<int>({0});
+			m_status.update_buffer<int>({ 0 });
 
 			// Locate Step
 			glUseProgram(m_location_program);
@@ -173,8 +176,8 @@ namespace GPU
 		// points
 		timer.stop();
 
-		LOG(std::string("Number of iterations: ") +  std::to_string(counter));
-		LOG(std::string("Elapsed time in ms: ") +  std::to_string(timer.elapsed_time()));
+		LOG(std::string("Number of iterations: ") + std::to_string(counter));
+		LOG(std::string("Elapsed time in ms: ") + std::to_string(timer.elapsed_time()));
 
 		m_point_bufs.positions.unbind_buffer();
 		m_point_bufs.inserted.unbind_buffer();
@@ -190,6 +193,7 @@ namespace GPU
 		m_triangle_bufs.ins_point_index.unbind_buffer();
 		m_triangle_bufs.seg_inters_index.unbind_buffer();
 		m_triangle_bufs.edge_flip_index.unbind_buffer();
+		m_triangle_bufs.new_points.unbind_buffer();
 
 		m_sym_edges.unbind_buffer();
 
@@ -215,6 +219,9 @@ namespace GPU
 		auto triangle_data_insert_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
 		auto triangle_data_edge_flip_index = m_triangle_bufs.edge_flip_index.get_buffer_data<int>();
 		auto triangle_data_intersecting_segment = m_triangle_bufs.seg_inters_index.get_buffer_data<int>();
+		auto triangle_data_new_points = m_triangle_bufs.new_points.get_buffer_data<NewPoint>();
+
+		auto status_data = m_status.get_buffer_data<int>();
 	}
 
 	void GPUMesh::refine_LCT()
