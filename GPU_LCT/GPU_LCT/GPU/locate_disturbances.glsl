@@ -684,8 +684,7 @@ vec2 calculate_refinement(int c,int v_sym)
 	float radius = distance(circle_center, tri[0]);
 	vec2 constraint_edge[2] = get_edge(c);
 	vec2 inter_points[2] = ray_circle_intersection(constraint_edge, circle_center, radius);
-	//return (inter_points[0] + inter_points[1]) / 2.0f;
-	return circle_center;
+	return (inter_points[0] + inter_points[1]) / 2.0f;
 }
 
 // Each thread represents one triangle
