@@ -226,9 +226,33 @@ namespace GPU
 
 	void GPUMesh::refine_LCT()
 	{
+		// Locate disturbances
 		glUseProgram(m_locate_disturbances_program);
 		glDispatchCompute((GLuint)256, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+		// Check how many new points are going to get inserted
+		auto status = m_status.get_buffer_data<int>();
+		if (status.front() > 0)
+		{
+			// increase sizes of arrays, 
+			// based on how many new points are inserted
+			m_point_bufs.positions.append_to_buffer(std::vector<glm::vec2>(status.front()));
+			m_point_bufs.inserted.append_to_buffer(std::vector<int>(status.front()));
+			m_point_bufs.tri_index.append_to_buffer(std::vector<int>(status.front()));
+			// then rebind the buffers that has been changed
+			m_point_bufs.positions.bind_buffer();
+			m_point_bufs.inserted.bind_buffer();
+			m_point_bufs.tri_index.bind_buffer();
+		}
+		else
+		{
+			// TODO break from LCT because done
+		}
+
+		glUseProgram(m_add_new_points_program);
+		glDispatchCompute((GLuint)256, 1, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
 	}
 
 	std::vector<glm::vec2> GPUMesh::get_vertices()
@@ -335,7 +359,7 @@ namespace GPU
 
 		// LCT
 		compile_cs(m_locate_disturbances_program, "GPU/locate_disturbances.glsl");
-
+		compile_cs(m_add_new_points_program, "GPU/add_new_points.glsl");
 	}
 
 	void GPUMesh::compile_cs(GLuint & program, const char * path)

@@ -187,5 +187,8 @@
     <None Include="GPU\locate_disturbances.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="GPU\add_new_points.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

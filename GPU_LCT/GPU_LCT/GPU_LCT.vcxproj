@@ -205,6 +205,7 @@
     <None Include="debug_delaunay_vertex_shader.glsl" />
     <None Include="debug_fragment_shader.glsl" />
     <None Include="debug_vertex_shader.glsl" />
+    <None Include="GPU\add_new_points.glsl" />
     <None Include="GPU\flipping_part_one.glsl" />
     <None Include="GPU\flipping_part_three.glsl" />
     <None Include="GPU\flipping_part_two.glsl" />
