@@ -33,6 +33,7 @@ namespace GPU
 		SegmentBuffers m_segment_bufs;
 		TriangleBuffers m_triangle_bufs;
 		Buffer m_sym_edges;
+		Buffer m_nr_of_symedges;
 		Buffer m_status;
 
 		// CDT shaders

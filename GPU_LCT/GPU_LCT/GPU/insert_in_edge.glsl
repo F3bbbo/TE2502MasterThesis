@@ -78,7 +78,10 @@ layout(std430, binding = 12) buffer status_buff
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
-
+layout (std140, binding = 0) uniform symedge_size
+{
+	int symedge_buffer_size;
+};
 //-----------------------------------------------------------
 // Access Functions
 //-----------------------------------------------------------
@@ -183,12 +186,12 @@ void main(void)
 		ivec2 segment_symedges = ivec2(get_index(segment), nxt(segment).rot);
 		int new_symedges[6];
 
-		new_symedges[0] = 36 - 6 * (point_positions.length() - point_index);
-		new_symedges[1] = 36 - 6 * (point_positions.length() - point_index) + 1;
-		new_symedges[2] = 36 - 6 * (point_positions.length() - point_index) + 2;
-		new_symedges[3] = 36 - 6 * (point_positions.length() - point_index) + 3;
-		new_symedges[4] = 36 - 6 * (point_positions.length() - point_index) + 4;
-		new_symedges[5] = 36 - 6 * (point_positions.length() - point_index) + 5;
+		new_symedges[0] = symedge_buffer_size - 6 * (point_positions.length() - point_index);
+		new_symedges[1] = symedge_buffer_size - 6 * (point_positions.length() - point_index) + 1;
+		new_symedges[2] = symedge_buffer_size - 6 * (point_positions.length() - point_index) + 2;
+		new_symedges[3] = symedge_buffer_size - 6 * (point_positions.length() - point_index) + 3;
+		new_symedges[4] = symedge_buffer_size - 6 * (point_positions.length() - point_index) + 4;
+		new_symedges[5] = symedge_buffer_size - 6 * (point_positions.length() - point_index) + 5;
 
 		int t0 = get_symedge(segment_symedges[0]).face;
 		int t1 = tri_seg_inters_index.length() - 2 * (point_positions.length() - point_index);

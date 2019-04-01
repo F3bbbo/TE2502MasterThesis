@@ -65,6 +65,8 @@ namespace GPU
 
 		m_sym_edges.create_buffer(type, sym_edges, usage, 11, n);
 
+		m_nr_of_symedges.create_uniform_buffer<int>({ m_sym_edges.element_count() }, usage);
+
 		m_status.create_buffer(type, std::vector<int>(1, 1), GL_DYNAMIC_DRAW, 12, 1);
 	}
 
@@ -101,6 +103,8 @@ namespace GPU
 		m_sym_edges.append_to_buffer(std::vector<SymEdge>(num_new_sym_edges));
 		// TODO, maybe need to check if triangle buffers needs to grow
 
+		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
+
 		// Bind all ssbo's
 		m_point_bufs.positions.bind_buffer();
 		m_point_bufs.inserted.bind_buffer();
@@ -119,6 +123,7 @@ namespace GPU
 		m_triangle_bufs.new_points.bind_buffer();
 
 		m_sym_edges.bind_buffer();
+		m_nr_of_symedges.bind_buffer();
 
 		m_status.bind_buffer();
 
@@ -195,6 +200,8 @@ namespace GPU
 		num_new_sym_edges = p.size() * 6;
 		m_sym_edges.append_to_buffer(std::vector<SymEdge>(num_new_sym_edges));
 
+		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
+
 		num_new_edges = p.size() * 3;
 		m_edge_bufs.is_constrained.append_to_buffer(std::vector<int>(num_new_edges, 0));
 		m_edge_bufs.label.append_to_buffer(std::vector<int>(num_new_edges, -1));
@@ -218,6 +225,7 @@ namespace GPU
 		m_triangle_bufs.seg_inters_index.bind_buffer();
 
 		m_sym_edges.bind_buffer();
+		m_nr_of_symedges.bind_buffer();
 
 		m_triangle_bufs.ins_point_index.update_buffer<int>({ -1, -1, -1, -1, -1, m_point_bufs.inserted.element_count() - 1, -1, -1, -1, -1, -1, -1});
 		
