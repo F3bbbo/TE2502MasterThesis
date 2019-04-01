@@ -57,7 +57,7 @@ void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 
 	points = {
 		{ 0.25f, -0.05f },
-	{ 0.15f, -0.05f },
+	{ 0.15f, -0.049f },
 	{ 0.15f, -0.3f },
 	{ 0.25f, -0.3f },
 	{ 0.25f, -0.05f } };
@@ -76,7 +76,7 @@ void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 	{ -0.0f, -0.4f },
 	{ -0.1f, -0.379f }, // end
 	{ 0.25f, -0.05f },
-	{ 0.15f, -0.05f },
+	{ 0.15f, -0.049f },
 	{ 0.15f, -0.3f },
 	{ 0.25f, -0.3f }
 	};
