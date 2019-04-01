@@ -648,14 +648,14 @@ vec2 circle_center_from_points(vec2 a, vec2 b, vec2 c)
 	return line_line_intersection_point(midpoints[0], midpoints[0] + normals[0], midpoints[1], midpoints[1] + normals[1], EPSILON);
 }
 
-vec2[2] ray_circle_intersection(vec2[2] ray, vec2 center, float r)
+vec2[2] ray_circle_intersection(in vec2[2] ray, vec2 center, float r, out int num_hits)
 {
 	// Solution
 	// https://math.stackexchange.com/questions/311921/get-location-of-vector-circle-intersection
-
 	float a = (ray[1].x - ray[0].x) * (ray[1].x - ray[0].x) + (ray[1].y - ray[0].y) * (ray[1].y - ray[0].y);
 	float b = 2.f * (ray[1].x - ray[0].x) * (ray[0].x - center.x) + 2.f * (ray[1].y - ray[0].y) * (ray[0].y - center.y);
 	float c = (ray[0].x - center.x) * (ray[0].x - center.x) + (ray[0].y - center.y) * (ray[0].y - center.y) - r * r;
+	num_hits = 0;
 
 	float disc = b * b - 4.f * a * c;
 	vec2 result[2];
@@ -667,12 +667,18 @@ vec2[2] ray_circle_intersection(vec2[2] ray, vec2 center, float r)
 	}
 	// Alternative quadratic formula for more numerical precision
 	// http://mathworld.wolfram.com/QuadraticFormula.html
-	float t[2] = { (2.f * c) / (-b + sqrt(disc)), (2.f * c) / (-b - sqrt(disc)) };
+	float t[2];
+
+	t[0] = (2.f * c) / (-b + sqrt(disc));
+	t[1] = (2.f * c) / (-b - sqrt(disc));
 
 	for (int i = 0; i < 2; i++)
 	{
-		if (t[i] >= 0.f && t[i] <= 1.f)
+		if (t[i] >= (0.f - EPSILON) && t[i] <= (1.f + EPSILON))
+		{
 			result[i] = (ray[0] + ((ray[1] - ray[0])* t[i]));
+			num_hits++;
+		}
 	}
 	return result;
 }
@@ -683,8 +689,21 @@ vec2 calculate_refinement(int c,int v_sym)
 	vec2 circle_center = circle_center_from_points(tri[0], tri[1], tri[2]);
 	float radius = distance(circle_center, tri[0]);
 	vec2 constraint_edge[2] = get_edge(c);
-	vec2 inter_points[2] = ray_circle_intersection(constraint_edge, circle_center, radius);
-	return (inter_points[0] + inter_points[1]) / 2.0f;
+	int num_hits;
+	//vec2 inter_points[2] = ray_circle_intersection(constraint_edge, circle_center, radius, num_hits);
+	vec2 inter_points[2] = ray_circle_intersection(constraint_edge, vec2(0.044f, 0.41f), 0.47205, num_hits);
+	if(num_hits == 0)
+	{
+		return vec2(FLT_MAX);
+	}
+	else if(num_hits == 1)
+	{
+		return inter_points[0];
+	}
+	else
+	{
+		return (inter_points[0] + inter_points[1]) / 2.0f;
+	}
 }
 
 // Each thread represents one triangle
@@ -731,7 +750,7 @@ void main(void)
 				tmp.pos = calculate_refinement(c_edge_i, disturb);
 				//tmp.pos = get_triangle(sym_edges[disturb].face)[0];
 				tmp.index = atomicAdd(status, 1);
-				tmp.pad = sym_edges[disturb].face;
+				tmp.pad = sym_edges[disturb].edge;
 				tri_insert_points[gid] = tmp;
 //				tmp.pos = get_triangle(sym_edges[disturb].face)[1];
 //				tri_insert_points[gid+1] = tmp;
