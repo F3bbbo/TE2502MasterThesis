@@ -179,7 +179,7 @@ namespace GPU
 		LOG(std::string("Number of iterations: ") + std::to_string(counter));
 		LOG(std::string("Elapsed time in ms: ") + std::to_string(timer.elapsed_time()));
 
-		std::vector<glm::vec2> p = { { 0.f, 0.25f } };
+		std::vector<glm::vec2> p = { { 0.f, 0.5f } };
 
 		m_point_bufs.positions.append_to_buffer(p);
 		m_point_bufs.inserted.append_to_buffer(std::vector<int>(p.size(), 0));
@@ -219,6 +219,8 @@ namespace GPU
 
 		m_sym_edges.bind_buffer();
 
+		m_triangle_bufs.ins_point_index.update_buffer<int>({ -1, -1, -1, -1, -1, m_point_bufs.inserted.element_count() - 1, -1, -1, -1, -1, -1, -1});
+		
 		glUseProgram(m_insert_in_edge_program);
 		glDispatchCompute((GLuint)256, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
