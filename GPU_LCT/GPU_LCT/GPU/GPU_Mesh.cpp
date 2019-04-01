@@ -184,74 +184,9 @@ namespace GPU
 		LOG(std::string("Number of iterations: ") + std::to_string(counter));
 		LOG(std::string("Elapsed time in ms: ") + std::to_string(timer.elapsed_time()));
 
-		std::vector<glm::vec2> p = { { 0.f, 0.5f } };
-
-		m_point_bufs.positions.append_to_buffer(p);
-		m_point_bufs.inserted.append_to_buffer(std::vector<int>(p.size(), 0));
-		m_point_bufs.tri_index.append_to_buffer(std::vector<int>(p.size(), 0));
-
-		num_new_tri = p.size() * 2;
-
-		m_triangle_bufs.symedge_indices.append_to_buffer(std::vector<glm::ivec4>(num_new_tri, { -1, -1, -1, -1 }));
-		m_triangle_bufs.ins_point_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
-		m_triangle_bufs.edge_flip_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
-		m_triangle_bufs.seg_inters_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
-
-		num_new_sym_edges = p.size() * 6;
-		m_sym_edges.append_to_buffer(std::vector<SymEdge>(num_new_sym_edges));
-
-		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
-
-		num_new_edges = p.size() * 3;
-		m_edge_bufs.is_constrained.append_to_buffer(std::vector<int>(num_new_edges, 0));
-		m_edge_bufs.label.append_to_buffer(std::vector<int>(num_new_edges, -1));
-
-		m_segment_bufs.endpoint_indices.append_to_buffer<glm::ivec2>({ {-1, -1} });
-		m_segment_bufs.inserted.append_to_buffer(std::vector<int>(1, 0));
-
-		m_point_bufs.positions.bind_buffer();
-		m_point_bufs.inserted.bind_buffer();
-		m_point_bufs.tri_index.bind_buffer();
-
-		m_edge_bufs.is_constrained.bind_buffer();
-		m_edge_bufs.label.bind_buffer();
-
-		m_segment_bufs.endpoint_indices.bind_buffer();
-		m_segment_bufs.inserted.bind_buffer();
-
-		m_triangle_bufs.symedge_indices.bind_buffer();
-		m_triangle_bufs.ins_point_index.bind_buffer();
-		m_triangle_bufs.edge_flip_index.bind_buffer();
-		m_triangle_bufs.seg_inters_index.bind_buffer();
-
-		m_sym_edges.bind_buffer();
-		m_nr_of_symedges.bind_buffer();
-
-		m_triangle_bufs.ins_point_index.update_buffer<int>({ -1, -1, -1, -1, -1, m_point_bufs.inserted.element_count() - 1, -1, -1, -1, -1, -1, -1});
-		
-		glUseProgram(m_insert_in_edge_program);
+		/*glUseProgram(m_insert_in_edge_program);
 		glDispatchCompute((GLuint)256, 1, 1);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-		m_point_bufs.positions.unbind_buffer();
-		m_point_bufs.inserted.unbind_buffer();
-		m_point_bufs.tri_index.unbind_buffer();
-
-		m_edge_bufs.label.unbind_buffer();
-		m_edge_bufs.is_constrained.unbind_buffer();
-
-		m_segment_bufs.endpoint_indices.unbind_buffer();
-		m_segment_bufs.inserted.unbind_buffer();
-
-		m_triangle_bufs.symedge_indices.unbind_buffer();
-		m_triangle_bufs.ins_point_index.unbind_buffer();
-		m_triangle_bufs.seg_inters_index.unbind_buffer();
-		m_triangle_bufs.edge_flip_index.unbind_buffer();
-		m_triangle_bufs.new_points.unbind_buffer();
-
-		m_sym_edges.unbind_buffer();
-
-		m_status.unbind_buffer();
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);*/
 
 		auto point_data_pos = m_point_bufs.positions.get_buffer_data<glm::vec2>();
 		auto point_data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
