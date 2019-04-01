@@ -87,6 +87,11 @@ layout(std430, binding = 13) buffer Tri_buff_4
 {
 	NewPoint tri_insert_points[];
 };
+//-----------------------------------------------------------
+// Declare precision
+//-----------------------------------------------------------
+
+precision highp float;
 
 //-----------------------------------------------------------
 // Uniforms
@@ -648,17 +653,19 @@ vec2 circle_center_from_points(vec2 a, vec2 b, vec2 c)
 	return line_line_intersection_point(midpoints[0], midpoints[0] + normals[0], midpoints[1], midpoints[1] + normals[1], EPSILON);
 }
 
-vec2[2] ray_circle_intersection(in vec2[2] ray, vec2 center, float r, out int num_hits)
+vec2[2] line_circle_intersection(in vec2 ray0, in vec2 ray1, in vec2 center, in double r, out int num_hits)
 {
 	// Solution
 	// https://math.stackexchange.com/questions/311921/get-location-of-vector-circle-intersection
-	float a = (ray[1].x - ray[0].x) * (ray[1].x - ray[0].x) + (ray[1].y - ray[0].y) * (ray[1].y - ray[0].y);
-	float b = 2.f * (ray[1].x - ray[0].x) * (ray[0].x - center.x) + 2.f * (ray[1].y - ray[0].y) * (ray[0].y - center.y);
-	float c = (ray[0].x - center.x) * (ray[0].x - center.x) + (ray[0].y - center.y) * (ray[0].y - center.y) - r * r;
+	double a = (ray1.x - ray0.x) * (ray1.x - ray0.x) + (ray1.y - ray0.y) * (ray1.y - ray0.y);
+	double b = 2.f * (ray1.x - ray0.x) * (ray0.x - center.x) + 2.f * (ray1.y - ray0.y) * (ray0.y - center.y);
+	double c = (ray0.x - center.x) * (ray0.x - center.x) + (ray0.y - center.y) * (ray0.y - center.y) - r * r;
 	num_hits = 0;
 
-	float disc = b * b - 4.f * a * c;
+
+	double disc = b * b - 4.f * a * c;
 	vec2 result[2];
+
 	if (disc < 0.f)
 	{
 		for(int i = 0; i < 2; i++)
@@ -667,42 +674,68 @@ vec2[2] ray_circle_intersection(in vec2[2] ray, vec2 center, float r, out int nu
 	}
 	// Alternative quadratic formula for more numerical precision
 	// http://mathworld.wolfram.com/QuadraticFormula.html
-	float t[2];
+	double t[2];
+	double disc_sqrt = sqrt(disc);
+	t[0] = (2.f * c) / (-b + disc_sqrt);
+	t[1] = (2.f * c) / (-b - disc_sqrt);
 
-	t[0] = (2.f * c) / (-b + sqrt(disc));
-	t[1] = (2.f * c) / (-b - sqrt(disc));
+//	result[0] = vec2(a,b);
+//	result[1] = vec2(c, disc_sqrt);
+//	return result; 
 
 	for (int i = 0; i < 2; i++)
 	{
-		if (t[i] >= (0.f - EPSILON) && t[i] <= (1.f + EPSILON))
+		if (t[i] >= (0.0 - EPSILON) && t[i] <= (1.0 + EPSILON))
 		{
-			result[i] = (ray[0] + ((ray[1] - ray[0])* t[i]));
+			result[i] = (ray0 + ((ray1 - ray0)* float(t[i])));
 			num_hits++;
 		}
 	}
 	return result;
 }
 
-vec2 calculate_refinement(int c,int v_sym)
+vec2[2] ray_circle_intersection(in vec2 ray0, in vec2 ray1, in vec2 center, in float r, out bool hit)
+{
+	vec2[2] result;
+	vec2 dir = normalize(ray1 - ray0);
+	vec2 l = center - ray0;
+	float s = dot(l, dir);
+	float l_2 = dot(l, l); 
+	float m_2 = l_2 - (s * s); 
+	float r_2 = (r*r);
+	if(m_2 > r_2)
+	{	
+		hit = false;
+		return result;
+	}
+	float q = sqrt(r_2 - m_2);
+
+	float t[2];
+	t[0] = s - q;
+	t[1] = s + q;
+
+	for(int i = 0; i < 2; i++)
+	{
+		result[i] = ray0 + dir * t[i];
+	}
+	hit = true;
+	return result;
+}
+
+vec2 calculate_refinement(int c,int v_sym, out bool success)
 {
 	vec2 tri[3] = get_triangle(sym_edges[v_sym].face);
 	vec2 circle_center = circle_center_from_points(tri[0], tri[1], tri[2]);
 	float radius = distance(circle_center, tri[0]);
 	vec2 constraint_edge[2] = get_edge(c);
-	int num_hits;
-	//vec2 inter_points[2] = ray_circle_intersection(constraint_edge, circle_center, radius, num_hits);
-	vec2 inter_points[2] = ray_circle_intersection(constraint_edge, vec2(0.044f, 0.41f), 0.47205, num_hits);
-	if(num_hits == 0)
+	vec2 inter_points[2] = ray_circle_intersection(constraint_edge[1], constraint_edge[0], circle_center, radius, success);
+	if(success)
 	{
-		return vec2(FLT_MAX);
-	}
-	else if(num_hits == 1)
-	{
-		return inter_points[0];
+		return (inter_points[0] + inter_points[1]) / 2.0f;
 	}
 	else
 	{
-		return (inter_points[0] + inter_points[1]) / 2.0f;
+		return vec2(0.0f);
 	}
 }
 
@@ -747,15 +780,20 @@ void main(void)
 			NewPoint tmp;
 			if(disturb >= 0)
 			{
-				tmp.pos = calculate_refinement(c_edge_i, disturb);
-				//tmp.pos = get_triangle(sym_edges[disturb].face)[0];
-				tmp.index = atomicAdd(status, 1);
-				tmp.pad = sym_edges[disturb].edge;
-				tri_insert_points[gid] = tmp;
-//				tmp.pos = get_triangle(sym_edges[disturb].face)[1];
-//				tri_insert_points[gid+1] = tmp;
-//				tmp.pos = get_triangle(sym_edges[disturb].face)[2];
-//				tri_insert_points[gid+2] = tmp;
+				bool success;
+				vec2 calc_pos = calculate_refinement(c_edge_i, disturb, success);
+				if(success)
+				{
+					tmp.pos = calc_pos;
+					//tmp.pos = get_triangle(sym_edges[disturb].face)[0];
+					tmp.index = atomicAdd(status, 1);
+					tmp.pad = sym_edges[disturb].edge;
+					tri_insert_points[gid] = tmp;
+	//				tmp.pos = get_triangle(sym_edges[disturb].face)[1];
+	//				tri_insert_points[gid+1] = tmp;
+	//				tmp.pos = get_triangle(sym_edges[disturb].face)[2];
+	//				tri_insert_points[gid+2] = tmp;
+				}	
 			}
 
 		}
