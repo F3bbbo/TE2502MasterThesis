@@ -50,6 +50,7 @@ namespace GPU
 		GLuint m_locate_disturbances_program;
 		GLuint m_add_new_points_program;
 		GLuint m_insert_in_edge_program;
+		GLuint m_locate_point_triangle_program;
 	};
 }
 #endif

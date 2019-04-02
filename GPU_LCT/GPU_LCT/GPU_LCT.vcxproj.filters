@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -39,6 +39,12 @@
     </Filter>
     <Filter Include="Source Files\Test">
       <UniqueIdentifier>{69a40468-67da-42a7-b9e2-cb8b2d2b6443}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shaders\CDT">
+      <UniqueIdentifier>{e8842836-1c5f-4eb2-a3bb-2837d09d73cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shaders\Debug">
+      <UniqueIdentifier>{da04e863-847e-4123-81f7-32c6e3f2e069}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -148,46 +154,52 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="debug_vertex_shader.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="debug_fragment_shader.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="debug_delaunay_vertex_shader.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="debug_delaunay_fragment_shader.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="GPU\location_step.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="GPU\location_step_triangle.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="GPU\insertion_step.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="GPU\marking_step_part_two.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="GPU\marking_step_part_one.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="GPU\flipping_part_one.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="GPU\flipping_part_two.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="GPU\flipping_part_three.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
     <None Include="GPU\locate_disturbances.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
     <None Include="GPU\add_new_points.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="GPU\insert_in_edge.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="GPU\flipping_part_one.glsl">
+      <Filter>Resource Files\Shaders\CDT</Filter>
+    </None>
+    <None Include="GPU\flipping_part_three.glsl">
+      <Filter>Resource Files\Shaders\CDT</Filter>
+    </None>
+    <None Include="GPU\flipping_part_two.glsl">
+      <Filter>Resource Files\Shaders\CDT</Filter>
+    </None>
+    <None Include="GPU\location_step.glsl">
+      <Filter>Resource Files\Shaders\CDT</Filter>
+    </None>
+    <None Include="GPU\location_step_triangle.glsl">
+      <Filter>Resource Files\Shaders\CDT</Filter>
+    </None>
+    <None Include="GPU\marking_step_part_one.glsl">
+      <Filter>Resource Files\Shaders\CDT</Filter>
+    </None>
+    <None Include="GPU\marking_step_part_two.glsl">
+      <Filter>Resource Files\Shaders\CDT</Filter>
+    </None>
+    <None Include="GPU\insertion_step.glsl">
+      <Filter>Resource Files\Shaders\CDT</Filter>
+    </None>
+    <None Include="debug_delaunay_fragment_shader.glsl">
+      <Filter>Resource Files\Shaders\Debug</Filter>
+    </None>
+    <None Include="debug_delaunay_vertex_shader.glsl">
+      <Filter>Resource Files\Shaders\Debug</Filter>
+    </None>
+    <None Include="debug_fragment_shader.glsl">
+      <Filter>Resource Files\Shaders\Debug</Filter>
+    </None>
+    <None Include="debug_vertex_shader.glsl">
+      <Filter>Resource Files\Shaders\Debug</Filter>
+    </None>
+    <None Include="GPU\locate_point_triangle.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
     <None Include="GPU\insert_in_edge.glsl">
