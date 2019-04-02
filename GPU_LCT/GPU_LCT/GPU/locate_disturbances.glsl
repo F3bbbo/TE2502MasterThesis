@@ -1,6 +1,6 @@
 #version 430
 #define FLT_MAX 3.402823466e+38
-#define EPSILON 0.00005f
+#define EPSILON 0.0005f
 layout(local_size_x = 1, local_size_y= 1) in;
 
 struct SymEdge{
@@ -198,7 +198,7 @@ int crot(int edge)
 //-----------------------------------------------------------
 // Locate disturbance functions
 //-----------------------------------------------------------
-int find_next_rot(int start, int curr, in out bool reverse)
+int find_next_rot(in int start, in int curr, in out bool reverse)
 {	
 	int edge = curr;
 	//Move to nxt edge to check if it is a constraint
@@ -223,7 +223,7 @@ int find_next_rot(int start, int curr, in out bool reverse)
 	return edge;
 }
 
-int find_next_rot_constraint(int start, int curr, in out bool reverse)
+int find_next_rot_constraint(in int start, in int curr, in out bool reverse)
 {
 	curr = find_next_rot(start, curr, reverse);
 	while(curr!=-1)
@@ -238,7 +238,7 @@ int find_next_rot_constraint(int start, int curr, in out bool reverse)
 }
 
 
-bool no_collinear_constraints(int v){
+bool no_collinear_constraints(in int v){
 	int edge;
 	bool reverse = false;
 	int curr_constraint = v;
@@ -277,14 +277,14 @@ bool no_collinear_constraints(int v){
 	return true;
 }
 
-vec2 project_point_on_line(vec2 point, vec2 a, vec2 b)
+vec2 project_point_on_line(in vec2 point, in vec2 a, in vec2 b)
 {
 	vec2 ab = b - a;
 	vec2 ap = point - a;
 	return a + dot(ap, ab) / dot(ab, ab) * ab;
 }
 
-bool is_orthogonally_projectable(vec2 v, vec2 a, vec2 b)
+bool is_orthogonally_projectable(in vec2 v, in vec2 a, in vec2 b)
 {
 	vec2 line = b - a;
 	vec2 projected_point = project_point_on_line(v, a, b);
@@ -321,14 +321,14 @@ vec2[2] get_edge(int s_edge)
 	return edge;
 }
 
-float local_clearance(vec2 b, vec2[2] segment)
+float local_clearance(in vec2 b, in vec2[2] segment)
 {
 	vec2 b_prim = project_point_on_line(b, segment[0], segment[1]);
 	return length(b - b_prim);
 }
 
 
-vec2 find_e_point(in out int v_sym, vec2 v, vec2 v_prim)
+vec2 find_e_point(in out int v_sym, in vec2 v, in vec2 v_prim)
 {
 	vec2 e;
 	int edge = v_sym;
@@ -372,7 +372,7 @@ vec2 find_e_point(in out int v_sym, vec2 v, vec2 v_prim)
 	return e;
 }
 
-float is_disturbed(int constraint, int b_sym, in out int v_sym)
+float is_disturbed(in int constraint,in int b_sym, in out int v_sym)
 {
 	// 1
 	if(!no_collinear_constraints(v_sym))
@@ -446,7 +446,7 @@ int get_face_vertex_symedge(int face, int vertex)
 		return -1;
 }
 
-int oriented_walk_point(int curr_e, int goal_point_i)
+int oriented_walk_point(in int curr_e, in int goal_point_i)
 {
 	vec2 tri_cent;
 	vec2 goal_point = get_vertex(goal_point_i);
@@ -488,7 +488,7 @@ int oriented_walk_point(int curr_e, int goal_point_i)
 
 
 
-int find_constraint_disturbance(int constraint, int edge_ac, bool right)
+int find_constraint_disturbance(in int constraint, in int edge_ac, in bool right)
 {
 	vec2 R[3];
 	vec2 a;
@@ -538,7 +538,7 @@ int find_constraint_disturbance(int constraint, int edge_ac, bool right)
 
 	return first_disturb;
 }
-vec2 line_line_intersection_point(vec2 a, vec2 b, vec2 c, vec2 d, float epsi)
+vec2 line_line_intersection_point(in vec2 a, in vec2 b, in vec2 c, in vec2 d, in float epsi)
 {
 	// Line AB represented as a1x + b1y = c1 
 	float a1 = b.y - a.y;
@@ -550,23 +550,25 @@ vec2 line_line_intersection_point(vec2 a, vec2 b, vec2 c, vec2 d, float epsi)
 	float b2 = c.x - d.x;
 	float c2 = a2 * (c.x) + b2 * (c.y);
 
-	float determinant = a1 * b2 - a2 * b1;
-
-	if ( abs(determinant) < epsi )
-	{
-		// The lines are parallel. This is simplified 
-		// by returning a pair of FLT_MAX 
-		return vec2(FLT_MAX, FLT_MAX);
-	}
-	else
-	{
-		float x = (b2 * c1 - b1 * c2) / determinant;
-		float y = (a1 * c2 - a2 * c1) / determinant;
-		return vec2(x, y);
-	}
+	float det = a1 * b2 - a2 * b1;
+	vec2 result;
+	return ( abs(det) < epsi ) ? vec2(FLT_MAX) : vec2((b2 * c1 - b1 * c2) / det, (a1 * c2 - a2 * c1) / det);
+//	if ( abs(det) < epsi )
+//	{
+//		// The lines are parallel. This is simplified 
+//		// by returning a pair of FLT_MAX 
+//		result = vec2(0.0f);
+//	}
+//	else
+//	{
+//		float x = (b2 * c1 - b1 * c2) / det;
+//		float y = (a1 * c2 - a2 * c1) / det;
+//		result =  vec2(x, y);
+//	}
+	return result;
 }
 
-bool edge_intersects_sector(vec2 a, vec2 b, vec2 c, vec2[2] segment)
+bool edge_intersects_sector(in vec2 a, in vec2 b, in vec2 c, in vec2[2] segment)
 {
 	// Assumes that b is the origin of the sector
 	vec2 center_prim = project_point_on_line(b, segment[0], segment[1]);
@@ -577,17 +579,21 @@ bool edge_intersects_sector(vec2 a, vec2 b, vec2 c, vec2[2] segment)
 		c = b + normalize(c - b) * sector_radius;
 	else
 		a = b + normalize(a - b) * sector_radius;
+	
 	vec2 tri[3] = {a, b, c};
 	bool inside_triangle = point_triangle_test(center_prim, tri);
 	bool inside_circle = center_prim_length <= sector_radius;
-	vec2 point = line_line_intersection_point(b, center_prim, a, c, EPSILON);
+	vec2 point;
+	point = line_line_intersection_point(b, center_prim, a, c, EPSILON);
+	//if(point_equal(point, vec2(0)))
+
 	bool other_side_of_ac = dot(point - b, center_prim - b) > 0 && center_prim_length > length(point - b);
 	if (inside_triangle || (inside_circle && other_side_of_ac))
 		return true;
 	return false;
 }
 
-vec2 get_symmetrical_corner(vec2 a, vec2 b, vec2 c)
+vec2 get_symmetrical_corner(in vec2 a, in vec2 b, in vec2 c)
 {
 	vec2 ac = c - a;
 	vec2 half_v = a + (ac / 2.f);
@@ -595,28 +601,29 @@ vec2 get_symmetrical_corner(vec2 a, vec2 b, vec2 c)
 	return b + 2.f * len * normalize(ac);
 }
 
-bool possible_disturbance(vec2 a, vec2 b, vec2 c, vec2[2] s)
+bool possible_disturbance(in vec2 a, in vec2 b, in vec2 c, in vec2[2] s)
 {
-		vec2 sector_c = project_point_on_line(b, a, c);
-		float dist = 2.f * length(sector_c - a);
-		sector_c = a + normalize(c - a) * dist;
-		if (edge_intersects_sector(a, b, sector_c, s))
-			return true;
+	
+	vec2 sector_c = project_point_on_line(b, a, c);
+	float dist = 2.f * length(sector_c - a);
+	sector_c = a + normalize(c - a) * dist;
+	if (edge_intersects_sector(a, b, sector_c, s))
+		return true;
+	return false;
+	vec2 p = get_symmetrical_corner(a, b, c);
+	sector_c = c + normalize(a - c) * dist;
 
-		vec2 p = get_symmetrical_corner(a, b, c);
-		sector_c = c + normalize(a - c) * dist;
+	if (edge_intersects_sector(a, b, sector_c, s))
+		return true;
 
-		if (edge_intersects_sector(a, b, sector_c, s))
-			return true;
-
-		return false;
+	return false;
 }
 
-int find_closest_constraint(vec2 a, vec2 b, vec2 c)
+int find_closest_constraint(in vec2 a, in vec2 b, in vec2 c)
 {
 	float dist = FLT_MAX;
-	int ret = -1;
-	for(int i = 0; i < seg_endpoint_indices.length() ; i++)
+	int ret = -2;
+	for(int i = 0; i < 1 ; i++)
 	{
 		ivec2 seg_i = seg_endpoint_indices[i];
 		vec2[2] s;
@@ -636,7 +643,7 @@ int find_closest_constraint(vec2 a, vec2 b, vec2 c)
 	return ret;
 }
 
-vec2 circle_center_from_points(vec2 a, vec2 b, vec2 c)
+vec2 circle_center_from_points(in vec2 a, in vec2 b, in vec2 c)
 {
 	vec2 ab = b - a;
 	vec2 bc = c - b;
@@ -722,7 +729,7 @@ vec2[2] ray_circle_intersection(in vec2 ray0, in vec2 ray1, in vec2 center, in f
 	return result;
 }
 
-vec2 calculate_refinement(int c,int v_sym, out bool success)
+vec2 calculate_refinement(in int c, in int v_sym, out bool success)
 {
 	vec2 tri[3] = get_triangle(sym_edges[v_sym].face);
 	vec2 circle_center = circle_center_from_points(tri[0], tri[1], tri[2]);
@@ -748,52 +755,70 @@ void main(void)
 	while(index < tri_seg_inters_index.length())
 	{
 		int num_constraints = 0;
-		int c_edge_i = -1;
-		// loop checking for segments in triangle
+		int c_edge_i[3];
+		int tri_edge_i[3];
+		// loop checking for constraints in triangle
 		for(int i = 0; i < 3; i++)
 		{
 			// Checking if edge of triangle is constrained.
 			if(edge_is_constrained[sym_edges[tri_symedges[index][i]].edge] > 0)
 			{
-				num_constraints++;
-				c_edge_i = tri_symedges[index][i];
+//				c_edge_i[num_constraints] = tri_symedges[index][i];
+//				tri_edge_i[num_constraints] = tri_symedges[index][i];
+//				num_constraints++;
+			}
+			else{
+				c_edge_i[num_constraints] = -1;
 			}
 		}
-
+		// if no constraints where found in triangle look for nearby constraints
 		if(num_constraints == 0)
 		{
 			// Loop through edges of the triangles finding the closest constraints
 			// to each traversal.
+			ivec4 tri_symedge_i = tri_symedges[index];
+			vec2 tri[3] = get_triangle(tri_symedge_i[sym_edges[tri_symedge_i.x].face]);
 			for(int i = 0; i < 3; i++)
 			{
+				int cc = find_closest_constraint(tri[(i + 1)% 3], tri[(i - 1)% 3], tri[i]);
+				// Check if a constraint was found
+				if(cc > -1)
+				{
+					tri_seg_inters_index[index] = cc;
+				}
 				
 			}
 		}
-		else if(num_constraints == 1)
+		
+		// find disturbances
+		for(int i = 0; i < 3; i++)
 		{
-			int disturb = find_constraint_disturbance(c_edge_i , c_edge_i, true);
-			if(disturb <= -1)
+			if(c_edge_i[i] > -1)
 			{
-				disturb = find_constraint_disturbance(c_edge_i , c_edge_i, false);
-			}
-			// TODO: add closest constraints to a buffer.
-			NewPoint tmp;
-			if(disturb >= 0)
-			{
-				bool success;
-				vec2 calc_pos = calculate_refinement(c_edge_i, disturb, success);
-				if(success)
+				int disturb = find_constraint_disturbance(c_edge_i[i] , tri_edge_i[i], true);
+				if(disturb <= -1)
 				{
-					tmp.pos = calc_pos;
-					//tmp.pos = get_triangle(sym_edges[disturb].face)[0];
-					tmp.index = atomicAdd(status, 1);
-					tmp.pad = sym_edges[disturb].edge;
-					tri_insert_points[gid] = tmp;
-	//				tmp.pos = get_triangle(sym_edges[disturb].face)[1];
-	//				tri_insert_points[gid+1] = tmp;
-	//				tmp.pos = get_triangle(sym_edges[disturb].face)[2];
-	//				tri_insert_points[gid+2] = tmp;
-				}	
+					disturb = find_constraint_disturbance(c_edge_i[i] , tri_edge_i[i], false);
+				}
+				// TODO: add closest constraints to a buffer.
+				NewPoint tmp;
+				if(disturb >= 0)
+				{
+					bool success;
+					vec2 calc_pos = calculate_refinement(c_edge_i[i], disturb, success);
+					if(success)
+					{
+						tmp.pos = calc_pos;
+						//tmp.pos = get_triangle(sym_edges[disturb].face)[0];
+						tmp.index = atomicAdd(status, 1);
+						tmp.pad = sym_edges[disturb].edge;
+						tri_insert_points[gid] = tmp;
+		//				tmp.pos = get_triangle(sym_edges[disturb].face)[1];
+		//				tri_insert_points[gid+1] = tmp;
+		//				tmp.pos = get_triangle(sym_edges[disturb].face)[2];
+		//				tri_insert_points[gid+2] = tmp;
+					}	
+				}
 			}
 
 		}
