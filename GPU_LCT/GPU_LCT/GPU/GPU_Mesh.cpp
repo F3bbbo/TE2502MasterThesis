@@ -351,6 +351,7 @@ namespace GPU
 		compile_cs(m_add_new_points_program, "GPU/add_new_points.glsl");
 		compile_cs(m_insert_in_edge_program, "GPU/insert_in_edge.glsl");
 		compile_cs(m_locate_point_triangle_program, "GPU/locate_point_triangle.glsl");
+		compile_cs(m_validate_edges_program, "GPU/validate_edges.glsl");
 	}
 
 	void GPUMesh::compile_cs(GLuint & program, const char * path)

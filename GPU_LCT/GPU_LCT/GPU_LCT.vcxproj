@@ -217,6 +217,7 @@
     <None Include="GPU\location_step_triangle.glsl" />
     <None Include="GPU\marking_step_part_one.glsl" />
     <None Include="GPU\marking_step_part_two.glsl" />
+    <None Include="GPU\validate_edges.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

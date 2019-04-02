@@ -51,6 +51,7 @@ namespace GPU
 		GLuint m_add_new_points_program;
 		GLuint m_insert_in_edge_program;
 		GLuint m_locate_point_triangle_program;
+		GLuint m_validate_edges_program;
 	};
 }
 #endif
