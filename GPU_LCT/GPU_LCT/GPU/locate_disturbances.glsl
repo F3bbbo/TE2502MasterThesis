@@ -313,12 +313,41 @@ bool line_line_test(in vec2 s1p1 , in vec2 s1p2, in vec2 s2p1, in vec2 s2p2)
 	return (o1 != o2 && o3 != o4) ? true : false;
 }
 
+bool point_line_test(in vec2 p, in vec2 s1, in vec2 s2)
+{
+	vec3 v1 = vec3(s1 - p, 0.0f);
+	vec3 v2 = vec3(s1 - s2, 0.0f);
+	if (abs(length(cross(v1, v2))) > EPSILON)
+	{
+		return false;
+	}
+	float dot_p = dot(v1, v2);
+	if (dot_p < EPSILON)
+	{
+		return false;
+	}
+	if (dot_p > (dot(v2, v2) - EPSILON))
+	{
+		return false;
+	}
+	return true;
+}
+
 vec2[2] get_edge(int s_edge)
 {
 	vec2 edge[2];
 	edge[0] = point_positions[sym_edges[s_edge].vertex];
 	edge[1] = point_positions[sym_edges[nxt(s_edge)].vertex];
 	return edge;
+}
+
+vec2[2] get_segment(int index)
+{
+	ivec2 seg_edge_i = seg_endpoint_indices[index];
+	vec2[2] s;
+	s[0] = point_positions[seg_edge_i[0]];
+	s[1] = point_positions[seg_edge_i[1]];
+	return s;
 }
 
 float local_clearance(in vec2 b, in vec2[2] segment)
@@ -484,6 +513,63 @@ int oriented_walk_point(in int curr_e, in int goal_point_i)
 		}
 	}
 	return -1;
+}
+
+void oriented_walk_edge(inout int curr_e,in vec2 point, out bool on_edge)
+{
+	bool done = false;
+	vec2 goal = point;
+	int iter = 0;
+	on_edge = false;
+	while(!done){
+		on_edge = false;
+		// Loop through triangles edges to check if point is on the edge 
+		for(int i = 0; i < 3; i++)
+		{
+			bool hit;
+			hit = point_line_test(goal,
+				point_positions[sym_edges[curr_e].vertex],
+				point_positions[sym_edges[sym_edges[curr_e].nxt].vertex]);
+			if(hit)
+			{
+				on_edge = true;
+				return;
+			}
+			curr_e = sym_edges[curr_e].nxt;
+		}
+		// calculate triangle centroid
+		vec2 tri_points[3];
+		tri_points = get_triangle(sym_edges[curr_e].face);
+		vec2 tri_cent;
+		tri_cent = (tri_points[0] +  tri_points[1] +  tri_points[2]) / 3.0f;
+		// Loop through edges to see if we should continue through the edge
+		// to the neighbouring triangle 
+		bool line_line_hit = false;
+		for(int i = 0; i < 3; i++)
+		{
+			line_line_hit = line_line_test(
+			tri_cent,
+			goal,
+			point_positions[sym_edges[curr_e].vertex],
+			point_positions[sym_edges[sym_edges[curr_e].nxt].vertex]
+			);
+
+			if(line_line_hit)
+			{	
+				break;
+			}
+			curr_e = sym_edges[curr_e].nxt;
+		}
+
+		if(line_line_hit)
+		{	
+			curr_e = sym_edges[sym_edges[curr_e].nxt].rot; // sym
+		}
+		else
+		{
+			return;
+		}
+	}
 }
 
 
@@ -736,6 +822,17 @@ vec2 calculate_refinement(in int c, in int v_sym, out bool success)
 	}
 }
 
+int find_segment_symedge(int start, int segment)
+{
+	vec2 seg_p[2] = get_segment(segment);
+	vec2 goal = (seg_p[0] + seg_p[1]) / 2.0f;
+	bool on_edge;
+	oriented_walk_edge(start, goal, on_edge);
+	if(on_edge)
+		return start;
+	else
+		return -1;
+}
 
 // Each thread represents one triangle
 void main(void)
@@ -769,19 +866,27 @@ void main(void)
 			// to each traversal.
 			ivec4 tri_symedge_i = tri_symedges[index];
 			vec2 tri[3] = get_triangle(sym_edges[tri_symedge_i.x].face);
-			tri_insert_points[index].pos = tri[0];
+//			tri_insert_points[index].pos = tri[0];
 			for(int i = 0; i < 3; i++)
 			{
 				int cc = find_closest_constraint(tri[(i + 1)% 3], tri[(i + 2)% 3], tri[i]);
-				// Check if a constraint was found
+				// Check if a segment was found
 				if(cc > -1)
 				{
-					if(i == 0)
-						tri_seg_inters_index[index] = cc;
-					else if(i == 1)
-						tri_edge_flip_index[index] = cc;
-					else
-						tri_ins_point_index[index] = cc;
+					cc = find_segment_symedge(tri_symedge_i[i], cc);
+					// Check if corresponding constraint to segment was found
+					if(cc > -1)
+					{
+						c_edge_i[num_constraints] = cc;
+						tri_edge_i[num_constraints] = tri_symedge_i[i];
+						num_constraints++;
+						if(i == 0)
+							tri_seg_inters_index[index] = cc;
+						else if(i == 1)
+							tri_edge_flip_index[index] = cc;
+						else
+							tri_ins_point_index[index] = cc;
+					}
 				}
 				
 			}
