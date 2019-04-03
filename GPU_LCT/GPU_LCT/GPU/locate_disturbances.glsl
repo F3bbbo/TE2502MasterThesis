@@ -553,18 +553,6 @@ vec2 line_line_intersection_point(in vec2 a, in vec2 b, in vec2 c, in vec2 d, in
 	float det = a1 * b2 - a2 * b1;
 	vec2 result;
 	return ( abs(det) < epsi ) ? vec2(FLT_MAX) : vec2((b2 * c1 - b1 * c2) / det, (a1 * c2 - a2 * c1) / det);
-//	if ( abs(det) < epsi )
-//	{
-//		// The lines are parallel. This is simplified 
-//		// by returning a pair of FLT_MAX 
-//		result = vec2(0.0f);
-//	}
-//	else
-//	{
-//		float x = (b2 * c1 - b1 * c2) / det;
-//		float y = (a1 * c2 - a2 * c1) / det;
-//		result =  vec2(x, y);
-//	}
 	return result;
 }
 
@@ -585,7 +573,8 @@ bool edge_intersects_sector(in vec2 a, in vec2 b, in vec2 c, in vec2[2] segment)
 	bool inside_circle = center_prim_length <= sector_radius;
 	vec2 point;
 	point = line_line_intersection_point(b, center_prim, a, c, EPSILON);
-	//if(point_equal(point, vec2(0)))
+	if(point_equal(point, vec2(FLT_MAX)))
+		return false;
 
 	bool other_side_of_ac = dot(point - b, center_prim - b) > 0 && center_prim_length > length(point - b);
 	if (inside_triangle || (inside_circle && other_side_of_ac))
@@ -623,7 +612,7 @@ int find_closest_constraint(in vec2 a, in vec2 b, in vec2 c)
 {
 	float dist = FLT_MAX;
 	int ret = -2;
-	for(int i = 0; i < 1 ; i++)
+	for(int i = 0; i < seg_endpoint_indices.length() ; i++)
 	{
 		ivec2 seg_i = seg_endpoint_indices[i];
 		vec2[2] s;
@@ -632,6 +621,7 @@ int find_closest_constraint(in vec2 a, in vec2 b, in vec2 c)
 		if(possible_disturbance(a, b, c, s))
 		{
 			vec2 b_prim = project_point_on_line(b, s[0], s[1]);
+			
 			float b_dist = length(b_prim - b);
 			if(b_dist < dist && !(point_equal(b_prim, a) || point_equal(b_prim, c)))
 			{
@@ -746,6 +736,7 @@ vec2 calculate_refinement(in int c, in int v_sym, out bool success)
 	}
 }
 
+
 // Each thread represents one triangle
 void main(void)
 {
@@ -777,14 +768,20 @@ void main(void)
 			// Loop through edges of the triangles finding the closest constraints
 			// to each traversal.
 			ivec4 tri_symedge_i = tri_symedges[index];
-			vec2 tri[3] = get_triangle(tri_symedge_i[sym_edges[tri_symedge_i.x].face]);
+			vec2 tri[3] = get_triangle(sym_edges[tri_symedge_i.x].face);
+			tri_insert_points[index].pos = tri[0];
 			for(int i = 0; i < 3; i++)
 			{
-				int cc = find_closest_constraint(tri[(i + 1)% 3], tri[(i - 1)% 3], tri[i]);
+				int cc = find_closest_constraint(tri[(i + 1)% 3], tri[(i + 2)% 3], tri[i]);
 				// Check if a constraint was found
 				if(cc > -1)
 				{
-					tri_seg_inters_index[index] = cc;
+					if(i == 0)
+						tri_seg_inters_index[index] = cc;
+					else if(i == 1)
+						tri_edge_flip_index[index] = cc;
+					else
+						tri_ins_point_index[index] = cc;
 				}
 				
 			}
