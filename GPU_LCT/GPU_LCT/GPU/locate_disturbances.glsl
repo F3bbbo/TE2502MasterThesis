@@ -106,6 +106,17 @@ bool point_equal(vec2 p1, vec2 p2)
 	return abs(distance(p1, p2)) < EPSILON;
 }
 
+// Returns the index of the point it equals in the triangle
+int point_equal_tri_vert(in vec2 p, in vec2 tri[3])
+{
+	for(int i = 0; i < 3; i++)
+	{
+		if(point_equal(p, tri[i]))
+			return i;
+	}
+	return -1;
+}
+
 //-----------------------------------------------------------
 // Access funcitons
 //-----------------------------------------------------------
@@ -282,6 +293,25 @@ vec2 project_point_on_line(in vec2 point, in vec2 a, in vec2 b)
 	vec2 ab = b - a;
 	vec2 ap = point - a;
 	return a + dot(ap, ab) / dot(ab, ab) * ab;
+}
+
+vec2 project_point_on_segment(in vec2 point, in vec2 a, in vec2 b, out bool projectable)
+{
+	vec2 point_proj = project_point_on_line(point, a, b);
+	vec2 line = b - a;
+	float proj_len = dot(normalize(line), point_proj - a);
+	projectable = true;
+	if(proj_len < 0.0f)
+	{
+		projectable = false;
+		point_proj = a;
+	}
+	else if(proj_len * proj_len > dot(line, line))
+	{
+		projectable = false;
+		point_proj = b;
+	}
+	return point_proj;
 }
 
 bool is_orthogonally_projectable(in vec2 v, in vec2 a, in vec2 b)
@@ -600,11 +630,17 @@ int find_constraint_disturbance(in int constraint, in int edge_ac, in bool right
 	// Loop through points trying to find disturbance to current traversal
 	float best_dist = FLT_MAX;
 	int first_disturb = -1;
+	vec2 tri[3] = get_triangle(sym_edges[edge_ac].face);
 	for(int i = 0; i < point_positions.length(); i++)
 	{
+		vec2 point = point_positions[i];
+
 		// check if point is inside of R
-		if(point_triangle_test(point_positions[i], R))
+		if(point_triangle_test(point, R))
 		{
+			// If point is one of the triangles point continue to next point
+			if(point_equal_tri_vert(point, tri) > -1)
+				continue;
 			// TODO: Change oriented walk to start from last point instead of the constraint
 			int v_edge = oriented_walk_point(constraint, i);
 			//int v_edge = constraint;
@@ -706,13 +742,16 @@ int find_closest_constraint(in vec2 a, in vec2 b, in vec2 c)
 		s[1] = point_positions[seg_i[1]];
 		if(possible_disturbance(a, b, c, s))
 		{
-			vec2 b_prim = project_point_on_line(b, s[0], s[1]);
-			
-			float b_dist = length(b_prim - b);
-			if(b_dist < dist && !(point_equal(b_prim, a) || point_equal(b_prim, c)))
+			bool projectable;
+			vec2 b_prim = project_point_on_segment(b, s[0], s[1], projectable);
+			if(projectable)
 			{
-				dist = b_dist;
-				ret = i;
+				float b_dist = length(b_prim - b);
+				if(b_dist < dist && !(point_equal(b_prim, a) || point_equal(b_prim, c)))
+				{
+					dist = b_dist;
+					ret = i;
+				}
 			}
 		}
 	}
