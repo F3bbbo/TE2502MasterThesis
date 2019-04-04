@@ -16,7 +16,7 @@ struct NewPoint
 {
 	vec2 pos;
 	int index;
-	int pad;
+	int face_i;
 };
 
 uint gid;
@@ -914,12 +914,6 @@ void main(void)
 						c_edge_i[num_constraints] = cc;
 						tri_edge_i[num_constraints] = tri_symedge_i[i];
 						num_constraints++;
-//						if(i == 0)
-//							tri_seg_inters_index[index] = cc;
-//						else if(i == 1)
-//							tri_edge_flip_index[index] = cc;
-//						else
-//							tri_ins_point_index[index] = cc;
 					}
 				}
 				
@@ -945,14 +939,9 @@ void main(void)
 					if(success)
 					{
 						tmp.pos = calc_pos;
-						//tmp.pos = get_triangle(sym_edges[disturb].face)[0];
 						tmp.index = atomicAdd(status, 1);
-						tmp.pad = sym_edges[disturb].vertex;
+						tmp.face_i = sym_edges[c_edge_i[i]].face;
 						tri_insert_points[gid] = tmp;
-		//				tmp.pos = get_triangle(sym_edges[disturb].face)[1];
-		//				tri_insert_points[gid+1] = tmp;
-		//				tmp.pos = get_triangle(sym_edges[disturb].face)[2];
-		//				tri_insert_points[gid+2] = tmp;
 					}	
 				}
 			}

@@ -68,7 +68,7 @@ namespace GPU
 	{
 		glm::vec2 pos;
 		int index = -1;
-		int pad = -1;
+		int face_i = -1;
 	};
 }
 

@@ -16,7 +16,7 @@ struct NewPoint
 {
 	vec2 pos;
 	int index;
-	int pad;
+	int face_i;
 };
 
 uint gid;
@@ -105,7 +105,7 @@ void main(void)
 			int point_index = point_positions.length() - new_point.index - 1;
 			point_positions[point_index] = new_point.pos;
 			point_inserted[point_index] = 0;
-			point_tri_index[point_index] = 0;		
+			point_tri_index[point_index] = new_point.face_i;		
 		}
 		index += num_threads;
 	}
