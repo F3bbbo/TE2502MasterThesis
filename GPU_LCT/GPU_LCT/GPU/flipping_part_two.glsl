@@ -113,13 +113,13 @@ SymEdge sym(SymEdge s)
 
 void set_quad_edges_label(int label, SymEdge edge)
 {
-	edge_label[nxt(edge).edge] = label;
-	edge_label[prev(edge).edge] = label;
+	edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == 0 ? label : edge_label[nxt(edge).edge];
+	edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == 0 ? label : edge_label[prev(edge).edge];
 
 	edge = sym(edge);
 
-	edge_label[nxt(edge).edge] = label;
-	edge_label[prev(edge).edge] = label;
+	edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == 0 ? label : edge_label[nxt(edge).edge];
+	edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == 0 ? label : edge_label[prev(edge).edge];
 }
 
 // Each thread represents one triangle
