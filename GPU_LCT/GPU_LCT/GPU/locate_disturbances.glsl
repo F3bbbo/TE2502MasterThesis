@@ -626,10 +626,10 @@ int find_constraint_disturbance(in int constraint, in int edge_ac, in bool right
 	vec2 ab = R[1] - a;
 	float b_prim = dot(dir, ab);
 	R[2] = R[1] + (dir * (length(ac) - b_prim));
-
 	// Loop through points trying to find disturbance to current traversal
 	float best_dist = FLT_MAX;
 	int first_disturb = -1;
+	float best_dist_b = 0.0f;
 	vec2 tri[3] = get_triangle(sym_edges[edge_ac].face);
 	for(int i = 0; i < point_positions.length(); i++)
 	{
@@ -643,15 +643,28 @@ int find_constraint_disturbance(in int constraint, in int edge_ac, in bool right
 				continue;
 			// TODO: Change oriented walk to start from last point instead of the constraint
 			int v_edge = oriented_walk_point(constraint, i);
-			//int v_edge = constraint;
 			float dist = is_disturbed(constraint, prev(edge_ac), v_edge);
-			//float dist = -1.0f;
 			if(dist > 0.0f)
 			{
 				if(dist < best_dist)
 				{
 					first_disturb = v_edge;
 					best_dist = dist;
+					best_dist_b = distance(point_positions[sym_edges[v_edge].vertex],
+									point_positions[sym_edges[prev(edge_ac)].vertex]);
+				} 
+				else if(dist < (best_dist + EPSILON))
+				{
+					// if new point has the same distance as the previous one
+					// check if it is closer to b
+					float dist_b = distance(point_positions[sym_edges[v_edge].vertex],
+									point_positions[sym_edges[prev(edge_ac)].vertex]);
+					if( dist_b < best_dist_b)
+					{
+						first_disturb = v_edge;
+						best_dist = dist;
+						best_dist_b = dist_b;
+					}
 				}
 			}
 
