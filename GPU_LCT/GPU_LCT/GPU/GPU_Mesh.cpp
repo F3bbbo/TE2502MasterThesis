@@ -215,33 +215,121 @@ namespace GPU
 
 	void GPUMesh::refine_LCT()
 	{
-		// Locate disturbances
-		glUseProgram(m_locate_disturbances_program);
-		glDispatchCompute((GLuint)256, 1, 1);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-		// Check how many new points are going to get inserted
-		auto status = m_status.get_buffer_data<int>();
-		if (status.front() > 0)
+		int i = 0;
+		int num_new_points;
+		do
 		{
-			// increase sizes of arrays, 
-			// based on how many new points are inserted
-			m_point_bufs.positions.append_to_buffer(std::vector<glm::vec2>(status.front()));
-			m_point_bufs.inserted.append_to_buffer(std::vector<int>(status.front()));
-			m_point_bufs.tri_index.append_to_buffer(std::vector<int>(status.front()));
-			// then rebind the buffers that has been changed
-			m_point_bufs.positions.bind_buffer();
-			m_point_bufs.inserted.bind_buffer();
-			m_point_bufs.tri_index.bind_buffer();
-		}
-		else
-		{
-			// TODO break from LCT because done
-		}
+			// Locate disturbances
+			glUseProgram(m_locate_disturbances_program);
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			// Check how many new points are going to get inserted
+			auto status = m_status.get_buffer_data<int>();
+			num_new_points = status.front();
+			if (num_new_points > 0)
+			{
+				// increase sizes of arrays, 
+				// based on how many new points are inserted
+				m_point_bufs.positions.append_to_buffer(std::vector<glm::vec2>(num_new_points));
+				m_point_bufs.inserted.append_to_buffer(std::vector<int>(num_new_points));
+				m_point_bufs.tri_index.append_to_buffer(std::vector<int>(num_new_points));
+				// segments
+				int num_new_tri = num_new_points * 2;
+				int num_new_segs = num_new_points;
 
-		glUseProgram(m_add_new_points_program);
-		glDispatchCompute((GLuint)256, 1, 1);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+				// fix new sizes of triangle buffers
+				m_triangle_bufs.symedge_indices.append_to_buffer(std::vector<glm::ivec4>(num_new_tri, { -1, -1, -1, -1 }));
+				m_triangle_bufs.ins_point_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
+				m_triangle_bufs.edge_flip_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
+				m_triangle_bufs.seg_inters_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
+				m_triangle_bufs.new_points.append_to_buffer(std::vector<NewPoint>(num_new_tri));
 
+				// fix new sizes of edge buffers 
+				// TODO: fix so it can handle repeated insertions
+				int num_new_edges = num_new_points * 3;
+				m_edge_bufs.is_constrained.append_to_buffer(std::vector<int>(num_new_edges, 0));
+				m_edge_bufs.label.append_to_buffer(std::vector<int>(num_new_edges, -1));
+				// fix new size of symedges buffer
+				// TODO: fix so it can handle repeated insertions
+				int num_new_sym_edges = num_new_points * 6;
+				m_sym_edges.append_to_buffer(std::vector<SymEdge>(num_new_sym_edges));
+				// TODO, maybe need to check if triangle buffers needs to grow
+
+				m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
+
+				// then rebind the buffers that has been changed
+				m_point_bufs.positions.bind_buffer();
+				m_point_bufs.inserted.bind_buffer();
+				m_point_bufs.tri_index.bind_buffer();
+
+				m_edge_bufs.label.bind_buffer();
+				m_edge_bufs.is_constrained.bind_buffer();
+
+				m_segment_bufs.endpoint_indices.bind_buffer();
+				m_segment_bufs.inserted.bind_buffer();
+
+				m_triangle_bufs.symedge_indices.bind_buffer();
+				m_triangle_bufs.ins_point_index.bind_buffer();
+				m_triangle_bufs.seg_inters_index.bind_buffer();
+				m_triangle_bufs.edge_flip_index.bind_buffer();
+				m_triangle_bufs.new_points.bind_buffer();
+
+				m_sym_edges.bind_buffer();
+				m_nr_of_symedges.bind_buffer();
+
+				// add new points to the point buffers
+				glUseProgram(m_add_new_points_program);
+				glDispatchCompute((GLuint)256, 1, 1);
+				glMemoryBarrier(GL_ALL_BARRIER_BITS);
+				// Perform insertion of points untill all has been inserted 
+				// and triangulation is CDT
+				int cont = 1;
+				do
+				{
+					//// Find out which triangle the point is on the edge of
+					//glUseProgram(m_locate_point_triangle_program);
+					//glDispatchCompute((GLuint)256, 1, 1);
+					//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+					// Locate Step
+					glUseProgram(m_location_program);
+					glDispatchCompute((GLuint)256, 1, 1);
+					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+					glUseProgram(m_location_tri_program);
+					glDispatchCompute((GLuint)256, 1, 1);
+					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+					//glUseProgram(m_validate_edges_program);
+					//glDispatchCompute((GLuint)256, 1, 1);
+					//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					//// Insert point into the edge
+					//glUseProgram(m_insert_in_edge_program);
+					//glDispatchCompute((GLuint)256, 1, 1);
+					//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+					//// Perform flipping to ensure that mesh is CDT
+					//glUseProgram(m_flip_edges_part_one_program);
+					//glDispatchCompute((GLuint)256, 1, 1);
+					//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+					//glUseProgram(m_flip_edges_part_two_program);
+					//glDispatchCompute((GLuint)256, 1, 1);
+					//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+					//glUseProgram(m_flip_edges_part_three_program);
+					//glDispatchCompute((GLuint)256, 1, 1);
+					//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+					//cont = m_status.get_buffer_data<int>()[0];
+				} while (false);
+
+			}
+			else
+			{
+				break;
+			}
+		} while (false);
 	}
 
 	std::vector<glm::vec2> GPUMesh::get_vertices()
@@ -349,9 +437,9 @@ namespace GPU
 		// LCT
 		compile_cs(m_locate_disturbances_program, "GPU/locate_disturbances.glsl");
 		compile_cs(m_add_new_points_program, "GPU/add_new_points.glsl");
-		compile_cs(m_insert_in_edge_program, "GPU/insert_in_edge.glsl");
 		compile_cs(m_locate_point_triangle_program, "GPU/locate_point_triangle.glsl");
 		compile_cs(m_validate_edges_program, "GPU/validate_edges.glsl");
+		compile_cs(m_insert_in_edge_program, "GPU/insert_in_edge.glsl");
 	}
 
 	void GPUMesh::compile_cs(GLuint & program, const char * path)
