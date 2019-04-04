@@ -244,6 +244,9 @@ namespace GPU
 				m_triangle_bufs.seg_inters_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
 				m_triangle_bufs.new_points.append_to_buffer(std::vector<NewPoint>(num_new_tri));
 
+				// fix new size of segment buffers
+				m_segment_bufs.endpoint_indices.append_to_buffer(std::vector<glm::vec2>(num_new_segs));
+				m_segment_bufs.inserted.append_to_buffer(std::vector<int>(num_new_segs));
 				// fix new sizes of edge buffers 
 				// TODO: fix so it can handle repeated insertions
 				int num_new_edges = num_new_points * 3;
