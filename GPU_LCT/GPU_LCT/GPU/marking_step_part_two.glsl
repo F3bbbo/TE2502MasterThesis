@@ -189,7 +189,7 @@ bool is_delaunay(SymEdge sym)
 
 		float len = length(get_vertex(sym.vertex) - get_vertex(sym_symedge(sym).vertex)) / 2.f;
 		if (length(center - point1) <= len && length(center - point2) <= len)
-			return true;
+			return false;
 	}
 	return true;
 
