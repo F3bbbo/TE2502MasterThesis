@@ -144,10 +144,8 @@ vec2 project_point_on_line(vec2 point, vec2 a, vec2 b)
 
 bool point_intersects_line(vec2 p, vec2 a, vec2 b, float epsilon = EPSILON)
 {
-	float hypotenuse = length(project_point_on_line(p, a, b) - a);
-	float adjacent = length(p - a);
-
-	return sqrt(hypotenuse * hypotenuse - adjacent * adjacent) < epsilon;
+	float dist = length(project_point_on_line(p, a, b) - p);
+	return abs(dist) < epsilon;
 }
 
 bool orientation(in vec2 p1 , in vec2 p2 , in vec2 p3)
