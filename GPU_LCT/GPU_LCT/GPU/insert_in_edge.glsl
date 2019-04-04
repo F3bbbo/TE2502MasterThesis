@@ -167,6 +167,7 @@ void main(void)
 	if (index < tri_seg_inters_index.length() && tri_ins_point_index[index] >= 0)
 	{
 		int point_index = tri_ins_point_index[index];
+		point_inserted[point_index] = 1;
 
 		SymEdge segment = get_symedge(tri_symedges[index].x);
 
@@ -201,6 +202,10 @@ void main(void)
 		int edge1 = edge_label.length() - 3 * (point_positions.length() - point_index);
 		int edge2 = edge_label.length() - 3 * (point_positions.length() - point_index) + 1;
 		int edge3 = edge_label.length() - 3 * (point_positions.length() - point_index) + 2;
+
+		edge_label[edge1] = 0;
+		edge_label[edge2] = 0;
+		edge_label[edge3] = 0;
 
 		// e1
 		sym_edges[e1].nxt = new_symedges[2];
@@ -248,8 +253,9 @@ void main(void)
 		edge_is_constrained[edge1] = 1;
 
 		// mark as maybe not non delauney
-		edge_label[get_symedge(e1).edge] = 1;
-		edge_label[get_symedge(e2).edge] = 1;
+
+		edge_label[get_symedge(e1).edge] = edge_is_constrained[get_symedge(e1).edge] == 0 ? 1 : edge_label[get_symedge(e1).edge];
+		edge_label[get_symedge(e2).edge] = edge_is_constrained[get_symedge(e2).edge] == 0 ? 1 : edge_label[get_symedge(e2).edge];
 
 		if (nxt(segment).rot != -1)
 		{
@@ -302,8 +308,8 @@ void main(void)
 			seg_inserted[new_segment_index] = 1;
 
 			// mark as maybe not non delauney
-			edge_label[get_symedge(e3).edge] = 1;
-			edge_label[get_symedge(e4).edge] = 1;
+			edge_label[get_symedge(e3).edge] = edge_is_constrained[get_symedge(e3).edge] == 0 ? 1 : edge_label[get_symedge(e3).edge];
+			edge_label[get_symedge(e4).edge] = edge_is_constrained[get_symedge(e4).edge] == 0 ? 1 : edge_label[get_symedge(e4).edge];
 		}
 	}
 }
