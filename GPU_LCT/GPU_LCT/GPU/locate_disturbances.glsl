@@ -673,9 +673,8 @@ vec2 line_line_intersection_point(in vec2 a, in vec2 b, in vec2 c, in vec2 d, in
 	float c2 = a2 * (c.x) + b2 * (c.y);
 
 	float det = a1 * b2 - a2 * b1;
-	vec2 result;
+
 	return ( abs(det) < epsi ) ? vec2(FLT_MAX) : vec2((b2 * c1 - b1 * c2) / det, (a1 * c2 - a2 * c1) / det);
-	return result;
 }
 
 bool edge_intersects_sector(in vec2 a, in vec2 b, in vec2 c, in vec2[2] segment)
@@ -720,7 +719,6 @@ bool possible_disturbance(in vec2 a, in vec2 b, in vec2 c, in vec2[2] s)
 	sector_c = a + normalize(c - a) * dist;
 	if (edge_intersects_sector(a, b, sector_c, s))
 		return true;
-	return false;
 	vec2 p = get_symmetrical_corner(a, b, c);
 	sector_c = c + normalize(a - c) * dist;
 
@@ -801,9 +799,6 @@ vec2[2] line_circle_intersection(in vec2 ray0, in vec2 ray1, in vec2 center, in 
 	t[0] = (2.f * c) / (-b + disc_sqrt);
 	t[1] = (2.f * c) / (-b - disc_sqrt);
 
-//	result[0] = vec2(a,b);
-//	result[1] = vec2(c, disc_sqrt);
-//	return result; 
 
 	for (int i = 0; i < 2; i++)
 	{
@@ -890,9 +885,9 @@ void main(void)
 			// Checking if edge of triangle is constrained.
 			if(edge_is_constrained[sym_edges[tri_symedges[index][i]].edge] > 0)
 			{
-//				c_edge_i[num_constraints] = tri_symedges[index][i];
-//				tri_edge_i[num_constraints] = tri_symedges[index][i];
-//				num_constraints++;
+				c_edge_i[num_constraints] = tri_symedges[index][i];
+				tri_edge_i[num_constraints] = tri_symedges[index][i];
+				num_constraints++;
 			}
 			else{
 				c_edge_i[num_constraints] = -1;
@@ -919,12 +914,12 @@ void main(void)
 						c_edge_i[num_constraints] = cc;
 						tri_edge_i[num_constraints] = tri_symedge_i[i];
 						num_constraints++;
-						if(i == 0)
-							tri_seg_inters_index[index] = cc;
-						else if(i == 1)
-							tri_edge_flip_index[index] = cc;
-						else
-							tri_ins_point_index[index] = cc;
+//						if(i == 0)
+//							tri_seg_inters_index[index] = cc;
+//						else if(i == 1)
+//							tri_edge_flip_index[index] = cc;
+//						else
+//							tri_ins_point_index[index] = cc;
 					}
 				}
 				
@@ -952,7 +947,7 @@ void main(void)
 						tmp.pos = calc_pos;
 						//tmp.pos = get_triangle(sym_edges[disturb].face)[0];
 						tmp.index = atomicAdd(status, 1);
-						tmp.pad = sym_edges[disturb].edge;
+						tmp.pad = sym_edges[disturb].vertex;
 						tri_insert_points[gid] = tmp;
 		//				tmp.pos = get_triangle(sym_edges[disturb].face)[1];
 		//				tri_insert_points[gid+1] = tmp;
