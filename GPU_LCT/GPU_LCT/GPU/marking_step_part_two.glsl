@@ -102,8 +102,8 @@ vec2 get_vertex(int index)
 void get_face(in int face_i, out vec2 face_v[3])
 {
 	face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
-	face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
-	face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
+	face_v[1] = point_positions[sym_edges[tri_symedges[face_i].y].vertex];
+	face_v[2] = point_positions[sym_edges[tri_symedges[face_i].z].vertex];
 }
 
 //-----------------------------------------------------------
@@ -180,45 +180,45 @@ bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
 
 bool is_delaunay(SymEdge sym)
 {
-	int index = get_symedge(sym.nxt).rot;
-	if (index != -1)
-	{
-		vec2 point1 = get_vertex(prev_symedge(sym).vertex);
-		vec2 point2 = get_vertex(prev_symedge(sym_symedge(sym)).vertex);
-		vec2 center = (get_vertex(sym.vertex) + get_vertex(sym_symedge(sym).vertex)) / 2.f;
-
-		float len = length(get_vertex(sym.vertex) - get_vertex(sym_symedge(sym).vertex)) / 2.f;
-		if (length(center - point1) <= len && length(center - point2) <= len)
-			return false;
-	}
-	return true;
-
 //	int index = get_symedge(sym.nxt).rot;
 //	if (index != -1)
 //	{
-//		mat4x4 mat;
+//		vec2 point1 = get_vertex(prev_symedge(sym).vertex);
+//		vec2 point2 = get_vertex(prev_symedge(sym_symedge(sym)).vertex);
+//		vec2 center = (get_vertex(sym.vertex) + get_vertex(sym_symedge(sym).vertex)) / 2.f;
 //
-//		vec2 face_vertices[3];
-//		get_face(sym.face, face_vertices);
-//
-//		for (int i = 0; i < 3; i++)
-//		{
-//			mat[0][i] = face_vertices[i].x;
-//			mat[1][i] = face_vertices[i].y;
-//			mat[2][i] = mat[0][i] * mat[0][i] + mat[1][i] * mat[1][i];
-//			mat[3][i] = 1.f;
-//		}
-//
-//		vec2 other = get_vertex(prev_symedge(get_symedge(index)).vertex);
-//		mat[0][3] = other.x;
-//		mat[1][3] = other.y;
-//		mat[2][3] = mat[0][3] * mat[0][3] + mat[1][3] * mat[1][3];
-//		mat[3][3] = 1.f;
-//
-//		if (determinant(mat) > 0)
+//		float len = length(get_vertex(sym.vertex) - center);
+//		if (length(center - point1) < len || length(center - point2) < len)
 //			return false;
 //	}
 //	return true;
+
+	int index = get_symedge(sym.nxt).rot;
+	if (index != -1)
+	{
+		mat4x4 mat;
+
+		vec2 face_vertices[3];
+		get_face(sym.face, face_vertices);
+
+		for (int i = 0; i < 3; i++)
+		{
+			mat[0][i] = face_vertices[i].x;
+			mat[1][i] = face_vertices[i].y;
+			mat[2][i] = mat[0][i] * mat[0][i] + mat[1][i] * mat[1][i];
+			mat[3][i] = 1.f;
+		}
+
+		vec2 other = get_vertex(prev_symedge(get_symedge(index)).vertex);
+		mat[0][3] = other.x;
+		mat[1][3] = other.y;
+		mat[2][3] = mat[0][3] * mat[0][3] + mat[1][3] * mat[1][3];
+		mat[3][3] = 1.f;
+
+		if (determinant(mat) > 0)
+			return false;
+	}
+	return true;
 }
 
 void main(void)
@@ -240,7 +240,7 @@ void main(void)
 			{
 				for (int i = 0; i < 3; i++)
 				{
-					if (edge_label[tri_sym.edge] == 1 && is_delaunay(tri_sym))
+					if ((edge_label[tri_sym.edge] == 1 && edge_is_constrained[tri_sym.edge] == 0 && is_delaunay(tri_sym)) || edge_is_constrained[tri_sym.edge] == 1)
 						edge_label[tri_sym.edge] = 0;
 					tri_sym = get_symedge(tri_sym.nxt);
 				}

@@ -168,6 +168,7 @@ void main(void)
 	{
 		int point_index = tri_ins_point_index[index];
 		point_inserted[point_index] = 1;
+		tri_ins_point_index[index] = -1;
 
 		SymEdge segment = get_symedge(tri_symedges[index].x);
 

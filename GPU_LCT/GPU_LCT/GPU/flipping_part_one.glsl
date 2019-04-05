@@ -122,7 +122,11 @@ void main(void)
 		}
 
 		int sym_symedge = nxt(get_symedge(highest_priority_s_edge)).rot;
-		if (h > 0 && sym_symedge != -1)
+
+		int o_label1 = edge_label[nxt(get_symedge(sym_symedge)).edge];
+		int o_label2 = edge_label[prev_symedge(get_symedge(sym_symedge)).edge];
+
+		if (h > 0 && sym_symedge != -1 && o_label1 != h && o_label2 != h && o_label1 < h && o_label2 < h)
 		{
 			int nh = 0;
 			for (int i = 0; i < 3; i++)

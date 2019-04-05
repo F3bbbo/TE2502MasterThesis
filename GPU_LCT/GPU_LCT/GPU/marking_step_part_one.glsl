@@ -271,7 +271,7 @@ int oriented_walk_point(int curr_e, int goal_point_i)
 	vec2 tri_cent;
 	vec2 goal_point = get_vertex(goal_point_i);
 	int i = 0;
-	while (i != 3)
+	while (true)
 	{
 		if (face_contains_vertice(get_symedge(curr_e).face, goal_point_i))
 			return get_face_vertex_symedge(get_symedge(curr_e).face, goal_point_i);
@@ -517,8 +517,7 @@ void straight_walk(int segment_index, SymEdge s_starting_point, int ending_point
 			cur_edge = get_symedge(cur_edge.nxt);
 		}
 
-		if (checks == 2) // something is wrong
-			return;
+		
 	}
 }
 
@@ -536,7 +535,7 @@ void main(void)
 	int endpoints_inserted = point_inserted[seg_endpoint_indices[index].x] * point_inserted[seg_endpoint_indices[index].y];
 	
 	// Check if the segment has not been inserted and if both endpoints has been inserted
-	if (index > 3 && index < seg_inserted.length() && seg_inserted[index] == 0 && endpoints_inserted == 1)
+	if (index < seg_inserted.length() && seg_inserted[index] == 0 && endpoints_inserted == 1)
 	{
 		// TODO: starting at the first symedge might not always be preferred, find a better solution
 		int starting_symedge = oriented_walk_point(0, seg_endpoint_indices[index].x);
