@@ -175,8 +175,8 @@ namespace GPU
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 			cont = m_status.get_buffer_data<int>()[0];
-			if (counter == 3)
-				break;
+			/*if (counter == 5)
+				break;*/
 		}
 		// TODO: remove this creation of lct
 		//refine_LCT();
