@@ -10,7 +10,12 @@ struct SymEdge{
 	int edge;
 	int face;
 };
-
+struct NewPoint
+{
+	vec2 pos;
+	int index;
+	int face_i;
+};
 //-----------------------------------------------------------
 // Inputs
 //-----------------------------------------------------------
@@ -74,6 +79,10 @@ layout(std430, binding = 12) buffer status_buff
 {
 	int status;
 };
+layout(std430, binding = 13) buffer Tri_buff_4
+{
+	NewPoint tri_insert_points[];
+};
 
 //-----------------------------------------------------------
 // Access funcitons
@@ -92,6 +101,20 @@ SymEdge prev_symedge(SymEdge s)
 SymEdge sym_symedge(SymEdge s)
 {
 	return get_symedge(get_symedge(s.nxt).rot);
+}
+
+int nxt(in int index)
+{
+	return sym_edges[index].nxt;
+}
+
+int prev(in int index)
+{
+	return nxt(nxt(index));
+}
+int rot(in int index)
+{
+	return sym_edges[index].rot;
 }
 
 vec2 get_vertex(int index)
@@ -177,92 +200,96 @@ bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
 //-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------
-
-bool is_delaunay(SymEdge sym)
+uint gid;
+bool is_delaunay(int sym)
 {
-	int index = get_symedge(sym.nxt).rot;
-	if (index != -1)
-	{
-		vec2 point1 = get_vertex(prev_symedge(sym).vertex);
-		vec2 point2 = get_vertex(prev_symedge(sym_symedge(sym)).vertex);
-		vec2 center = (get_vertex(sym.vertex) + get_vertex(sym_symedge(sym).vertex)) / 2.f;
-
-		float len = length(get_vertex(sym.vertex) - center);
-		if (length(center - point1) < len || length(center - point2) < len)
-			return false;
-	}
-	return true;
-
 //	int index = get_symedge(sym.nxt).rot;
 //	if (index != -1)
 //	{
-//		mat4x4 mat;
+//		vec2 point1 = get_vertex(prev_symedge(sym).vertex);
+//		vec2 point2 = get_vertex(prev_symedge(sym_symedge(sym)).vertex);
+//		vec2 center = (get_vertex(sym.vertex) + get_vertex(sym_symedge(sym).vertex)) / 2.f;
 //
-//		vec2 face_vertices[3];
-//		get_face(sym.face, face_vertices);
-//
-//		for (int i = 0; i < 3; i++)
-//		{
-//			mat[0][i] = face_vertices[i].x;
-//			mat[1][i] = face_vertices[i].y;
-//			mat[2][i] = mat[0][i] * mat[0][i] + mat[1][i] * mat[1][i];
-//			mat[3][i] = 1.f;
-//		}
-//
-//		vec2 other = get_vertex(prev_symedge(get_symedge(index)).vertex);
-//		mat[0][3] = other.x;
-//		mat[1][3] = other.y;
-//		mat[2][3] = mat[0][3] * mat[0][3] + mat[1][3] * mat[1][3];
-//		mat[3][3] = 1.f;
-//
-//		if (determinant(mat) > 0)
+//		float len = length(get_vertex(sym.vertex) - center);
+//		if (length(center - point1) < len || length(center - point2) < len)
 //			return false;
 //	}
 //	return true;
+	int index = rot(nxt(sym));
+
+	if (index != -1)
+	{
+		mat4x4 mat;
+
+		vec2 face_vertices[3];
+		face_vertices[2] = get_vertex(get_symedge(sym).vertex);
+		face_vertices[0] = get_vertex(get_symedge(nxt(sym)).vertex);
+		face_vertices[1] = get_vertex(get_symedge(prev(sym)).vertex);
+		//get_face(sym.face, face_vertices);
+		
+		for (int i = 0; i < 3; i++)
+		{
+			mat[0][i] = face_vertices[i].x;
+			mat[1][i] = face_vertices[i].y;
+			mat[2][i] = mat[0][i] * mat[0][i] + mat[1][i] * mat[1][i];
+			mat[3][i] = 1.f;
+		}
+
+		vec2 other = get_vertex(prev_symedge(get_symedge(index)).vertex);
+		
+		mat[0][3] = other.x;
+		mat[1][3] = other.y;
+		mat[2][3] = mat[0][3] * mat[0][3] + mat[1][3] * mat[1][3];
+		mat[3][3] = 1.f;
+
+		if (determinant(mat) > 0)
+			return false;
+	}
+	return true;
 }
 
 void main(void)
 {
 	// Each thread is responsible for a triangle
 
-	uint gid = gl_GlobalInvocationID.x;
+	gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	
 	if (index < tri_seg_inters_index.length())
 	{
-		SymEdge tri_sym = get_symedge(tri_symedges[index].x);
-		bool no_point_in_edges = edge_label[tri_sym.edge] != 3 &&
-									edge_label[get_symedge(tri_sym.nxt).edge] != 3 &&
-									edge_label[prev_symedge(tri_sym).edge] != 3;
+		int tri_sym = tri_symedges[index].x;
+		bool no_point_in_edges = edge_label[get_symedge(tri_sym).edge] != 3 &&
+									edge_label[get_symedge(nxt(tri_sym)).edge] != 3 &&
+									edge_label[get_symedge(prev(tri_sym)).edge] != 3;
 		if (no_point_in_edges)
 		{
 			if (tri_seg_inters_index[index] == -1)
 			{
 				for (int i = 0; i < 3; i++)
 				{
-					if ((edge_label[tri_sym.edge] == 1 && is_delaunay(tri_sym)) || edge_is_constrained[tri_sym.edge] == 0)
-						edge_label[tri_sym.edge] = 0;
-					tri_sym = get_symedge(tri_sym.nxt);
+					if (edge_label[get_symedge(tri_sym).edge] == 1 && (is_delaunay(tri_sym) || edge_is_constrained[get_symedge(tri_sym).edge] > 0))
+						edge_label[get_symedge(tri_sym).edge] = 0;
+					tri_sym = nxt(tri_sym);
 				}
 			}
 			else
 			{
 				for (int i = 0; i < 3; i++)
 				{
-					int adjacent_triangle = get_symedge(tri_sym.nxt).rot;
-					if (adjacent_triangle != -1 && edge_label[tri_sym.edge] == 2)
+					int adjacent_triangle = get_symedge(nxt(tri_sym)).rot;
+					if (adjacent_triangle != -1 && edge_label[get_symedge(tri_sym).edge] == 2)
 					{
 						vec2 segment_vertices[2];
 						segment_vertices[0] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].x);
 						segment_vertices[1] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].y);
 
 						vec2 face_vertices[3];
-						get_face(sym_symedge(tri_sym).face, face_vertices);
+						get_face(get_symedge(rot(nxt(tri_sym))).face, face_vertices);
 
 						if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]))
-							edge_label[tri_sym.edge] = 0;
+							edge_label[get_symedge(tri_sym).edge] = 0;
 					}
-					tri_sym = get_symedge(tri_sym.nxt);
+					tri_sym = nxt(tri_sym);
 				}
 			}
 		}
