@@ -32,7 +32,12 @@ namespace GPU
 		// Fill edge buffers
 		m_edge_bufs.label.create_buffer(type, std::vector<int>(5, 0), usage, 3, n);
 		std::vector<GLuint> edge_constraints(5, 1);
-		edge_constraints[4] = 0;
+		edge_constraints[0] = 0;
+		edge_constraints[1] = 1;
+		edge_constraints[2] = 2;
+		edge_constraints[3] = 3;
+		edge_constraints[4] = -1;
+
 		m_edge_bufs.is_constrained.create_buffer(type, edge_constraints, usage, 4, n);
 
 		// Fill constraint buffers
@@ -95,7 +100,7 @@ namespace GPU
 		// fix new sizes of edge buffers 
 		// TODO: fix so it can handle repeated insertions
 		int num_new_edges = points.size() * 3;
-		m_edge_bufs.is_constrained.append_to_buffer(std::vector<int>(num_new_edges, 0));
+		m_edge_bufs.is_constrained.append_to_buffer(std::vector<int>(num_new_edges, -1));
 		m_edge_bufs.label.append_to_buffer(std::vector<int>(num_new_edges, -1));
 		// fix new size of symedges buffer
 		// TODO: fix so it can handle repeated insertions
@@ -251,7 +256,7 @@ namespace GPU
 				// fix new sizes of edge buffers 
 				// TODO: fix so it can handle repeated insertions
 				int num_new_edges = num_new_points * 3;
-				m_edge_bufs.is_constrained.append_to_buffer(std::vector<int>(num_new_edges, 0));
+				m_edge_bufs.is_constrained.append_to_buffer(std::vector<int>(num_new_edges, -1));
 				m_edge_bufs.label.append_to_buffer(std::vector<int>(num_new_edges, -1));
 				// fix new size of symedges buffer
 				// TODO: fix so it can handle repeated insertions
@@ -363,7 +368,7 @@ namespace GPU
 			if (std::find(found_edges.begin(), found_edges.end(), edge) == found_edges.end())
 			{
 				found_edges.push_back(edge);
-				if (is_constrained_edge_list[symedge.edge])
+				if (is_constrained_edge_list[symedge.edge] != -1)
 					edge_list.push_back({ edge, true });
 				else
 					edge_list.push_back({ edge, false });

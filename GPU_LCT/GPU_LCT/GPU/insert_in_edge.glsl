@@ -156,8 +156,6 @@ bool point_intersects_line(vec2 p, vec2 a, vec2 b, float epsilon = EPSILON)
 
 // Each thread represents one triangle
 
-// input is a point index from tri_ins_point_index
-
 void main(void)
 {
 	uint gid = gl_GlobalInvocationID.x;
@@ -251,12 +249,12 @@ void main(void)
 		seg_endpoint_indices[edge_is_constrained[segment.edge]] = ivec2(point_index, get_symedge(e1).vertex);	// reused segment
 		seg_endpoint_indices[new_segment_index] = ivec2(get_symedge(new_symedges[0]).vertex, point_index);		// new segment
 		
-		edge_is_constrained[edge1] = 1;
+		edge_is_constrained[edge1] = new_segment_index;
 
-		// mark as maybe not non delauney
+		// mark as maybe non delauney
 
-		edge_label[get_symedge(e1).edge] = edge_is_constrained[get_symedge(e1).edge] == 0 ? 1 : edge_label[get_symedge(e1).edge];
-		edge_label[get_symedge(e2).edge] = edge_is_constrained[get_symedge(e2).edge] == 0 ? 1 : edge_label[get_symedge(e2).edge];
+		edge_label[get_symedge(e1).edge] = edge_is_constrained[get_symedge(e1).edge] == -1 ? 1 : edge_label[get_symedge(e1).edge];
+		edge_label[get_symedge(e2).edge] = edge_is_constrained[get_symedge(e2).edge] == -1 ? 1 : edge_label[get_symedge(e2).edge];
 
 		if (nxt(segment).rot != -1)
 		{
@@ -308,9 +306,9 @@ void main(void)
 
 			seg_inserted[new_segment_index] = 1;
 
-			// mark as maybe not non delauney
-			edge_label[get_symedge(e3).edge] = edge_is_constrained[get_symedge(e3).edge] == 0 ? 1 : edge_label[get_symedge(e3).edge];
-			edge_label[get_symedge(e4).edge] = edge_is_constrained[get_symedge(e4).edge] == 0 ? 1 : edge_label[get_symedge(e4).edge];
+			// mark as maybe non delauney
+			edge_label[get_symedge(e3).edge] = edge_is_constrained[get_symedge(e3).edge] == -1 ? 1 : edge_label[get_symedge(e3).edge];
+			edge_label[get_symedge(e4).edge] = edge_is_constrained[get_symedge(e4).edge] == -1 ? 1 : edge_label[get_symedge(e4).edge];
 		}
 	}
 }

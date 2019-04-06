@@ -163,17 +163,14 @@ void main(void)
 		
 		if (point_intersects_line(p, t0, t1))
 		{
-			edge_is_constrained[s.edge] = get_index(s);
 			tri_ins_point_index[index] = nxt(s).rot != -1 && tri_ins_point_index[rot(nxt(s)).face] != -1 ? -1 : tri_ins_point_index[index];
 		}
 		else if (point_intersects_line(p, t1, t2))
 		{
-			edge_is_constrained[nxt(s).edge] = get_index(nxt(s));
 			tri_ins_point_index[index] = prev(s).rot != -1 && tri_ins_point_index[rot(prev(s)).face] != -1 ? -1 : tri_ins_point_index[index];
 		}
 		else if (point_intersects_line(p, t2, t0))
 		{
-			edge_is_constrained[prev(s).edge] = get_index(prev(s));
 			tri_ins_point_index[index] = s.rot != -1 && tri_ins_point_index[rot(s).face] != -1 ? -1 : tri_ins_point_index[index];
 		}
 	}

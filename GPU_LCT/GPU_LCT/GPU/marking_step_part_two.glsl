@@ -267,7 +267,7 @@ void main(void)
 			{
 				for (int i = 0; i < 3; i++)
 				{
-					if (edge_label[get_symedge(tri_sym).edge] == 1 && (is_delaunay(tri_sym) || edge_is_constrained[get_symedge(tri_sym).edge] > 0))
+					if (edge_label[get_symedge(tri_sym).edge] == 1 && (is_delaunay(tri_sym) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
 						edge_label[get_symedge(tri_sym).edge] = 0;
 					tri_sym = nxt(tri_sym);
 				}

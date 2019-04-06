@@ -201,7 +201,7 @@ void main(void)
 			// Mark original edges as potential not delaunay
 			for(int i = 0; i < 3; i++)
 			{
-				if(edge_is_constrained[sym_edges[orig_face[i]].edge] == 0)
+				if(edge_is_constrained[sym_edges[orig_face[i]].edge] > -1)
 					if(edge_label[sym_edges[orig_face[i]].edge] < 1)
 						edge_label[sym_edges[orig_face[i]].edge] = 1; // candidate for not delaunay. 
 			}

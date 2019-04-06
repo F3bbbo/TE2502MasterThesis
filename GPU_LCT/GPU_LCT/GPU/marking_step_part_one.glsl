@@ -544,7 +544,7 @@ void main(void)
 		int connecting_edge = points_connected(starting_symedge, ending_symedge);
 		if (connecting_edge != -1)
 		{
-			edge_is_constrained[connecting_edge] = 1;
+			edge_is_constrained[connecting_edge] = index;
 			edge_label[connecting_edge] = 0;
 			seg_inserted[index] = 1;
 			status = 1;

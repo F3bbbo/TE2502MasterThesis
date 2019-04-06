@@ -239,7 +239,7 @@ int find_next_rot_constraint(in int start, in int curr, in out bool reverse)
 	curr = find_next_rot(start, curr, reverse);
 	while(curr!=-1)
 	{
-		if(edge_is_constrained[sym_edges[curr].edge] != 0)
+		if(edge_is_constrained[sym_edges[curr].edge] != -1)
 		{
 			return curr;
 		}
@@ -256,7 +256,7 @@ bool no_collinear_constraints(in int v){
 	int last_constraint = -1;
 	vec2 point = point_positions[sym_edges[v].vertex];
 	// first check if initial value is an constraint
-	if(edge_is_constrained[sym_edges[v].edge] != 0)
+	if(edge_is_constrained[sym_edges[v].edge] != -1)
 	{
 		curr_constraint = v;
 	}
@@ -896,7 +896,7 @@ void main(void)
 		for(int i = 0; i < 3; i++)
 		{
 			// Checking if edge of triangle is constrained.
-			if(edge_is_constrained[sym_edges[tri_symedges[index][i]].edge] > 0)
+			if(edge_is_constrained[sym_edges[tri_symedges[index][i]].edge] > -1)
 			{
 				c_edge_i[num_constraints] = tri_symedges[index][i];
 				tri_edge_i[num_constraints] = tri_symedges[index][i];
