@@ -85,12 +85,6 @@ layout (std140, binding = 0) uniform symedge_size
 //-----------------------------------------------------------
 // Access Functions
 //-----------------------------------------------------------
-void get_face(in int face_i, out vec2 face_v[3])
-{
-	face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
-	face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
-	face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
-}
 
 SymEdge get_symedge(int index)
 {
@@ -98,28 +92,23 @@ SymEdge get_symedge(int index)
 }
 
 // symedge movement functions
-SymEdge nxt(SymEdge sym_edge)
+int nxt(int sym_edge)
 {
-	return get_symedge(sym_edge.nxt);
+	return get_symedge(sym_edge).nxt;
 }
 
-SymEdge rot(SymEdge sym_edge)
+int rot(int sym_edge)
 {
-	return get_symedge(sym_edge.rot);
+	return get_symedge(sym_edge).rot;
 }
 
-SymEdge prev(SymEdge s)
+int prev(int s)
 {
 	return nxt(nxt(s));
 }
-SymEdge sym(SymEdge s)
+int sym(int s)
 {
 	return rot(nxt(s));
-}
-
-int get_index(SymEdge s)
-{
-	return prev(s).nxt;
 }
 
 vec2 get_vertex(int index)
@@ -168,22 +157,22 @@ void main(void)
 		point_inserted[point_index] = 1;
 		tri_ins_point_index[index] = -1;
 
-		SymEdge segment = get_symedge(tri_symedges[index].x);
+		int segment = tri_symedges[index].x;
 
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < 2; i++)
 		{
-			if (point_intersects_line(get_vertex(point_index), get_vertex(segment.vertex), get_vertex(nxt(segment).vertex)))
+			if (point_intersects_line(get_vertex(point_index), get_vertex(get_symedge(segment).vertex), get_vertex(get_symedge(nxt(segment)).vertex)))
 				break;
 			segment = nxt(segment);
 		}
 
-		int e1 = get_index(nxt(segment));
-		int e2 = get_index(prev(segment));
+		int e1 = nxt(segment);
+		int e2 = prev(segment);
 
-		int e1_sym = get_index(sym(get_symedge(e1)));
-		int e2_sym = get_index(sym(get_symedge(e2)));
+		int e1_sym = sym(e1);
+		int e2_sym = sym(e2);
 		
-		ivec2 segment_symedges = ivec2(get_index(segment), nxt(segment).rot);
+		ivec2 segment_symedges = ivec2(segment, rot(nxt(segment)));
 		int new_symedges[6];
 
 		new_symedges[0] = symedge_buffer_size - 6 * (point_positions.length() - point_index);
@@ -246,7 +235,7 @@ void main(void)
 
 		int new_segment_index = seg_inserted.length() - (seg_inserted.length() - point_index);
 
-		seg_endpoint_indices[edge_is_constrained[segment.edge]] = ivec2(point_index, get_symedge(e1).vertex);	// reused segment
+		seg_endpoint_indices[edge_is_constrained[get_symedge(segment).edge]] = ivec2(point_index, get_symedge(e1).vertex);	// reused segment
 		seg_endpoint_indices[new_segment_index] = ivec2(get_symedge(new_symedges[0]).vertex, point_index);		// new segment
 		
 		edge_is_constrained[edge1] = new_segment_index;
@@ -256,13 +245,13 @@ void main(void)
 		edge_label[get_symedge(e1).edge] = edge_is_constrained[get_symedge(e1).edge] == -1 ? 1 : edge_label[get_symedge(e1).edge];
 		edge_label[get_symedge(e2).edge] = edge_is_constrained[get_symedge(e2).edge] == -1 ? 1 : edge_label[get_symedge(e2).edge];
 
-		if (nxt(segment).rot != -1)
+		if (rot(nxt(segment)) != -1)
 		{
-			int e3 = sym(segment).nxt;
-			int e4 = nxt(sym(segment)).nxt;
+			int e3 = nxt(sym(segment));
+			int e4 = nxt(nxt(sym(segment)));
 
-			int e3_sym = get_index(sym(get_symedge(e3)));
-			int e4_sym = get_index(sym(get_symedge(e4)));
+			int e3_sym = sym(e3);
+			int e4_sym = sym(e4);
 
 			// new 1 fix
 			sym_edges[new_symedges[1]].rot = new_symedges[5];
