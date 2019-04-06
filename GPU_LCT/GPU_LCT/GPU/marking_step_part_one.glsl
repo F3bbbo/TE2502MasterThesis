@@ -235,14 +235,6 @@ bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
 	return test_one || test_two;
 }
 
-bool point_intersects_line(vec2 p, vec2 a, vec2 b, float epsilon = EPSILON)
-{
-	float hypotenuse = length(project_point_on_line(p, a, b) - a);
-	float adjacent = length(p - a);
-
-	return sqrt(hypotenuse * hypotenuse - adjacent * adjacent) < epsilon;
-}
-
 //-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------

@@ -310,7 +310,7 @@ namespace GPU
 					glUseProgram(m_insert_in_edge_program);
 					glDispatchCompute((GLuint)256, 1, 1);
 					glMemoryBarrier(GL_ALL_BARRIER_BITS);
-					break;
+					
 					// Perform flipping to ensure that mesh is CDT
 					glUseProgram(m_flip_edges_part_one_program);
 					glDispatchCompute((GLuint)256, 1, 1);
