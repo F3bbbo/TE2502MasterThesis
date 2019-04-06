@@ -235,7 +235,7 @@ bool is_delaunay(int sym)
 			mat[3][i] = 1.f;
 		}
 
-		vec2 other = get_vertex(prev_symedge(get_symedge(index)).vertex);
+		vec2 other = get_vertex(get_symedge(prev(index)).vertex);
 		
 		mat[0][3] = other.x;
 		mat[1][3] = other.y;
