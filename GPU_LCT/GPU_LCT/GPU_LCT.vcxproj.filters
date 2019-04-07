@@ -46,6 +46,9 @@
     <Filter Include="Resource Files\Shaders\Debug">
       <UniqueIdentifier>{da04e863-847e-4123-81f7-32c6e3f2e069}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Shaders\LCT">
+      <UniqueIdentifier>{404c58f4-7dde-453a-8047-f7645d1637c5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -154,15 +157,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="GPU\locate_disturbances.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="GPU\add_new_points.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="GPU\insert_in_edge.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
     <None Include="GPU\flipping_part_one.glsl">
       <Filter>Resource Files\Shaders\CDT</Filter>
     </None>
@@ -199,11 +193,20 @@
     <None Include="debug_vertex_shader.glsl">
       <Filter>Resource Files\Shaders\Debug</Filter>
     </None>
+    <None Include="GPU\add_new_points.glsl">
+      <Filter>Resource Files\Shaders\LCT</Filter>
+    </None>
+    <None Include="GPU\insert_in_edge.glsl">
+      <Filter>Resource Files\Shaders\LCT</Filter>
+    </None>
+    <None Include="GPU\locate_disturbances.glsl">
+      <Filter>Resource Files\Shaders\LCT</Filter>
+    </None>
     <None Include="GPU\locate_point_triangle.glsl">
-      <Filter>Resource Files\Shaders</Filter>
+      <Filter>Resource Files\Shaders\LCT</Filter>
     </None>
     <None Include="GPU\validate_edges.glsl">
-      <Filter>Resource Files\Shaders</Filter>
+      <Filter>Resource Files\Shaders\LCT</Filter>
     </None>
   </ItemGroup>
 </Project>
