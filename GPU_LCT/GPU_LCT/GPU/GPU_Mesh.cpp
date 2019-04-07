@@ -292,11 +292,12 @@ namespace GPU
 				glMemoryBarrier(GL_ALL_BARRIER_BITS);
 				// Perform insertion of points untill all has been inserted 
 				// and triangulation is CDT
+				int counter = 0;
 				int cont = 1;
 				do
 				{
 					m_status.update_buffer<int>({ 0 });
-
+					counter++;
 					//// Find out which triangle the point is on the edge of
 					glUseProgram(m_locate_point_triangle_program);
 					glDispatchCompute((GLuint)256, 1, 1);
@@ -310,7 +311,12 @@ namespace GPU
 					glUseProgram(m_insert_in_edge_program);
 					glDispatchCompute((GLuint)256, 1, 1);
 					glMemoryBarrier(GL_ALL_BARRIER_BITS);
-					
+
+					// Perform marking
+					glUseProgram(m_marking_part_two_program);
+					glDispatchCompute((GLuint)256, 1, 1);
+					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
 					// Perform flipping to ensure that mesh is CDT
 					glUseProgram(m_flip_edges_part_one_program);
 					glDispatchCompute((GLuint)256, 1, 1);
@@ -323,10 +329,9 @@ namespace GPU
 					glUseProgram(m_flip_edges_part_three_program);
 					glDispatchCompute((GLuint)256, 1, 1);
 					glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
 					cont = m_status.get_buffer_data<int>()[0];
-				} while (cont == 0);
-
+				} while (cont == 1);
+				LOG(std::string("LCT Number of iterations: ") + std::to_string(counter));
 			}
 			else
 			{

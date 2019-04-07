@@ -151,6 +151,7 @@ void main(void)
 
 	if (index < tri_seg_inters_index.length() && tri_ins_point_index[index] >= 0)
 	{
+		status = 1;
 		int point_index = tri_ins_point_index[index];
 		point_inserted[point_index] = 1;
 		tri_ins_point_index[index] = -1;
