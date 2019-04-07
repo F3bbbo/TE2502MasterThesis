@@ -139,6 +139,36 @@ bool point_intersects_line(vec2 p, vec2 a, vec2 b, float epsilon = EPSILON)
 	return sqrt(hypotenuse * hypotenuse - adjacent * adjacent) < epsilon;
 }
 
+bool adjacent_tri_point_intersects_edge(in SymEdge curr_edge, out int face_index)
+{
+	// checks if the adjacent triangle wants to insert its point in the provided edge
+
+	// if there exists an adjacent triangle that wants to insert a point
+	if (nxt(curr_edge).rot != -1 && tri_ins_point_index[sym(curr_edge).face] != -1)
+	{
+		SymEdge other_insertion_symedge = sym(curr_edge);
+
+		vec2 other_point = get_vertex(tri_ins_point_index[other_insertion_symedge.face]);
+
+		// Check if the adjacent triangle wants to insert into same edge, if true: let the triangle with the lowest index do its insertion
+		if (point_intersects_line(other_point, get_vertex(other_insertion_symedge.vertex), get_vertex(nxt(other_insertion_symedge).vertex)))
+		{
+			face_index = other_insertion_symedge.face;
+			return true;
+		}
+		else
+		{
+			face_index = -1;
+			return false;
+		}
+	}
+	else
+	{
+		face_index = -1;
+		return false;
+	}
+}
+
 //-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------
@@ -153,25 +183,45 @@ void main(void)
 
 	if (index < tri_symedges.length() && tri_ins_point_index[index] != -1)
 	{
-		// Triangles can only insert a point if the neighbouring triangle does not have a point that it should insert
-		SymEdge s = get_symedge(tri_symedges[index].x);
-		vec2 p = get_vertex(tri_ins_point_index[index]);
+		// find the symedge which the point should be inserted into
 
-		vec2 t0 = get_vertex(s.vertex);
-		vec2 t1 = get_vertex(nxt(s).vertex);
-		vec2 t2 = get_vertex(prev(s).vertex);
-		
-		if (point_intersects_line(p, t0, t1))
+		vec2 p = get_vertex(tri_ins_point_index[index]);
+		SymEdge curr_insertion_symedge = get_symedge(tri_symedges[index].x);
+
+		for (int i = 0; i < 3; i++)
 		{
-			tri_ins_point_index[index] = nxt(s).rot != -1 && tri_ins_point_index[rot(nxt(s)).face] != -1 ? -1 : tri_ins_point_index[index];
+			if (point_intersects_line(p, get_vertex(curr_insertion_symedge.vertex), get_vertex(nxt(curr_insertion_symedge).vertex)))
+				break;
+			curr_insertion_symedge = nxt(curr_insertion_symedge);
 		}
-		else if (point_intersects_line(p, t1, t2))
+
+		// Check adjacent triangles for if they want to insert their point into one of their edges
+		int adjacent_face_index = -1;
+
+		for (int adjacent_triangle = 0; adjacent_triangle < 3; adjacent_triangle++)
 		{
-			tri_ins_point_index[index] = prev(s).rot != -1 && tri_ins_point_index[rot(prev(s)).face] != -1 ? -1 : tri_ins_point_index[index];
+			if (adjacent_tri_point_intersects_edge(curr_insertion_symedge, adjacent_face_index) && index > adjacent_face_index)
+			{
+				tri_ins_point_index[index] = -1;
+				return;
+			}
+			curr_insertion_symedge = nxt(curr_insertion_symedge);
 		}
-		else if (point_intersects_line(p, t2, t0))
+
+		// check other side
+		if (nxt(curr_insertion_symedge).rot != -1)
 		{
-			tri_ins_point_index[index] = s.rot != -1 && tri_ins_point_index[rot(s).face] != -1 ? -1 : tri_ins_point_index[index];
+			curr_insertion_symedge = nxt(sym(curr_insertion_symedge));
+
+			for (int adjacent_triangle = 0; adjacent_triangle < 2; adjacent_triangle++)
+			{
+				if (adjacent_tri_point_intersects_edge(curr_insertion_symedge, adjacent_face_index) && index > adjacent_face_index)
+				{
+					tri_ins_point_index[index] = -1;
+					return;
+				}
+				curr_insertion_symedge = nxt(curr_insertion_symedge);
+			}
 		}
 	}
 }
