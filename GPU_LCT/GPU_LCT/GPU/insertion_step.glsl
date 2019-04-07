@@ -77,6 +77,10 @@ layout(std430, binding = 12) buffer status_buff
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
+layout (std140, binding = 0) uniform symedge_size
+{
+	int symedge_buffer_size;
+};
 
 //-----------------------------------------------------------
 // Access Functions
@@ -116,19 +120,19 @@ void main(void)
 			// Create array of the indices of the three new triangles
 			int tri_indices[3];
 			tri_indices[0] = index;
-			tri_indices[1] = 2 * point_index - 6;
-			tri_indices[2] = 2 * point_index - 5;
+			tri_indices[1] = tri_seg_inters_index.length() - 2 * (point_positions.length() - point_index);
+			tri_indices[2] = tri_seg_inters_index.length() - 2 * (point_positions.length() - point_index) + 1;
 			int edge_indices[3];
-			edge_indices[0] = 3 * point_index - 7;
-			edge_indices[1] = 3 * point_index - 6;
-			edge_indices[2] = 3 * point_index - 5;
+			edge_indices[0] = edge_label.length() - 3 * (point_positions.length() - point_index);
+			edge_indices[1] = edge_label.length() - 3 * (point_positions.length() - point_index) + 1;
+			edge_indices[2] = edge_label.length() - 3 * (point_positions.length() - point_index) + 2;
 			int sym_edge_indices[6];
-			sym_edge_indices[0] = 6 * point_index - 18;
-			sym_edge_indices[1] = 6 * point_index - 17;
-			sym_edge_indices[2] = 6 * point_index - 16;
-			sym_edge_indices[3] = 6 * point_index - 15;
-			sym_edge_indices[4] = 6 * point_index - 14;
-			sym_edge_indices[5] = 6 * point_index - 13;
+			sym_edge_indices[0] = symedge_buffer_size - 6 * (point_positions.length() - point_index);
+			sym_edge_indices[1] = symedge_buffer_size - 6 * (point_positions.length() - point_index) + 1;
+			sym_edge_indices[2] = symedge_buffer_size - 6 * (point_positions.length() - point_index) + 2;
+			sym_edge_indices[3] = symedge_buffer_size - 6 * (point_positions.length() - point_index) + 3;
+			sym_edge_indices[4] = symedge_buffer_size - 6 * (point_positions.length() - point_index) + 4;
+			sym_edge_indices[5] = symedge_buffer_size - 6 * (point_positions.length() - point_index) + 5;
 
 			// start working on the new triangles
 			int orig_face[3];
