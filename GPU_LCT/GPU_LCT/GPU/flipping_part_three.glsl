@@ -192,21 +192,26 @@ void flip_edge(SymEdge edge)
 void main(void)
 {
 	int index = int(gl_GlobalInvocationID.x);
-	if (index < tri_seg_inters_index.length() && tri_edge_flip_index[index] != -1 && edge_label[tri_edge_flip_index[index]] != -1)
+	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
+	while (index < tri_seg_inters_index.length())
 	{
-		status = 1;
-
-		// find the symedge that constains the edge that should get flipped
-		SymEdge edge_to_be_flipped = get_symedge(tri_symedges[index].x);
-		SymEdge cur_edge = edge_to_be_flipped;
-		for (int i = 0; i < 3; i++)
+		if(tri_edge_flip_index[index] != -1 && edge_label[tri_edge_flip_index[index]] != -1)
 		{
-			edge_to_be_flipped = cur_edge.edge == tri_edge_flip_index[index] ? cur_edge : edge_to_be_flipped;
-			cur_edge = nxt(cur_edge);
-		}
+			status = 1;
 
-		edge_label[edge_to_be_flipped.edge] = 0;
-		tri_edge_flip_index[index] = -1;
-		flip_edge(edge_to_be_flipped);
+			// find the symedge that constains the edge that should get flipped
+			SymEdge edge_to_be_flipped = get_symedge(tri_symedges[index].x);
+			SymEdge cur_edge = edge_to_be_flipped;
+			for (int i = 0; i < 3; i++)
+			{
+				edge_to_be_flipped = cur_edge.edge == tri_edge_flip_index[index] ? cur_edge : edge_to_be_flipped;
+				cur_edge = nxt(cur_edge);
+			}
+
+			edge_label[edge_to_be_flipped.edge] = 0;
+			tri_edge_flip_index[index] = -1;
+			flip_edge(edge_to_be_flipped);
+		}
+		index += num_threads;
 	}
 }

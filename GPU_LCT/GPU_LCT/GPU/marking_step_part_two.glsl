@@ -254,8 +254,9 @@ void main(void)
 
 	gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
+	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
 	
-	if (index < tri_seg_inters_index.length())
+	while (index < tri_seg_inters_index.length())
 	{
 		int tri_sym = tri_symedges[index].x;
 		bool no_point_in_edges = edge_label[get_symedge(tri_sym).edge] != 3 &&
@@ -293,5 +294,6 @@ void main(void)
 				}
 			}
 		}
+		index += num_threads;
 	}
 }

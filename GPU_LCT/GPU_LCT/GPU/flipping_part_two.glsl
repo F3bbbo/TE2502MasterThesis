@@ -126,20 +126,25 @@ void set_quad_edges_label(int label, SymEdge edge)
 void main(void)
 {
 	int index = int(gl_GlobalInvocationID.x);
-	if (index < tri_seg_inters_index.length() && tri_edge_flip_index[index] == -1)
+	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
+	while (index < tri_seg_inters_index.length())
 	{	
-		SymEdge edge_sym = get_symedge(tri_symedges[index].x);
-		for (int i = 0; i < 3; i++)
+		if(tri_edge_flip_index[index] == -1)
 		{
-			int sym = nxt(edge_sym).rot;
-			if (sym != -1 && tri_edge_flip_index[get_symedge(sym).face] == edge_sym.edge)
+			SymEdge edge_sym = get_symedge(tri_symedges[index].x);
+			for (int i = 0; i < 3; i++)
 			{
-				// This feels like bullshit
-				// tri_edge_flip_index[index] = edge_label[edge_sym.edge];
-				set_quad_edges_label(1, edge_sym);
-				break;
+				int sym = nxt(edge_sym).rot;
+				if (sym != -1 && tri_edge_flip_index[get_symedge(sym).face] == edge_sym.edge)
+				{
+					// This feels like bullshit
+					// tri_edge_flip_index[index] = edge_label[edge_sym.edge];
+					set_quad_edges_label(1, edge_sym);
+					break;
+				}
+				edge_sym = nxt(edge_sym);
 			}
-			edge_sym = nxt(edge_sym);
 		}
+		index += num_threads;
 	}
 }
