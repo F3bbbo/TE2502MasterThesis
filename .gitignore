@@ -339,3 +339,13 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+
+# gspaces licenced files
+gspaces
+tpapi.h
+tpapi_array.h
+tpapi_lct.h
+tpapi_lct_planner.h
+tpapi_mesh.h
+tpapi_polygon.h
+triplanner001.lib
