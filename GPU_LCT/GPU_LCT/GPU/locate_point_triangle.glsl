@@ -241,5 +241,5 @@ void main(void)
 	int index = int(gid);
 
 	if (index < point_positions.length() && point_inserted[index] == 0)
-		oriented_walk_point(0, index);
+		oriented_walk_point(point_tri_index[index], index);
 }
