@@ -26,7 +26,7 @@ namespace GPU
 		int locate_face(glm::vec2 p);
 	private:
 		void setup_compute_shaders();
-		void compile_cs(GLuint& program, const char* path);
+		void compile_cs(GLuint& program, const char* path, int work_group_size = 64);
 
 		PointBuffers m_point_bufs;
 		EdgeBuffers m_edge_bufs;

@@ -450,7 +450,7 @@ namespace GPU
 		compile_cs(m_insert_in_edge_program, "GPU/insert_in_edge.glsl");
 	}
 
-	void GPUMesh::compile_cs(GLuint & program, const char * path)
+	void GPUMesh::compile_cs(GLuint & program, const char * path, int work_group_size)
 	{
 		if (path == "")
 			return;
@@ -461,6 +461,15 @@ namespace GPU
 		{
 			std::string tmp;
 			getline(shader_file, tmp);
+			// Check if line contains layout
+			if (tmp.find("layout") != std::string::npos)
+			{
+				if (tmp.find("local_size_x") != std::string::npos)
+				{
+					str += "layout(local_size_x = " + std::to_string(work_group_size) + ", local_size_y = 1) in;\n";
+					continue;
+				}
+			}
 			str += tmp + '\n';
 		}
 		shader_file.close();
