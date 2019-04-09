@@ -2,7 +2,7 @@
 
 TestMap::TestMap()
 {
-	m_obsticles_scale = 0.01f;
+
 }
 
 TestMap::~TestMap()
@@ -21,6 +21,11 @@ void TestMap::generate_map()
 		delta.y = (m_end.y - m_start.y) / (m_num_obsticles.y + 1);
 
 		glm::vec2 curr_pos = m_start;
+		// calculate the scale
+		glm::vec2 obstacles_scale;
+		obstacles_scale = delta / 2.0f;
+		glm::vec2 scale_variance;
+
 		// add obsticles inside the map area according to specified values
 
 		int shape_type = 0;
@@ -42,7 +47,7 @@ void TestMap::generate_map()
 				}
 				shape_type = (shape_type + 1) % 2;
 				tmp->set_location(curr_pos);
-				tmp->set_scale(m_obsticles_scale);
+				tmp->set_scale(obstacles_scale);
 				m_shapes.push_back(tmp);
 
 			}
@@ -101,11 +106,6 @@ void TestMap::set_map_size(glm::vec2 start, glm::vec2 end)
 	m_dirty = true;
 }
 
-void TestMap::set_obsticle_scale(float scale)
-{
-	m_obsticles_scale = scale;
-	m_dirty = true;
-}
 
 void TestMap::clear_shapes()
 {

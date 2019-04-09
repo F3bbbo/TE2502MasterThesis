@@ -103,7 +103,6 @@ void test_test_map(CPU::Mesh &m, GPU::GPUMesh &g_m)
 	TestMap test_map;
 	test_map.set_map_size({ 0.5f, 0.5f }, { -0.5f, -0.5f });
 	test_map.set_num_obsticles({ 3, 3 });
-	test_map.set_obsticle_scale(0.1f);
 
 	auto obsticles = test_map.get_CPU_obsticles();
 	for (unsigned int i = 0; i < obsticles.size(); i++)

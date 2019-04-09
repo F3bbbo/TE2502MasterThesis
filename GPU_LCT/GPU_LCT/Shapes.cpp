@@ -6,7 +6,7 @@
 
 Shape::Shape()
 {
-	m_scale = 1.0f;
+	m_scale = glm::vec2(1.0f);
 	m_location = { 0.0f, 0.0f };
 }
 
@@ -35,6 +35,11 @@ std::vector<glm::vec2> Shape::get_segments()
 
 void Shape::set_scale(float s)
 {
+	set_scale(glm::vec2(s));
+}
+
+void Shape::set_scale(glm::vec2 s)
+{
 	m_scale = s;
 }
 
@@ -55,7 +60,7 @@ Triangle::Triangle()
 Triangle::Triangle(float scale, glm::vec2 location)
 	: Triangle()
 {
-	m_scale = scale;
+	set_scale(scale);
 	m_location = location;
 }
 
@@ -85,7 +90,7 @@ Square::Square()
 Square::Square(float scale, glm::vec2 location)
 	:Square()
 {
-	m_scale = scale;
+	set_scale(scale);
 	m_location = location;
 }
 
