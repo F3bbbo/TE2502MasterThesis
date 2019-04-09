@@ -66,6 +66,28 @@ std::vector<std::vector<glm::vec2>> TestMap::get_obsticles()
 	return ret_list;
 }
 
+std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> TestMap::get_GPU_obstacles()
+{
+	generate_map();
+	std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> ret_obs;
+	int last_shape_stop = 0;
+	for (auto shape : m_shapes)
+	{
+		auto new_points = shape->get_segments();
+		ret_obs.first.insert(ret_obs.first.end(), new_points.begin(), std::prev(new_points.end()));
+		// add the segment indices
+		unsigned int curr_i;
+		for (unsigned int i = 0; i < new_points.size() - 2; i++)
+		{
+			curr_i = last_shape_stop + i;
+			ret_obs.second.push_back(glm::ivec2(curr_i, curr_i + 1));
+		}
+		ret_obs.second.push_back(glm::ivec2(curr_i + 1, last_shape_stop));
+		last_shape_stop = ret_obs.first.size();
+	}
+	return ret_obs;
+}
+
 void TestMap::set_num_obsticles(glm::ivec2 num)
 {
 	m_num_obsticles = num;
