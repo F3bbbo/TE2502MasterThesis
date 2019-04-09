@@ -235,6 +235,14 @@ bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
 	return test_one || test_two;
 }
 
+bool point_intersects_line(vec2 p, vec2 a, vec2 b, float epsilon = EPSILON)
+{
+	float hypotenuse = length(project_point_on_line(p, a, b) - a);
+	float adjacent = length(p - a);
+
+	return sqrt(hypotenuse * hypotenuse - adjacent * adjacent) < epsilon;
+}
+
 //-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------
@@ -258,11 +266,11 @@ int get_face_vertex_symedge(int face, int vertex)
 		return -1;
 }
 
-int oriented_walk_point(int curr_e, int goal_point_i)
+int oriented_walk_point(int curr_e, int goal_point_i, out int magic)
 {
+
 	vec2 tri_cent;
 	vec2 goal_point = get_vertex(goal_point_i);
-	int i = 0;
 	while (true)
 	{
 		if (face_contains_vertice(get_symedge(curr_e).face, goal_point_i))
@@ -273,7 +281,7 @@ int oriented_walk_point(int curr_e, int goal_point_i)
 		// Loop through edges to see if we should continue through the edge
 		// to the neighbouring triangle 
 		bool line_line_hit = false;
-		for (i = 0; i < 3; i++)
+		for (int i = 0; i < 3; i++)
 		{
 			if (sym_edges[sym_edges[curr_e].nxt].rot == -1)
 			{
@@ -281,6 +289,73 @@ int oriented_walk_point(int curr_e, int goal_point_i)
 				continue;
 			}
 
+			// handle degenerate triangles
+			bool not_valid_edge = false;
+			SymEdge other_e = prev_symedge(sym_symedge(sym_edges[curr_e]));
+
+			vec2 p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
+			vec2 p2 = point_positions[sym_edges[curr_e].vertex];
+
+			not_valid_edge = point_intersects_line(get_vertex(other_e.vertex), p1, p2);
+			if (not_valid_edge == true)
+			{
+				magic = 1;
+				return -1;
+				vec2 center_point = get_vertex(other_e.vertex);
+				
+				while (not_valid_edge == true)
+				{
+					if (line_line_test(tri_cent, goal_point, p1, center_point))
+					{
+						if (get_symedge(other_e.nxt).rot == -1)
+							break;
+						other_e = prev_symedge(sym_symedge(other_e));
+					}
+					else if (line_line_test(tri_cent, goal_point, center_point, p2))
+					{
+						if (other_e.rot == -1)
+							break;
+						other_e = prev_symedge(get_symedge(other_e.rot));
+					}
+					else
+						break;
+					
+					if (get_symedge(other_e.nxt).rot == -1)
+						break;
+					
+					center_point = get_vertex(other_e.vertex);
+					not_valid_edge = point_intersects_line(center_point, p1, p2);
+				}
+				
+				if (not_valid_edge == true)
+					continue;
+
+				// got out of the degenerate triangle mess here
+				center_point = get_face_center(sym_edges[curr_e].face);
+				
+				for (int j = 0; j < 2; j++)
+				{
+					if (get_symedge(other_e.nxt).rot != -1)
+					{
+						line_line_hit = line_line_test(
+							center_point,
+							goal_point,
+							point_positions[other_e.vertex],
+							point_positions[get_symedge(other_e.nxt).vertex]);
+						
+						if (line_line_hit)
+						{
+							curr_e = sym_edges[sym_edges[other_e.nxt].rot].nxt;
+							break;
+						}
+					}
+					
+					other_e = prev_symedge(other_e);
+				}
+				continue;
+			}
+
+			// No degenerate triangles detected
 			line_line_hit = line_line_test(
 				tri_cent,
 				goal_point,
@@ -530,9 +605,16 @@ void main(void)
 	if (index < seg_inserted.length() && seg_inserted[index] == 0 && endpoints_inserted == 1)
 	{
 		// TODO: starting at the first symedge might not always be preferred, find a better solution
-		int starting_symedge = oriented_walk_point(0, seg_endpoint_indices[index].x);
-		int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y);
+		int magic1 = 0;
+		int magic2 = 0;
+		int starting_symedge = oriented_walk_point(0, seg_endpoint_indices[index].x, magic1);
+		int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y, magic2);
 
+		if (magic1 == 1 || magic2 == 1)
+		{
+			seg_inserted[index] = -1000;
+			return;
+		}
 		int connecting_edge = points_connected(starting_symedge, ending_symedge);
 		if (connecting_edge != -1)
 		{
