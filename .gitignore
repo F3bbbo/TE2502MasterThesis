@@ -349,3 +349,5 @@ tpapi_lct_planner.h
 tpapi_mesh.h
 tpapi_polygon.h
 triplanner001.lib
+triplanner001.dll
+triplannerlic.txt
