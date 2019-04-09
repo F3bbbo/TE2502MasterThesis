@@ -23,7 +23,7 @@ void TestMap::generate_map()
 		glm::vec2 curr_pos = m_start;
 		// calculate the scale
 		glm::vec2 obstacles_scale;
-		obstacles_scale = delta / 2.0f;
+		obstacles_scale = -delta / 2.0f;
 		glm::vec2 scale_variance;
 
 		// add obsticles inside the map area according to specified values
