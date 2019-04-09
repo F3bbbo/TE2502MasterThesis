@@ -98,18 +98,22 @@ void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 
 }
 
-void test_test_map(CPU::Mesh &m)
+void test_test_map(CPU::Mesh &m, GPU::GPUMesh &g_m)
 {
 	TestMap test_map;
 	test_map.set_map_size({ 0.5f, 0.5f }, { -0.5f, -0.5f });
-	test_map.set_num_obsticles({ 4, 4 });
+	test_map.set_num_obsticles({ 3, 3 });
 	test_map.set_obsticle_scale(0.1f);
 
-	auto obsticles = test_map.get_obsticles();
+	auto obsticles = test_map.get_CPU_obsticles();
 	for (unsigned int i = 0; i < obsticles.size(); i++)
 	{
 		m.insert_constraint(std::move(obsticles[i]), i);
 	}
+
+	// create GPU data
+	auto gpu_map = test_map.get_GPU_obstacles();
+	g_m.build_CDT(gpu_map.first, gpu_map.second);
 }
 
 int main()
@@ -125,9 +129,9 @@ int main()
 	CPU::Mesh m;
 	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
 
-	lct_example(m, g_mesh);
+	//lct_example(m, g_mesh);
 
-	//test_test_map(m);
+	test_test_map(m, g_mesh);
 
 	m.transform_into_LCT();
 
@@ -211,12 +215,12 @@ int main()
 	DelaunayDebugObject ddo(m);
 	ddo.set_circle_color({ 1.f, 1.f, 0.f });
 	ddo.set_circle_thiccness(0.005f);
-	ddo.enable(true);
+	ddo.enable(false);
 
 	DelaunayDebugObject r_ddo(g_mesh);
 	r_ddo.set_circle_color({ 1.f, 1.f, 0.f });
 	r_ddo.set_circle_thiccness(0.005f);
-	r_ddo.enable(true);
+	r_ddo.enable(false);
 	r_ddo.set_draw_left_side(false);
 
 	ShaderPath delaunay_draw_path;

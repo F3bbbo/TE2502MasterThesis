@@ -1,4 +1,5 @@
 #version 430
+#define EPSILON 0.00005f
 layout(local_size_x = 1, local_size_y= 1) in;
 
 struct SymEdge{
@@ -90,6 +91,29 @@ void get_face(in int face_i, out vec2 face_v[3])
 	face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
 	face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
 	face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
+}
+
+//-----------------------------------------------------------
+// Intersection Functions
+//-----------------------------------------------------------
+bool point_line_test(in vec2 p, in vec2 s1, in vec2 s2)
+{
+	vec3 v1 = vec3(s1 - p, 0.0f);
+	vec3 v2 = vec3(s1 - s2, 0.0f);
+	if (abs(length(cross(v1, v2))) > EPSILON)
+	{
+		return false;
+	}
+	float dot_p = dot(v1, v2);
+	if (dot_p < EPSILON)
+	{
+		return false;
+	}
+	if (dot_p > (dot(v2, v2) - EPSILON))
+	{
+		return false;
+	}
+	return true;
 }
 
 // symedge movement functions
@@ -202,12 +226,25 @@ void main(void)
 				// connect original edge with its sym
 				sym_edges[inner_edge].rot = orig_sym[i];
 			}
-			// Mark original edges as potential not delaunay
+			// Mark original edges as potential not delaunay 
+			// or as point on edge if the point is on any of the edges 
 			for(int i = 0; i < 3; i++)
 			{
 				if(edge_is_constrained[sym_edges[orig_face[i]].edge] > -1)
-					if(edge_label[sym_edges[orig_face[i]].edge] < 1)
+				{
+					// Check if the point is on the edge
+					vec2 s1 = point_positions[sym_edges[orig_face[i]].vertex];
+					vec2 s2 = point_positions[sym_edges[orig_face[(i + 1) % 3]].vertex];
+					vec2 p = point_positions[index];
+					if(point_line_test(p, s1, s2))
+					{
+						edge_label[sym_edges[orig_face[i]].edge] = 3;
+					}
+					else if(edge_label[sym_edges[orig_face[i]].edge] < 1)
+					{
 						edge_label[sym_edges[orig_face[i]].edge] = 1; // candidate for not delaunay. 
+					}
+				}
 			}
 			// Set point as inserted
 			point_inserted[point_index] = 1;

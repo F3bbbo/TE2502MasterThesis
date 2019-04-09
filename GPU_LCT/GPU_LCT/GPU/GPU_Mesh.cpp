@@ -156,7 +156,8 @@ namespace GPU
 			glUseProgram(m_insertion_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
+			if (counter == 4)
+				break;
 			// Marking Step
 			glUseProgram(m_marking_part_one_program);
 			glDispatchCompute((GLuint)256, 1, 1);
@@ -179,11 +180,12 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
+
 			cont = m_status.get_buffer_data<int>()[0];
 
 		}
 		// TODO: remove this creation of lct
-		refine_LCT();
+		//refine_LCT();
 		// points
 		timer.stop();
 

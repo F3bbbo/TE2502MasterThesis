@@ -54,7 +54,7 @@ void TestMap::generate_map()
 	}
 }
 
-std::vector<std::vector<glm::vec2>> TestMap::get_obsticles()
+std::vector<std::vector<glm::vec2>> TestMap::get_CPU_obsticles()
 {
 	generate_map();
 	std::vector<std::vector<glm::vec2>> ret_list;
