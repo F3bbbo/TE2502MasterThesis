@@ -88,6 +88,24 @@ void get_face(in int face_i, out vec2 face_v[3])
 }
 
 //-----------------------------------------------------------
+// Symedge functions
+//-----------------------------------------------------------
+int nxt(int edge)
+{
+	return sym_edges[edge].nxt;
+}
+
+int rot(int edge)
+{
+	return sym_edges[edge].rot;
+}
+
+int sym(int edge)
+{
+	return rot(nxt(edge));
+}
+
+//-----------------------------------------------------------
 // Intersection Functions
 //-----------------------------------------------------------
 #define EPSILON 0.0005f
@@ -223,11 +241,24 @@ void main(void)
 				index,
 				on_edge,
 				tri_cent);
-			point_tri_index[index] = sym_edges[curr_e].face;
 			if(on_edge)
 			{
-				edge_label[sym_edges[curr_e].edge] = 3; // Priority 3 because point on the edge.	
-			}		
+				int sym = sym(curr_e);
+				if(sym > -1)
+				{
+					// if neighbour triangle has a lower index 
+					// chose that one as the triangle for the point.
+					if(sym_edges[sym].face < sym_edges[curr_e].face) 
+					{
+						curr_e = sym;
+					}
+				}
+			}
+			point_tri_index[index] = sym_edges[curr_e].face;
+//			if(on_edge)
+//			{
+//				edge_label[sym_edges[curr_e].edge] = 3; // Priority 3 because point on the edge.	
+//			}		
 		}
 		index += num_threads;
 		
