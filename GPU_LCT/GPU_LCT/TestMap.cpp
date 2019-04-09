@@ -1,4 +1,6 @@
 #include "TestMap.hpp"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 TestMap::TestMap()
 {
@@ -24,8 +26,7 @@ void TestMap::generate_map()
 		// calculate the scale
 		glm::vec2 obstacles_scale;
 		obstacles_scale = -delta / 2.0f;
-		glm::vec2 scale_variance;
-
+		glm::vec2 scale_variance = -delta / 4.0f;
 		// add obsticles inside the map area according to specified values
 
 		int shape_type = 0;
@@ -47,7 +48,9 @@ void TestMap::generate_map()
 				}
 				shape_type = (shape_type + 1) % 2;
 				tmp->set_location(curr_pos);
-				tmp->set_scale(obstacles_scale);
+				float input = float(x + (y * m_num_obsticles.x)) * M_PI / 4.0f;
+				glm::vec2 scale = obstacles_scale - (scale_variance * sinf(input));
+				tmp->set_scale(scale);
 				m_shapes.push_back(tmp);
 
 			}
