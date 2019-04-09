@@ -142,21 +142,21 @@ void main(void)
 						float dist = distance(pos, tri_cent);
 						if(dist < best_dist)
 						{
-							bool on_edge = false;
+//							bool on_edge = false;
 
 							// Check so point is not on an edge
-							for(int edge_i = 0; edge_i < 3; edge_i++){
-								if(point_line_test(pos, tri_points[edge_i], tri_points[(edge_i + 1) % 3]))
-								{
-									on_edge = true;
-									break;
-								}
-							}
-							if(!on_edge)
-							{
+//							for(int edge_i = 0; edge_i < 3; edge_i++){
+//								if(point_line_test(pos, tri_points[edge_i], tri_points[(edge_i + 1) % 3]))
+//								{
+//									on_edge = true;
+//									break;
+//								}
+//							}
+//							if(!on_edge)
+//							{
 								best_dist = dist;
 								point_index = i;
-							}
+//							}
 						}	
 					}
 				}

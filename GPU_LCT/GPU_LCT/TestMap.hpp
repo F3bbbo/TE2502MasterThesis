@@ -10,7 +10,7 @@ public:
 	TestMap();
 	virtual ~TestMap();
 	void generate_map();
-	std::vector<std::vector<glm::vec2>> get_obsticles();
+	std::vector<std::vector<glm::vec2>> get_CPU_obsticles();
 	std::pair < std::vector<glm::vec2>, std::vector<glm::ivec2>> get_GPU_obstacles();
 	void set_num_obsticles(glm::ivec2 num);
 	void set_map_size(glm::vec2 start, glm::vec2 end);
