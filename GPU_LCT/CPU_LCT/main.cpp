@@ -1,9 +1,9 @@
 // ------------------------------
 // Geometric spaces include files
 
-#include <tpapi_mesh.h>
-#include <tpapi_polygon.h>
-#include <tpapi_lct_planner.h>
+#include <gspaces/tpapi_mesh.h>
+#include <gspaces/tpapi_polygon.h>
+#include <gspaces/tpapi_lct_planner.h>
 
 // end
 // ------------------------------
