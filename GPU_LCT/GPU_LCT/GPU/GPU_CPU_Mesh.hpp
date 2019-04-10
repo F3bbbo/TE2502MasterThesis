@@ -7,7 +7,7 @@
 #include "..//Timer.hpp"
 #include <glm/glm.hpp>
 #include <utility>
-
+using namespace glm;
 namespace GPU
 {
 	class GCMesh
@@ -45,9 +45,16 @@ namespace GPU
 		std::vector<int> tri_edge_flip_index;
 		std::vector<NewPoint> tri_insert_points;
 		// symedges
-		std::vector<SymEdge> m_sym_edges;
+		std::vector<SymEdge> sym_edges;
 		int m_nr_of_symedges;
 		int m_status;
+
+		// sym edge functions
+		int nxt(int edge);
+		int rot(int edge);
+		int sym(int edge);
+		int prev(int edge);
+		int crot(int edge);
 
 		// CDT shaders
 		//GLuint m_location_program;
@@ -78,6 +85,10 @@ namespace GPU
 		void locate_point_triangle_program();
 		//GLuint m_validate_edges_program;
 		void validate_edges_program();
+
+		// shader functions 
+		void oriented_walk(int &curr_e, int point_i, bool &on_edge, vec2 &tri_cent);
+		void get_face(int face_i, std::array<vec2, 3> &face_v);
 	};
 }
 #endif

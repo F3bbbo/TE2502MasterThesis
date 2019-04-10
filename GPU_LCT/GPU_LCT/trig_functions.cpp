@@ -38,7 +38,7 @@ bool point_equal(glm::vec2 p1, glm::vec2 p2, float epsi)
 	return false;
 }
 
-bool point_segment_test(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2, float epsi)
+bool point_line_test(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2, float epsi)
 {
 	glm::vec3 v1 = glm::vec3(s1 - p1, 0.0f);
 	glm::vec3 v2 = glm::vec3(s1 - s2, 0.0f);
@@ -122,7 +122,7 @@ glm::vec2 line_line_intersection_point(glm::vec2 a, glm::vec2 b, glm::vec2 c, gl
 
 	float determinant = a1 * b2 - a2 * b1;
 
-	if ( std::fabs(determinant) < epsi )
+	if (std::fabs(determinant) < epsi)
 	{
 		// The lines are parallel. This is simplified 
 		// by returning a pair of FLT_MAX 

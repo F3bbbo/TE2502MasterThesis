@@ -263,7 +263,7 @@ namespace CPU
 			}
 			//check against edge
 			auto seg = get_edge(current_edge->edge);
-			if (point_segment_test(p, seg[0], seg[1])) {
+			if (point_line_test(p, seg[0], seg[1])) {
 				res.hit_index = current_edge->edge;
 				res.sym_edge = current_edge;
 				res.type = LocateType::EDGE;
@@ -869,7 +869,7 @@ namespace CPU
 				}
 
 				// Checks if the segment intersects a vertex
-				if (point_segment_test(m_vertices[triangle->nxt->vertex].vertice, constraint_edge[0], constraint_edge[1]))
+				if (point_line_test(m_vertices[triangle->nxt->vertex].vertice, constraint_edge[0], constraint_edge[1]))
 				{
 					triangle = triangle->sym()->rot;
 					break;
