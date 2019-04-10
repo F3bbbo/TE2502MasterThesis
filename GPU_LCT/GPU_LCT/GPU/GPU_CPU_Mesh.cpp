@@ -1,5 +1,6 @@
 #include "GPU_CPU_Mesh.hpp"
 #include <fstream>
+#include "../trig_functions.hpp"
 
 namespace GPU
 {
@@ -65,18 +66,18 @@ namespace GPU
 		// Separate sym edge list
 
 		// left triangle
-		m_sym_edges.push_back({ 1, -1, 0, 0, 0 });
-		m_sym_edges.push_back({ 2, -1, 1, 4, 0 });
-		m_sym_edges.push_back({ 0,  3, 3, 3, 0 });
+		sym_edges.push_back({ 1, -1, 0, 0, 0 });
+		sym_edges.push_back({ 2, -1, 1, 4, 0 });
+		sym_edges.push_back({ 0,  3, 3, 3, 0 });
 
 		// right triangle
-		m_sym_edges.push_back({ 4, -1, 3, 4, 1 });
-		m_sym_edges.push_back({ 5,  1, 1, 1, 1 });
-		m_sym_edges.push_back({ 3, -1, 2, 2, 1 });
+		sym_edges.push_back({ 4, -1, 3, 4, 1 });
+		sym_edges.push_back({ 5,  1, 1, 1, 1 });
+		sym_edges.push_back({ 3, -1, 2, 2, 1 });
 
 
 		//m_nr_of_symedges.create_uniform_buffer<int>({ m_sym_edges.element_count() }, usage);
-		m_nr_of_symedges = m_sym_edges.size();
+		m_nr_of_symedges = sym_edges.size();
 		m_status = 1;
 		//m_status.create_buffer(type, std::vector<int>(1, 1), GL_DYNAMIC_DRAW, 12, 1);
 	}
@@ -111,11 +112,11 @@ namespace GPU
 		// fix new size of symedges buffer
 		// TODO: fix so it can handle repeated insertions
 		int num_new_sym_edges = points.size() * 6;
-		append_vec(m_sym_edges, std::vector<SymEdge>(num_new_sym_edges));
+		append_vec(sym_edges, std::vector<SymEdge>(num_new_sym_edges));
 		// TODO, maybe need to check if triangle buffers needs to grow
 
 		//m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
-		m_nr_of_symedges = m_sym_edges.size();
+		m_nr_of_symedges = sym_edges.size();
 		// Bind all ssbo's
 		//point_positions.bind_buffer();
 		//point_inserted.bind_buffer();
@@ -279,9 +280,9 @@ namespace GPU
 				// TODO: fix so it can handle repeated insertions
 				int num_new_sym_edges = num_new_points * 6;
 				//m_sym_edges, );
-				append_vec(m_sym_edges, std::vector<SymEdge>(num_new_sym_edges));
+				append_vec(sym_edges, std::vector<SymEdge>(num_new_sym_edges));
 				// TODO, maybe need to check if triangle buffers needs to grow
-				m_nr_of_symedges = m_sym_edges.size();
+				m_nr_of_symedges = sym_edges.size();
 
 				//m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
 
@@ -378,12 +379,12 @@ namespace GPU
 
 	SymEdge GCMesh::get_symedge(int index)
 	{
-		return m_sym_edges[index];
+		return sym_edges[index];
 	}
 
 	std::vector<std::pair<glm::ivec2, bool>> GCMesh::get_edges()
 	{
-		std::vector<SymEdge> sym_edge_list = m_sym_edges;
+		std::vector<SymEdge> sym_edge_list = sym_edges;
 		std::vector<int> is_constrained_edge_list = edge_is_constrained;
 
 		std::vector<std::pair<glm::ivec2, bool>> edge_list;
@@ -409,7 +410,7 @@ namespace GPU
 
 	std::vector<glm::ivec3> GCMesh::get_faces()
 	{
-		std::vector<SymEdge> sym_edge_list = m_sym_edges;
+		std::vector<SymEdge> sym_edge_list = sym_edges;
 		std::vector<glm::ivec4> sym_edge_tri_indices = tri_symedges;
 
 		std::vector<glm::ivec3> face_indices;
@@ -428,7 +429,7 @@ namespace GPU
 	{
 		p = p - glm::vec2(2.f, 0.f);
 
-		std::vector<SymEdge> sym_edge_list = m_sym_edges;
+		std::vector<SymEdge> sym_edge_list = sym_edges;
 		std::vector<glm::ivec4> sym_edge_tri_indices = tri_symedges;
 		std::vector<glm::vec2> vertex_list = point_positions;
 
@@ -523,15 +524,74 @@ namespace GPU
 			std::cout << "CS program linking failed\n" << infoLog << '\n';
 		}
 	}
+	//-----------------------------------------------------------
+	// Symedge functions
+	//-----------------------------------------------------------
+	int GCMesh::nxt(int edge)
+	{
+		return sym_edges[edge].nxt;
+	}
+
+	int GCMesh::rot(int edge)
+	{
+		return sym_edges[edge].rot;
+	}
+
+	int GCMesh::sym(int edge)
+	{
+		return rot(nxt(edge));
+	}
+
+	int GCMesh::prev(int edge)
+	{
+		return nxt(nxt(edge));
+	}
+
+	int GCMesh::crot(int edge)
+	{
+		int sym_i = sym(edge);
+		return (sym_i != -1) ? nxt(sym_i) : -1;
+	}
+
 	void GCMesh::location_program()
 	{
 		for (int index = 0; index < point_positions.size(); index++)
 		{
-
+			if (point_inserted[index] == 0)
+			{
+				bool on_edge;
+				vec2 tri_cent;
+				// find out which triangle the point is now
+				int curr_e = tri_symedges[point_tri_index[index]].x;;
+				oriented_walk(
+					curr_e,
+					index,
+					on_edge,
+					tri_cent);
+				if (on_edge)
+				{
+					int sym_e = sym(curr_e);
+					if (sym_e > -1)
+					{
+						// if neighbour triangle has a lower index 
+						// chose that one as the triangle for the point.
+						if (sym_edges[sym_e].face < sym_edges[curr_e].face)
+						{
+							curr_e = sym_e;
+						}
+					}
+				}
+				point_tri_index[index] = sym_edges[curr_e].face;
+				//			if(on_edge)
+				//			{
+				//				edge_label[sym_edges[curr_e].edge] = 3; // Priority 3 because point on the edge.	
+				//			}		
+			}
 		}
 	}
 	void GCMesh::location_tri_program()
 	{
+
 	}
 	void GCMesh::insertion_program()
 	{
@@ -565,5 +625,65 @@ namespace GPU
 	}
 	void GCMesh::validate_edges_program()
 	{
+	}
+	void GCMesh::oriented_walk(int & curr_e, int point_i, bool & on_edge, vec2 & tri_cent)
+	{
+		bool done = false;
+		vec2 goal = point_positions[point_i];
+		int iter = 0;
+		on_edge = false;
+		while (!done) {
+			on_edge = false;
+			// Loop through triangles edges to check if point is on the edge 
+			for (int i = 0; i < 3; i++)
+			{
+				bool hit = false;
+				hit = point_line_test(goal,
+					point_positions[sym_edges[curr_e].vertex],
+					point_positions[sym_edges[sym_edges[curr_e].nxt].vertex]);
+				if (hit)
+				{
+					on_edge = true;
+					return;
+				}
+				curr_e = sym_edges[curr_e].nxt;
+			}
+			// calculate triangle centroid
+			std::array<vec2, 3> tri_points;
+			get_face(sym_edges[curr_e].face, tri_points);
+			tri_cent = (tri_points[0] + tri_points[1] + tri_points[2]) / 3.0f;
+			// Loop through edges to see if we should continue through the edge
+			// to the neighbouring triangle 
+			bool line_line_hit = false;
+			for (int i = 0; i < 3; i++)
+			{
+				line_line_hit = line_seg_intersection_ccw(
+					tri_cent,
+					goal,
+					point_positions[sym_edges[curr_e].vertex],
+					point_positions[sym_edges[sym_edges[curr_e].nxt].vertex]);
+
+				if (line_line_hit)
+				{
+					break;
+				}
+				curr_e = sym_edges[curr_e].nxt;
+			}
+
+			if (line_line_hit)
+			{
+				curr_e = sym_edges[sym_edges[curr_e].nxt].rot; // sym
+			}
+			else
+			{
+				return;
+			}
+		}
+	}
+	void GCMesh::get_face(int face_i, std::array<vec2, 3>& face_v)
+	{
+		face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
+		face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
+		face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
 	}
 }
