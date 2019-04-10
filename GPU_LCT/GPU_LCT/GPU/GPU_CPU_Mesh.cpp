@@ -77,8 +77,8 @@ namespace GPU
 
 
 		//m_nr_of_symedges.create_uniform_buffer<int>({ m_sym_edges.element_count() }, usage);
-		m_nr_of_symedges = sym_edges.size();
-		m_status = 1;
+		symedge_buffer_size = sym_edges.size();
+		status = 1;
 		//m_status.create_buffer(type, std::vector<int>(1, 1), GL_DYNAMIC_DRAW, 12, 1);
 	}
 
@@ -116,7 +116,7 @@ namespace GPU
 		// TODO, maybe need to check if triangle buffers needs to grow
 
 		//m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
-		m_nr_of_symedges = sym_edges.size();
+		symedge_buffer_size = sym_edges.size();
 		// Bind all ssbo's
 		//point_positions.bind_buffer();
 		//point_inserted.bind_buffer();
@@ -144,11 +144,11 @@ namespace GPU
 		Timer timer;
 		timer.start();
 
-		int cont = m_status;
+		int cont = status;
 		while (cont)
 		{
 			counter++;
-			m_status = 0;
+			status = 0;
 			//m_status.update_buffer<int>({ 0 });
 
 			//// Locate Step
@@ -197,7 +197,7 @@ namespace GPU
 			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 
-			cont = m_status;
+			cont = status;
 
 		}
 		// TODO: remove this creation of lct
@@ -234,7 +234,7 @@ namespace GPU
 		//auto triangle_data_intersecting_segment = tri_seg_inters_index;
 		//auto triangle_data_new_points = tri_insert_points.get_buffer_data<NewPoint>();
 
-		auto status_data = m_status;
+		auto status_data = status;
 	}
 
 	void GCMesh::refine_LCT()
@@ -249,7 +249,7 @@ namespace GPU
 			//glDispatchCompute((GLuint)256, 1, 1);
 			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			// Check how many new points are going to get inserted
-			num_new_points = m_status;
+			num_new_points = status;
 			if (num_new_points > 0)
 			{
 				// increase sizes of arrays, 
@@ -282,7 +282,7 @@ namespace GPU
 				//m_sym_edges, );
 				append_vec(sym_edges, std::vector<SymEdge>(num_new_sym_edges));
 				// TODO, maybe need to check if triangle buffers needs to grow
-				m_nr_of_symedges = sym_edges.size();
+				symedge_buffer_size = sym_edges.size();
 
 				//m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
 
@@ -318,7 +318,7 @@ namespace GPU
 				do
 				{
 					//m_status.update_buffer<int>({ 0 });
-					m_status = 0;
+					status = 0;
 					counter++;
 					//// Find out which triangle the point is on the edge of
 					locate_point_triangle_program();
@@ -357,7 +357,7 @@ namespace GPU
 					//glDispatchCompute((GLuint)256, 1, 1);
 					//glMemoryBarrier(GL_ALL_BARRIER_BITS);
 					//cont = m_status[0];
-				} while (m_status == 1);
+				} while (status == 1);
 				LOG(std::string("LCT Number of iterations: ") + std::to_string(counter));
 			}
 			else
@@ -625,6 +625,124 @@ namespace GPU
 	}
 	void GCMesh::insertion_program()
 	{
+		for (int index = 0; index < tri_seg_inters_index.size(); index++)
+		{
+			// If triangle has a point assigned to it add the point to it
+			int point_index = tri_ins_point_index[index];
+			if (point_index > -1)
+			{
+				status = 1;
+
+				// Create array of the indices of the three new triangles
+				int tri_indices[3];
+				tri_indices[0] = index;
+				tri_indices[1] = tri_seg_inters_index.size() - 2 * (point_positions.size() - point_index);
+				tri_indices[2] = tri_seg_inters_index.size() - 2 * (point_positions.size() - point_index) + 1;
+				int edge_indices[3];
+				edge_indices[0] = edge_label.size() - 3 * (point_positions.size() - point_index);
+				edge_indices[1] = edge_label.size() - 3 * (point_positions.size() - point_index) + 1;
+				edge_indices[2] = edge_label.size() - 3 * (point_positions.size() - point_index) + 2;
+				int sym_edge_indices[6];
+				sym_edge_indices[0] = symedge_buffer_size - 6 * (point_positions.size() - point_index);
+				sym_edge_indices[1] = symedge_buffer_size - 6 * (point_positions.size() - point_index) + 1;
+				sym_edge_indices[2] = symedge_buffer_size - 6 * (point_positions.size() - point_index) + 2;
+				sym_edge_indices[3] = symedge_buffer_size - 6 * (point_positions.size() - point_index) + 3;
+				sym_edge_indices[4] = symedge_buffer_size - 6 * (point_positions.size() - point_index) + 4;
+				sym_edge_indices[5] = symedge_buffer_size - 6 * (point_positions.size() - point_index) + 5;
+
+				// start working on the new triangles
+				int orig_face[3];
+				int orig_sym[3];
+				// save edges of original triangle
+				int curr_e = tri_symedges[index].x;
+				for (int i = 0; i < 3; i++)
+				{
+					orig_face[i] = curr_e;
+					int sym = curr_e;
+					// sym operations
+					nxt(sym);
+					rot(sym);
+					orig_sym[i] = sym;
+					// move curr_e to next edge of triangle
+					nxt(curr_e);
+				}
+				int insert_point = tri_ins_point_index[index];
+				// Create symedge structure of the new triangles
+				for (int i = 0; i < 3; i++)
+				{
+					ivec4 tri_syms;
+					int next_id = (i + 1) % 3;
+					tri_syms.x = orig_face[i];
+					tri_syms.y = sym_edge_indices[2 * i];
+					tri_syms.z = sym_edge_indices[2 * i + 1];
+					tri_syms.w = -1;
+					// fix the first symedge of the triangle
+					sym_edges[tri_syms.y].vertex = sym_edges[orig_face[next_id]].vertex;
+					sym_edges[tri_syms.y].nxt = tri_syms.z;
+					// fix the second symedge of the triangle
+					sym_edges[tri_syms.z].vertex = insert_point;
+					sym_edges[tri_syms.z].nxt = tri_syms.x;
+
+					sym_edges[tri_syms.x].nxt = tri_syms.y;
+					//sym_edges[tri_syms.x].nxt = 1;
+					// add face index to symedges in this face
+					sym_edges[tri_syms.x].face = tri_indices[i];
+					sym_edges[tri_syms.y].face = tri_indices[i];
+					sym_edges[tri_syms.z].face = tri_indices[i];
+
+					// add symedges to current face
+					tri_symedges[tri_indices[i]] = tri_syms;
+				}
+				// connect the new triangles together
+				for (int i = 0; i < 3; i++)
+				{
+					curr_e = orig_face[i];
+					int next_id = (i + 1) % 3;
+					int new_edge = edge_indices[i];
+					// get both symedges of one new inner edge
+					int inner_edge = orig_face[i];
+					nxt(inner_edge);
+					int inner_edge_sym = orig_face[next_id];
+					nxt(inner_edge_sym);
+					nxt(inner_edge_sym);
+					// set same edge index to both symedges
+					sym_edges[inner_edge].edge = new_edge;
+					sym_edges[inner_edge_sym].edge = new_edge;
+					// connect the edges syms together
+					int rot_connect_edge = inner_edge;
+					nxt(rot_connect_edge);
+					sym_edges[rot_connect_edge].rot = inner_edge_sym;
+					int rot_connect_edge_sym = inner_edge_sym;
+					nxt(rot_connect_edge_sym);
+					sym_edges[rot_connect_edge_sym].rot = inner_edge;
+					// connect original edge with its sym
+					sym_edges[inner_edge].rot = orig_sym[i];
+				}
+				// Mark original edges as potential not delaunay 
+				// or as point on edge if the point is on any of the edges 
+				for (int i = 0; i < 3; i++)
+				{
+					if (edge_is_constrained[sym_edges[orig_face[i]].edge] > -1)
+					{
+						// Check if the point is on the edge
+						vec2 s1 = point_positions[sym_edges[orig_face[i]].vertex];
+						vec2 s2 = point_positions[sym_edges[orig_face[(i + 1) % 3]].vertex];
+						vec2 p = point_positions[index];
+						if (point_line_test(p, s1, s2))
+						{
+							edge_label[sym_edges[orig_face[i]].edge] = 3;
+						}
+						else if (edge_label[sym_edges[orig_face[i]].edge] < 1)
+						{
+							edge_label[sym_edges[orig_face[i]].edge] = 1; // candidate for not delaunay. 
+						}
+					}
+				}
+				// Set point as inserted
+				point_inserted[point_index] = 1;
+
+			}
+		}
 	}
 	void GCMesh::marking_part_one_program()
 	{
