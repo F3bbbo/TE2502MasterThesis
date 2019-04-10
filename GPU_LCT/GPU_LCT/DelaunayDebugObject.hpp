@@ -6,8 +6,10 @@
 #include "Drawable.hpp"
 #include "trig_functions.hpp"
 #include <array>
+
 #include "Buffer.hpp"
 #include "GPU/GPU_Mesh.hpp"
+#include "GPU/GPU_CPU_Mesh.hpp"
 
 class DelaunayDebugObject : public Drawable
 {
@@ -38,6 +40,7 @@ public:
 	DelaunayDebugObject();
 	DelaunayDebugObject(CPU::Mesh& mesh);
 	DelaunayDebugObject(GPU::GPUMesh& mesh);
+	DelaunayDebugObject(GPU::GCMesh& mesh);
 	~DelaunayDebugObject();
 	void bind_VAO();
 	bool is_enabled();
@@ -45,6 +48,7 @@ public:
 private:
 	void build(CPU::Mesh& mesh);
 	void build(GPU::GPUMesh& mesh);
+	void build(GPU::GCMesh& mesh);
 
 	Buffer m_vertex_buffer;
 	Buffer m_circle_buffer;

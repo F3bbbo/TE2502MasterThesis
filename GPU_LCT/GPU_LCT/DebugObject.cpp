@@ -190,3 +190,45 @@ void DebugObject::build(GPU::GPUMesh & mesh)
 		m_index_buffer.create_buffer(GL_ELEMENT_ARRAY_BUFFER, mesh_faces, GL_STATIC_DRAW);
 	}
 }
+
+void DebugObject::build(GPU::GCMesh & mesh)
+{
+	std::vector<glm::vec2> mesh_verts = mesh.get_vertices();
+	std::vector<DrawVertex> vertices;
+
+	for (auto& vertex : mesh_verts)
+		vertices.push_back({ vertex, {m_color.r, m_color.g, m_color.b, 1.f} });
+
+	m_vertex_input.create_buffer(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+	m_vertex_input.bind_buffer();
+	m_vertex_input.set_vertex_attribute(0, 2, GL_FLOAT, 6 * sizeof(float), 0);
+	m_vertex_input.set_vertex_attribute(1, 4, GL_FLOAT, 6 * sizeof(float), 2 * sizeof(float));
+	m_vertex_input.unbind_buffer();
+
+	if (m_mode == DRAW_EDGES)
+	{
+		std::vector<std::pair<glm::ivec2, bool>> edges = mesh.get_edges();
+		std::vector<glm::ivec2> edges_indices;
+
+		if (m_draw_constraints)
+		{
+			for (auto& edge : edges)
+			{
+				if (edge.second)
+					edges_indices.push_back(edge.first);
+			}
+		}
+		else
+		{
+			for (auto& edge : edges)
+				edges_indices.push_back(edge.first);
+		}
+
+		m_index_buffer.create_buffer(GL_ELEMENT_ARRAY_BUFFER, edges_indices, GL_STATIC_DRAW);
+	}
+	if (m_mode == DRAW_FACES)
+	{
+		std::vector<glm::ivec3> mesh_faces = mesh.get_faces();
+		m_index_buffer.create_buffer(GL_ELEMENT_ARRAY_BUFFER, mesh_faces, GL_STATIC_DRAW);
+	}
+}
