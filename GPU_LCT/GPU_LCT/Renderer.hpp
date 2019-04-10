@@ -11,6 +11,7 @@
 #include <glm/glm.hpp>
 #include "GPU/data_structures.hpp"
 #include "GPU/GPU_Mesh.hpp"
+#include "GPU/GPU_CPU_Mesh.hpp"
 #include <array>
 
 class Renderer
@@ -27,16 +28,20 @@ public:
 	}
 
 	void run();
-	void set_debug_edge(CPU::SymEdge* start_edge);
+	void set_debug_edge(CPU::SymEdge* start_edge, GPU::SymEdge gc_start_edge);
 	glm::ivec2 get_screen_res();
 	bool mouse_clicked();
 	glm::vec2 get_mouse_pos();
 	void set_gpu_mesh(GPU::GPUMesh* gpu_mesh);
+	void set_gc_mesh(GPU::GCMesh* gc_mesh);
 	std::array<glm::vec2, 2> get_GPU_edge();
+	std::array<glm::vec2, 2> get_gc_edge();
 	bool left_symedge_activated();
 
 	bool shut_down = false;
 	CPU::SymEdge* m_current_edge = nullptr;
+	GPU::SymEdge m_gc_current_edge;
+
 	GPU::SymEdge m_current_GPU_edge;
 private:
 	void draw_frame();
@@ -47,6 +52,7 @@ private:
 	GLFWwindow* m_window = nullptr;
 	glm::ivec2 m_screen_res = { 600, 600 };
 	GPU::GPUMesh* m_gpu_mesh;
+	GPU::GCMesh* m_gc_mesh;
 	bool m_GPU_edge_dirty = true;
 	std::array<glm::vec2, 2> m_curr_gpu_edge;
 	// Debug walking variables

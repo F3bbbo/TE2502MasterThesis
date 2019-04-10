@@ -9,6 +9,8 @@
 #include "TestMap.hpp"
 
 #include "GPU/GPU_Mesh.hpp"
+#include "GPU/GPU_CPU_Mesh.hpp"
+
 void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 {
 	/*glm::vec2 point = { 0.4f, -0.4f };
@@ -124,15 +126,18 @@ int main()
 	g_mesh.initiate_buffers({ 0.5f, 0.5f });
 	//g_mesh.build_CDT({ { -0.25f, -0.25f }, { -0.25f, 0.25f }, { 0.25f, 0.25f }, { 0.25f, -0.25f } }, { {0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 2} });
 
+	GPU::GCMesh gc_mesh({ 1600, 800 });
+	gc_mesh.initiate_buffers({ 0.5f, 0.5f });
+	
 
-	CPU::Mesh m;
-	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
+	/*CPU::Mesh m;
+	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });*/
 
 	//lct_example(m, g_mesh);
 
-	test_test_map(m, g_mesh);
+	//test_test_map(m, g_mesh);
 
-	m.transform_into_LCT();
+	//m.transform_into_LCT();
 
 	//m.Locate_point({ 0.5f, 0.5f });
 	//m.Locate_point({ 0.f, 0.f });
@@ -140,18 +145,18 @@ int main()
 	// Left side objects
 	DebugObject debug_faces(DRAW_FACES);
 	debug_faces.set_color({ 1.0f, 0.5f, 0.2f });
-	debug_faces.build(m);
+	debug_faces.build(gc_mesh);
 
 	DebugObject debug_edges(DRAW_EDGES);
 	debug_edges.set_edge_thiccness(5.f);
 	debug_edges.set_color({ 1.f, 0.246201f, 0.201556f });
-	debug_edges.build(m);
+	debug_edges.build(gc_mesh);
 
 	DebugObject debug_edges_constraints(DRAW_EDGES);
 	debug_edges_constraints.set_edge_thiccness(5.f);
 	debug_edges_constraints.draw_constraints(true);
 	debug_edges_constraints.set_color({ 0.1f, 0.6f, 0.1f });
-	debug_edges_constraints.build(m);
+	debug_edges_constraints.build(gc_mesh);
 
 	DebugObject symedge_visualizer({ glm::vec2(-0.25f, 0.25f), glm::vec2(0.25f, -0.25f) }, DRAW_EDGES);
 	symedge_visualizer.set_edge_thiccness(5.f);
@@ -160,7 +165,7 @@ int main()
 	DebugObject debug_points(DRAW_POINTS);
 	debug_points.set_point_thiccness(10.f);
 	debug_points.set_color({ 1.f, 0.672443f, 0.201556f });
-	debug_points.build(m);
+	debug_points.build(gc_mesh);
 
 	// Right side objects
 
@@ -211,7 +216,7 @@ int main()
 	debug_pass.add_drawable(std::move(r_symedge_visualizer));
 	debug_pass.add_drawable(std::move(r_debug_points));
 
-	DelaunayDebugObject ddo(m);
+	DelaunayDebugObject ddo(gc_mesh);
 	ddo.set_circle_color({ 1.f, 1.f, 0.f });
 	ddo.set_circle_thiccness(0.005f);
 	ddo.enable(false);
@@ -234,17 +239,20 @@ int main()
 	renderer.add_pipeline(std::move(debug_pass));
 	renderer.add_pipeline(std::move(ddp));
 	//set debug edge of renderer
-	renderer.set_debug_edge(m.first);
+
+	renderer.set_debug_edge(nullptr, gc_mesh.get_symedge(0));
+	renderer.set_gc_mesh(&gc_mesh);
 	renderer.set_gpu_mesh(&g_mesh);
+
 	while (!renderer.shut_down)
 	{
-		symedge_visualizer.update_edge({ m.get_vertex(renderer.m_current_edge->vertex), m.get_other_edge_vertex(renderer.m_current_edge->edge, renderer.m_current_edge->vertex) });
+		symedge_visualizer.update_edge(renderer.get_gc_edge());
 		r_symedge_visualizer.update_edge(renderer.get_GPU_edge());
 		renderer.run();
 		// handle mouse click
 		if (renderer.mouse_clicked())
 		{
-			int result = m.locate_face(renderer.get_mouse_pos());
+			int result = gc_mesh.locate_face(renderer.get_mouse_pos());
 			if (result != -1)
 				std::cout << "Clicked CPU Triangle(index): " << result << std::endl;
 			else
