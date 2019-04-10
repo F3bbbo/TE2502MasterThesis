@@ -28,30 +28,43 @@ namespace GPU
 		void setup_compute_shaders();
 		void compile_cs(GLuint& program, const char* path, int work_group_size = 64);
 
-		PointBuffers m_point_bufs;
-		EdgeBuffers m_edge_bufs;
-		SegmentBuffers m_segment_bufs;
-		TriangleBuffers m_triangle_bufs;
-		Buffer m_sym_edges;
-		Buffer m_nr_of_symedges;
-		Buffer m_status;
+		PointBuffersCPU m_point_bufs;
+		EdgeBuffersCPU m_edge_bufs;
+		SegmentBuffersCPU m_segment_bufs;
+		TriangleBuffersCPU m_triangle_bufs;
+		std::vector<SymEdge> m_sym_edges;
+		int m_nr_of_symedges;
+		int m_status;
 
 		// CDT shaders
-		GLuint m_location_program;
-		GLuint m_location_tri_program;
-		GLuint m_insertion_program;
-		GLuint m_marking_part_one_program;
-		GLuint m_marking_part_two_program;
-		GLuint m_flip_edges_part_one_program;
-		GLuint m_flip_edges_part_two_program;
-		GLuint m_flip_edges_part_three_program;
+		//GLuint m_location_program;
+		void location_program();
+		//GLuint m_location_tri_program;
+		void location_tri_program();
+		//GLuint m_insertion_program;
+		void insertion_program();
+		//GLuint m_marking_part_one_program;
+		void marking_part_one_program();
+		//GLuint m_marking_part_two_program;
+		void marking_part_two_program();
+		//GLuint m_flip_edges_part_one_program;
+		void flip_edges_part_one_program();
+		//GLuint m_flip_edges_part_two_program;
+		void flip_edges_part_two_program();
+		//GLuint m_flip_edges_part_three_program;
+		void flip_edges_part_three_program();
 
 		// LCT shaders
-		GLuint m_locate_disturbances_program;
-		GLuint m_add_new_points_program;
-		GLuint m_insert_in_edge_program;
-		GLuint m_locate_point_triangle_program;
-		GLuint m_validate_edges_program;
+		//GLuint m_locate_disturbances_program;
+		void locate_disturbances_program();
+		//GLuint m_add_new_points_program;
+		void add_new_points_program();
+		//GLuint m_insert_in_edge_program;
+		void insert_in_edge_program();
+		//GLuint m_locate_point_triangle_program;
+		void locate_point_triangle_program();
+		//GLuint m_validate_edges_program;
+		void validate_edges_program();
 	};
 }
 #endif

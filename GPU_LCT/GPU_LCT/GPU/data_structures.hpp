@@ -23,11 +23,25 @@ namespace GPU
 		int face = -1;
 	};
 
+	struct NewPoint
+	{
+		glm::vec2 pos;
+		int index = -1;
+		int face_i = -1;
+	};
+
 	struct PointBuffers
 	{
 		Buffer positions;
 		Buffer inserted;
 		Buffer tri_index;
+	};
+
+	struct PointBuffersCPU
+	{
+		std::vector<glm::vec2> positions;
+		std::vector<int> inserted;
+		std::vector<int> tri_index;
 	};
 
 	struct EdgeBuffers
@@ -36,10 +50,22 @@ namespace GPU
 		Buffer is_constrained;
 	};
 
+	struct EdgeBuffersCPU
+	{
+		std::vector<int> label;
+		std::vector<int> is_constrained;
+	};
+
 	struct SegmentBuffers
 	{
 		Buffer endpoint_indices;
 		Buffer inserted;
+	};
+
+	struct SegmentBuffersCPU
+	{
+		std::vector<glm::ivec2> endpoint_indices;
+		std::vector<int> inserted;
 	};
 
 	struct TriangleBuffers
@@ -49,6 +75,15 @@ namespace GPU
 		Buffer seg_inters_index;
 		Buffer edge_flip_index;
 		Buffer new_points;
+	};
+
+	struct TriangleBuffersCPU
+	{
+		std::vector<glm::ivec4> symedge_indices;
+		std::vector<int> ins_point_index;
+		std::vector<int> seg_inters_index;
+		std::vector<int> edge_flip_index;
+		std::vector<NewPoint> new_points;
 	};
 
 	struct Edge
@@ -64,12 +99,12 @@ namespace GPU
 		glm::ivec3 vert_i;
 	};
 
-	struct NewPoint
+	template <typename Data>
+	void append_vec(std::vector<Data> &goal, std::vector<Data> data)
 	{
-		glm::vec2 pos;
-		int index = -1;
-		int face_i = -1;
+		goal.insert(goal.end(), data.begin(), data.end());
 	};
+
 }
 
 #endif
