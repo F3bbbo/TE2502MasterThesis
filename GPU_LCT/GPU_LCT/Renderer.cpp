@@ -65,9 +65,10 @@ void Renderer::run()
 		shut_down = true;
 }
 
-void Renderer::set_debug_edge(CPU::SymEdge * start_edge)
+void Renderer::set_debug_edge(CPU::SymEdge* start_edge, GPU::SymEdge gc_start_edge)
 {
 	m_current_edge = start_edge;
+	m_gc_current_edge = gc_start_edge;
 }
 
 glm::ivec2 Renderer::get_screen_res()
@@ -122,11 +123,22 @@ void Renderer::processInput()
 
 		if (m_left_side)
 		{
-			if (m_current_edge->rot != nullptr) {
-				m_current_edge = m_current_edge->rot;
+			if (m_current_edge != nullptr)
+			{
+				if (m_current_edge->rot != nullptr) {
+					m_current_edge = m_current_edge->rot;
+				}
+				else
+					failed = true;
 			}
 			else
-				failed = true;
+			{
+				if (m_gc_current_edge.rot != -1) {
+					m_gc_current_edge = m_gc_mesh->get_symedge(m_gc_current_edge.rot);
+				}
+				else
+					failed = true;
+			}
 		}
 		if (!m_left_side || m_update_both_symedges)
 		{
@@ -151,11 +163,23 @@ void Renderer::processInput()
 
 		if (m_left_side)
 		{
-			if (m_current_edge->nxt != nullptr) {
-				m_current_edge = m_current_edge->nxt;
+			if (m_current_edge != nullptr)
+			{
+				if (m_current_edge->nxt != nullptr) {
+					m_current_edge = m_current_edge->nxt;
+				}
+				else
+					failed = true;
 			}
 			else
-				failed = true;
+			{
+				if (m_gc_current_edge.nxt != -1)
+				{
+					m_gc_current_edge = m_gc_mesh->get_symedge(m_gc_current_edge.nxt);
+				}
+				else
+					failed = true;
+			}
 		}
 		if (!m_left_side || m_update_both_symedges)
 		{
@@ -192,6 +216,11 @@ void Renderer::set_gpu_mesh(GPU::GPUMesh * gpu_mesh)
 	m_current_GPU_edge = m_gpu_mesh->get_symedge(0);
 }
 
+void Renderer::set_gc_mesh(GPU::GCMesh * gc_mesh)
+{
+	m_gc_mesh = gc_mesh;
+}
+
 std::array<glm::vec2, 2> Renderer::get_GPU_edge()
 {
 	if (m_GPU_edge_dirty)
@@ -204,6 +233,14 @@ std::array<glm::vec2, 2> Renderer::get_GPU_edge()
 		m_GPU_edge_dirty = false;
 	}
 	return m_curr_gpu_edge;
+}
+
+std::array<glm::vec2, 2> Renderer::get_gc_edge()
+{
+	std::array<glm::vec2, 2> edge;
+	edge[0] = m_gc_mesh->get_vertex(m_gc_current_edge.vertex);
+	edge[1] = m_gc_mesh->get_vertex(m_gc_mesh->get_symedge(m_gc_current_edge.nxt).vertex);
+	return edge;
 }
 
 bool Renderer::left_symedge_activated()

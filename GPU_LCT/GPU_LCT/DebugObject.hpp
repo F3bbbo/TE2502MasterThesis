@@ -6,6 +6,7 @@
 #include "Drawable.hpp"
 #include "Buffer.hpp"
 #include "GPU/GPU_Mesh.hpp"
+#include "GPU/GPU_CPU_Mesh.hpp"
 
 class DebugObject : public Drawable
 {
@@ -38,6 +39,7 @@ public:
 	void draw_object();
 	void build(CPU::Mesh& mesh);
 	void build(GPU::GPUMesh& mesh);
+	void build(GPU::GCMesh& mesh);
 private:
 
 	Buffer m_vertex_input;

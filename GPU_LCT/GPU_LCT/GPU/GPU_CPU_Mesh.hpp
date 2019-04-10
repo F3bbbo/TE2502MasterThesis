@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPU_MESH_HPP
-#define GPU_MESH_HPP
+#ifndef GPU_CPU_MESH_HPP
+#define GPU_CPU_MESH_HPP
 
 #include "data_structures.hpp"
 #include "../trig_functions.hpp"
