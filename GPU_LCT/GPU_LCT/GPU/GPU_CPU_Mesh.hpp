@@ -46,8 +46,8 @@ namespace GPU
 		std::vector<NewPoint> tri_insert_points;
 		// symedges
 		std::vector<SymEdge> sym_edges;
-		int m_nr_of_symedges;
-		int m_status;
+		int symedge_buffer_size;
+		int status;
 
 		// sym edge functions
 		int nxt(int edge);
