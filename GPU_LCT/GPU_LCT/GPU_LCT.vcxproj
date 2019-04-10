@@ -170,6 +170,7 @@
     <ClCompile Include="DelaunayDebugPipeline.cpp" />
     <ClCompile Include="Drawable.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="GPU\GPU_CPU_Mesh.cpp" />
     <ClCompile Include="GPU\GPU_Mesh.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="main.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="DelaunayDebugPipeline.hpp" />
     <ClInclude Include="Drawable.hpp" />
     <ClInclude Include="GPU\data_structures.hpp" />
+    <ClInclude Include="GPU\GPU_CPU_Mesh.hpp" />
     <ClInclude Include="GPU\GPU_Mesh.hpp" />
     <ClInclude Include="Log.hpp" />
     <ClInclude Include="Mesh.hpp" />
