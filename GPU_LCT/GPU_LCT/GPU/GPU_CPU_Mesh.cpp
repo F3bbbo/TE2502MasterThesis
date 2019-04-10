@@ -18,49 +18,49 @@ namespace GPU
 		// Creates a starting rectangle
 
 		// Fill point buffers
-		m_point_bufs.positions = { {-1.f * scale.x, 1.f * scale.y}, {-1.f * scale.x, -1.f * scale.y}, {1.f * scale.x, -1.f * scale.y}, {1.f * scale.x, 1.f * scale.y} };
+		point_positions = { {-1.f * scale.x, 1.f * scale.y}, {-1.f * scale.x, -1.f * scale.y}, {1.f * scale.x, -1.f * scale.y}, {1.f * scale.x, 1.f * scale.y} };
 		//int type = GL_SHADER_STORAGE_BUFFER;
 		//int usage = GL_DYNAMIC_DRAW | GL_DYNAMIC_READ;
 		//int n = 100000;
 
-		//m_point_bufs.positions.create_buffer(type, starting_vertices, usage, 0, n);
+		//point_positions.create_buffer(type, starting_vertices, usage, 0, n);
 
 		//std::vector<GLuint> vert_indices(4, true);
-		m_point_bufs.inserted = std::vector<int>(4, 1);
-		//m_point_bufs.inserted.create_buffer(type, std::vector<int>(4, 1), usage, 1, n);
-		//m_point_bufs.tri_index.create_buffer(type, std::vector<int>(4, 0), usage, 2, n);
-		m_point_bufs.tri_index = std::vector<int>(4, 0);
+		point_inserted = std::vector<int>(4, 1);
+		//point_inserted.create_buffer(type, std::vector<int>(4, 1), usage, 1, n);
+		//point_tri_index.create_buffer(type, std::vector<int>(4, 0), usage, 2, n);
+		point_tri_index = std::vector<int>(4, 0);
 		// Fill edge buffers
-		//m_edge_bufs.label.create_buffer(type, std::vector<int>(5, 0), usage, 3, n);
-		m_edge_bufs.label = std::vector<int>(5, 0);
+		//edge_label.create_buffer(type, std::vector<int>(5, 0), usage, 3, n);
+		edge_label = std::vector<int>(5, 0);
 		std::vector<int> edge_constraints(5, 1);
 		edge_constraints[0] = 0;
 		edge_constraints[1] = 1;
 		edge_constraints[2] = 2;
 		edge_constraints[3] = 3;
 		edge_constraints[4] = -1;
-		m_edge_bufs.is_constrained = edge_constraints;
-		//m_edge_bufs.is_constrained.create_buffer(type, edge_constraints, usage, 4, n);
+		edge_is_constrained = edge_constraints;
+		//edge_is_constrained.create_buffer(type, edge_constraints, usage, 4, n);
 
 		// Fill constraint buffers
-		m_segment_bufs.endpoint_indices = { {0, 1}, {1, 2}, {2, 3}, {3, 0} };
-		m_segment_bufs.inserted = std::vector<int>(4, 1);
-		//m_segment_bufs.endpoint_indices.create_buffer(type, starting_contraints, usage, 5, n);
-		//m_segment_bufs.inserted.create_buffer(type, std::vector<int>(4, 1), usage, 6, n);
+		seg_endpoint_indices = { {0, 1}, {1, 2}, {2, 3}, {3, 0} };
+		seg_inserted = std::vector<int>(4, 1);
+		//seg_endpoint_indices.create_buffer(type, starting_contraints, usage, 5, n);
+		//seg_inserted.create_buffer(type, std::vector<int>(4, 1), usage, 6, n);
 
 		//std::vector<glm::ivec4> sym_edge_indices;
-		m_triangle_bufs.symedge_indices.push_back({ 0, 1, 2, -1 });
-		m_triangle_bufs.symedge_indices.push_back({ 3, 4 ,5, -1 });
-		//m_triangle_bufs.symedge_indices.create_buffer(type, sym_edge_indices, usage, 7, n);
+		tri_symedges.push_back({ 0, 1, 2, -1 });
+		tri_symedges.push_back({ 3, 4 ,5, -1 });
+		//tri_symedges.create_buffer(type, sym_edge_indices, usage, 7, n);
 
-		//m_triangle_bufs.ins_point_index.create_buffer(type, std::vector<int>(2, -1), usage, 8, n);
-		m_triangle_bufs.ins_point_index = std::vector<int>(2, -1);
-		//m_triangle_bufs.seg_inters_index.create_buffer(type, std::vector<int>(2, -1), usage, 9, n);
-		m_triangle_bufs.seg_inters_index = std::vector<int>(2, -1);
-		//m_triangle_bufs.edge_flip_index.create_buffer(type, std::vector<int>(2, -1), usage, 10, n);
-		m_triangle_bufs.edge_flip_index = std::vector<int>(2, -1);
-		//m_triangle_bufs.new_points.create_buffer(type, std::vector<NewPoint>(2), usage, 13, n);
-		m_triangle_bufs.new_points = std::vector<NewPoint>(2);
+		//tri_ins_point_index.create_buffer(type, std::vector<int>(2, -1), usage, 8, n);
+		tri_ins_point_index = std::vector<int>(2, -1);
+		//tri_seg_inters_index.create_buffer(type, std::vector<int>(2, -1), usage, 9, n);
+		tri_seg_inters_index = std::vector<int>(2, -1);
+		//tri_edge_flip_index.create_buffer(type, std::vector<int>(2, -1), usage, 10, n);
+		tri_edge_flip_index = std::vector<int>(2, -1);
+		//tri_insert_points.create_buffer(type, std::vector<NewPoint>(2), usage, 13, n);
+		tri_insert_points = std::vector<NewPoint>(2);
 
 		// Separate sym edge list
 
@@ -83,31 +83,31 @@ namespace GPU
 
 	void GCMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
 	{
-		append_vec(m_point_bufs.positions, points);
-		append_vec(m_point_bufs.inserted, std::vector<int>(points.size(), 0));
-		append_vec(m_point_bufs.tri_index, std::vector<int>(points.size(), 0));
+		append_vec(point_positions, points);
+		append_vec(point_inserted, std::vector<int>(points.size(), 0));
+		append_vec(point_tri_index, std::vector<int>(points.size(), 0));
 
 		for (auto& segment : segments)
-			segment = segment + glm::ivec2(m_segment_bufs.endpoint_indices.size());
-		append_vec(m_segment_bufs.endpoint_indices, segments);
-		append_vec(m_segment_bufs.inserted, std::vector<int>(segments.size(), 0));
+			segment = segment + glm::ivec2(seg_endpoint_indices.size());
+		append_vec(seg_endpoint_indices, segments);
+		append_vec(seg_inserted, std::vector<int>(segments.size(), 0));
 		// uppdating ubo containing sizes
 
 		int num_new_tri = points.size() * 2;
 		int num_new_segs = segments.size();
 
 		// fix new sizes of triangle buffers
-		append_vec(m_triangle_bufs.symedge_indices, std::vector<glm::ivec4>(num_new_tri, { -1, -1, -1, -1 }));
-		append_vec(m_triangle_bufs.ins_point_index, std::vector<int>(num_new_tri, -1));
-		append_vec(m_triangle_bufs.edge_flip_index, std::vector<int>(num_new_tri, -1));
-		append_vec(m_triangle_bufs.seg_inters_index, std::vector<int>(num_new_tri, -1));
-		append_vec(m_triangle_bufs.new_points, std::vector<NewPoint>(num_new_tri));
+		append_vec(tri_symedges, std::vector<glm::ivec4>(num_new_tri, { -1, -1, -1, -1 }));
+		append_vec(tri_ins_point_index, std::vector<int>(num_new_tri, -1));
+		append_vec(tri_edge_flip_index, std::vector<int>(num_new_tri, -1));
+		append_vec(tri_seg_inters_index, std::vector<int>(num_new_tri, -1));
+		append_vec(tri_insert_points, std::vector<NewPoint>(num_new_tri));
 
 		// fix new sizes of edge buffers 
 		// TODO: fix so it can handle repeated insertions
 		int num_new_edges = points.size() * 3;
-		append_vec(m_edge_bufs.is_constrained, std::vector<int>(num_new_edges, -1));
-		append_vec(m_edge_bufs.label, std::vector<int>(num_new_edges, -1));
+		append_vec(edge_is_constrained, std::vector<int>(num_new_edges, -1));
+		append_vec(edge_label, std::vector<int>(num_new_edges, -1));
 		// fix new size of symedges buffer
 		// TODO: fix so it can handle repeated insertions
 		int num_new_sym_edges = points.size() * 6;
@@ -117,21 +117,21 @@ namespace GPU
 		//m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
 		m_nr_of_symedges = m_sym_edges.size();
 		// Bind all ssbo's
-		//m_point_bufs.positions.bind_buffer();
-		//m_point_bufs.inserted.bind_buffer();
-		//m_point_bufs.tri_index.bind_buffer();
+		//point_positions.bind_buffer();
+		//point_inserted.bind_buffer();
+		//point_tri_index.bind_buffer();
 
-		//m_edge_bufs.label.bind_buffer();
-		//m_edge_bufs.is_constrained.bind_buffer();
+		//edge_label.bind_buffer();
+		//edge_is_constrained.bind_buffer();
 
-		//m_segment_bufs.endpoint_indices.bind_buffer();
-		//m_segment_bufs.inserted.bind_buffer();
+		//seg_endpoint_indices.bind_buffer();
+		//seg_inserted.bind_buffer();
 
-		//m_triangle_bufs.symedge_indices.bind_buffer();
-		//m_triangle_bufs.ins_point_index.bind_buffer();
-		//m_triangle_bufs.seg_inters_index.bind_buffer();
-		//m_triangle_bufs.edge_flip_index.bind_buffer();
-		//m_triangle_bufs.new_points.bind_buffer();
+		//tri_symedges.bind_buffer();
+		//tri_ins_point_index.bind_buffer();
+		//tri_seg_inters_index.bind_buffer();
+		//tri_edge_flip_index.bind_buffer();
+		//tri_insert_points.bind_buffer();
 
 		//m_sym_edges.bind_buffer();
 		//m_nr_of_symedges.bind_buffer();
@@ -211,27 +211,27 @@ namespace GPU
 		glDispatchCompute((GLuint)256, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);*/
 
-		//auto point_data_pos = m_point_bufs.positions;
-		//auto point_data_inserted = m_point_bufs.inserted;
-		//auto point_data_triangle_index = m_point_bufs.tri_index;
+		//auto point_data_pos = point_positions;
+		//auto point_data_inserted = point_inserted;
+		//auto point_data_triangle_index = point_tri_index;
 
 		//// symedges
 		//auto symedges = m_sym_edges;
 
 		//// edges
-		//auto edge_data_labels = m_edge_bufs.label;
-		//auto edge_data_is_constrained = m_edge_bufs.is_constrained;
+		//auto edge_data_labels = edge_label;
+		//auto edge_data_is_constrained = edge_is_constrained;
 
 		//// segments
-		//auto segment_data_inserted = m_segment_bufs.inserted;
-		//auto segment_data_endpoint_indices = m_segment_bufs.endpoint_indices.get_buffer_data<glm::ivec2>();
+		//auto segment_data_inserted = seg_inserted;
+		//auto segment_data_endpoint_indices = seg_endpoint_indices.get_buffer_data<glm::ivec2>();
 
 		//// triangles
-		//auto triangle_data_symedge_indices = m_triangle_bufs.symedge_indices;
-		//auto triangle_data_insert_point_index = m_triangle_bufs.ins_point_index;
-		//auto triangle_data_edge_flip_index = m_triangle_bufs.edge_flip_index;
-		//auto triangle_data_intersecting_segment = m_triangle_bufs.seg_inters_index;
-		//auto triangle_data_new_points = m_triangle_bufs.new_points.get_buffer_data<NewPoint>();
+		//auto triangle_data_symedge_indices = tri_symedges;
+		//auto triangle_data_insert_point_index = tri_ins_point_index;
+		//auto triangle_data_edge_flip_index = tri_edge_flip_index;
+		//auto triangle_data_intersecting_segment = tri_seg_inters_index;
+		//auto triangle_data_new_points = tri_insert_points.get_buffer_data<NewPoint>();
 
 		auto status_data = m_status;
 	}
@@ -253,28 +253,28 @@ namespace GPU
 			{
 				// increase sizes of arrays, 
 				// based on how many new points are inserted
-				append_vec(m_point_bufs.positions, std::vector<glm::vec2>(num_new_points));
-				append_vec(m_point_bufs.inserted, std::vector<int>(num_new_points));
-				append_vec(m_point_bufs.tri_index, std::vector<int>(num_new_points));
+				append_vec(point_positions, std::vector<glm::vec2>(num_new_points));
+				append_vec(point_inserted, std::vector<int>(num_new_points));
+				append_vec(point_tri_index, std::vector<int>(num_new_points));
 				// segments
 				int num_new_tri = num_new_points * 2;
 				int num_new_segs = num_new_points;
 
 				// fix new sizes of triangle buffers
-				append_vec(m_triangle_bufs.symedge_indices, std::vector<glm::ivec4>(num_new_tri, { -1, -1, -1, -1 }));
-				append_vec(m_triangle_bufs.ins_point_index, std::vector<int>(num_new_tri, -1));
-				append_vec(m_triangle_bufs.edge_flip_index, std::vector<int>(num_new_tri, -1));
-				append_vec(m_triangle_bufs.seg_inters_index, std::vector<int>(num_new_tri, -1));
-				append_vec(m_triangle_bufs.new_points, std::vector<NewPoint>(num_new_tri));
+				append_vec(tri_symedges, std::vector<glm::ivec4>(num_new_tri, { -1, -1, -1, -1 }));
+				append_vec(tri_ins_point_index, std::vector<int>(num_new_tri, -1));
+				append_vec(tri_edge_flip_index, std::vector<int>(num_new_tri, -1));
+				append_vec(tri_seg_inters_index, std::vector<int>(num_new_tri, -1));
+				append_vec(tri_insert_points, std::vector<NewPoint>(num_new_tri));
 
 				// fix new size of segment buffers
-				append_vec(m_segment_bufs.endpoint_indices, std::vector<glm::ivec2>(num_new_segs));
-				append_vec(m_segment_bufs.inserted, std::vector<int>(num_new_segs));
+				append_vec(seg_endpoint_indices, std::vector<glm::ivec2>(num_new_segs));
+				append_vec(seg_inserted, std::vector<int>(num_new_segs));
 				// fix new sizes of edge buffers 
 				// TODO: fix so it can handle repeated insertions
 				int num_new_edges = num_new_points * 3;
-				append_vec(m_edge_bufs.is_constrained, std::vector<int>(num_new_edges, -1));
-				append_vec(m_edge_bufs.label, std::vector<int>(num_new_edges, -1));
+				append_vec(edge_is_constrained, std::vector<int>(num_new_edges, -1));
+				append_vec(edge_label, std::vector<int>(num_new_edges, -1));
 				// fix new size of symedges buffer
 				// TODO: fix so it can handle repeated insertions
 				int num_new_sym_edges = num_new_points * 6;
@@ -286,21 +286,21 @@ namespace GPU
 				//m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
 
 				// then rebind the buffers that has been changed
-	/*			m_point_bufs.positions.bind_buffer();
-				m_point_bufs.inserted.bind_buffer();
-				m_point_bufs.tri_index.bind_buffer();
+	/*			point_positions.bind_buffer();
+				point_inserted.bind_buffer();
+				point_tri_index.bind_buffer();
 
-				m_edge_bufs.label.bind_buffer();
-				m_edge_bufs.is_constrained.bind_buffer();
+				edge_label.bind_buffer();
+				edge_is_constrained.bind_buffer();
 
-				m_segment_bufs.endpoint_indices.bind_buffer();
-				m_segment_bufs.inserted.bind_buffer();
+				seg_endpoint_indices.bind_buffer();
+				seg_inserted.bind_buffer();
 
-				m_triangle_bufs.symedge_indices.bind_buffer();
-				m_triangle_bufs.ins_point_index.bind_buffer();
-				m_triangle_bufs.seg_inters_index.bind_buffer();
-				m_triangle_bufs.edge_flip_index.bind_buffer();
-				m_triangle_bufs.new_points.bind_buffer();
+				tri_symedges.bind_buffer();
+				tri_ins_point_index.bind_buffer();
+				tri_seg_inters_index.bind_buffer();
+				tri_edge_flip_index.bind_buffer();
+				tri_insert_points.bind_buffer();
 
 				m_sym_edges.bind_buffer();
 				m_nr_of_symedges.bind_buffer();*/
@@ -368,12 +368,12 @@ namespace GPU
 
 	std::vector<glm::vec2> GCMesh::get_vertices()
 	{
-		return m_point_bufs.positions;
+		return point_positions;
 	}
 
 	glm::vec2 GCMesh::get_vertex(int index)
 	{
-		return m_point_bufs.positions[index];
+		return point_positions[index];
 	}
 
 	SymEdge GCMesh::get_symedge(int index)
@@ -384,7 +384,7 @@ namespace GPU
 	std::vector<std::pair<glm::ivec2, bool>> GCMesh::get_edges()
 	{
 		std::vector<SymEdge> sym_edge_list = m_sym_edges;
-		std::vector<int> is_constrained_edge_list = m_edge_bufs.is_constrained;
+		std::vector<int> is_constrained_edge_list = edge_is_constrained;
 
 		std::vector<std::pair<glm::ivec2, bool>> edge_list;
 		std::vector<glm::ivec2> found_edges;
@@ -410,7 +410,7 @@ namespace GPU
 	std::vector<glm::ivec3> GCMesh::get_faces()
 	{
 		std::vector<SymEdge> sym_edge_list = m_sym_edges;
-		std::vector<glm::ivec4> sym_edge_tri_indices = m_triangle_bufs.symedge_indices;
+		std::vector<glm::ivec4> sym_edge_tri_indices = tri_symedges;
 
 		std::vector<glm::ivec3> face_indices;
 		for (int i = 0; i < sym_edge_tri_indices.size(); i++)
@@ -429,8 +429,8 @@ namespace GPU
 		p = p - glm::vec2(2.f, 0.f);
 
 		std::vector<SymEdge> sym_edge_list = m_sym_edges;
-		std::vector<glm::ivec4> sym_edge_tri_indices = m_triangle_bufs.symedge_indices;
-		std::vector<glm::vec2> vertex_list = m_point_bufs.positions;
+		std::vector<glm::ivec4> sym_edge_tri_indices = tri_symedges;
+		std::vector<glm::vec2> vertex_list = point_positions;
 
 		int ret_val = -1;
 
@@ -525,6 +525,10 @@ namespace GPU
 	}
 	void GCMesh::location_program()
 	{
+		for (int index = 0; index < point_positions.size(); index++)
+		{
+
+		}
 	}
 	void GCMesh::location_tri_program()
 	{
