@@ -591,7 +591,37 @@ namespace GPU
 	}
 	void GCMesh::location_tri_program()
 	{
-
+		for (int index = 0; index < tri_seg_inters_index.size(); index++)
+		{
+			if (tri_symedges[index].x != -1)
+			{
+				std::array<vec2, 3> tri_points;
+				get_face(index, tri_points);
+				// calculate the centroid of the triangle
+				vec2 tri_cent = (tri_points[0] + tri_points[1] + tri_points[2]) / 3.0f;
+				int point_index = -1;
+				float best_dist = FLT_MAX;
+				// Figure out which point should be the new point of this triangle
+				for (int i = 0; i < point_positions.size(); i++)
+				{
+					if (point_tri_index[i] == index)
+					{
+						// Check so it is an uninserted point.
+						if (point_inserted[i] == 0)
+						{
+							vec2 pos = point_positions[i];
+							float dist = distance(pos, tri_cent);
+							if (dist < best_dist)
+							{
+								best_dist = dist;
+								point_index = i;
+							}
+						}
+					}
+				}
+				tri_ins_point_index[index] = point_index;
+			}
+		}
 	}
 	void GCMesh::insertion_program()
 	{
