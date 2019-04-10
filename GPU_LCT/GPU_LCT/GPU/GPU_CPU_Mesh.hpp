@@ -28,10 +28,23 @@ namespace GPU
 		void setup_compute_shaders();
 		void compile_cs(GLuint& program, const char* path, int work_group_size = 64);
 
-		PointBuffersCPU m_point_bufs;
-		EdgeBuffersCPU m_edge_bufs;
-		SegmentBuffersCPU m_segment_bufs;
-		TriangleBuffersCPU m_triangle_bufs;
+		// point buffers
+		std::vector<glm::vec2> point_positions;
+		std::vector<int> point_inserted;
+		std::vector<int> point_tri_index;
+		// edge buffers
+		std::vector<int> edge_label;
+		std::vector<int> edge_is_constrained;
+		// segment buffers
+		std::vector<glm::ivec2> seg_endpoint_indices;
+		std::vector<int> seg_inserted;
+		// triangle buffers
+		std::vector<glm::ivec4> tri_symedges;
+		std::vector<int> tri_ins_point_index;
+		std::vector<int> tri_seg_inters_index;
+		std::vector<int> tri_edge_flip_index;
+		std::vector<NewPoint> tri_insert_points;
+		// symedges
 		std::vector<SymEdge> m_sym_edges;
 		int m_nr_of_symedges;
 		int m_status;
