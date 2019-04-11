@@ -51,6 +51,7 @@ namespace GPU
 
 		// Access functions
 		int nxt(int edge);
+		SymEdge nxt(SymEdge s);
 		int rot(int edge);
 		int sym(int edge);
 		int prev(int edge);
