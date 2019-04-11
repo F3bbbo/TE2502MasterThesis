@@ -1,4 +1,4 @@
-#include "GPU_CPU_Mesh.hpp"
+﻿#include "GPU_CPU_Mesh.hpp"
 #include <fstream>
 #include "../trig_functions.hpp"
 
@@ -372,15 +372,6 @@ namespace GPU
 		return point_positions;
 	}
 
-	glm::vec2 GCMesh::get_vertex(int index)
-	{
-		return point_positions[index];
-	}
-
-	SymEdge GCMesh::get_symedge(int index)
-	{
-		return sym_edges[index];
-	}
 
 	std::vector<std::pair<glm::ivec2, bool>> GCMesh::get_edges()
 	{
@@ -525,7 +516,7 @@ namespace GPU
 		}
 	}
 	//-----------------------------------------------------------
-	// Symedge functions
+	// Access functions
 	//-----------------------------------------------------------
 	int GCMesh::nxt(int edge)
 	{
@@ -553,6 +544,89 @@ namespace GPU
 		return (sym_i != -1) ? nxt(sym_i) : -1;
 	}
 
+	void GCMesh::get_face(int face_i, std::array<vec2, 3>& face_v)
+	{
+		face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
+		face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
+		face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
+	}
+
+	SymEdge GCMesh::get_symedge(int index)
+	{
+		return sym_edges[index];
+	}
+
+	SymEdge GCMesh::prev_symedge(SymEdge s)
+	{
+		return get_symedge(get_symedge(s.nxt).nxt);
+	}
+
+	SymEdge GCMesh::sym_symedge(SymEdge s)
+	{
+		return get_symedge(get_symedge(s.nxt).rot);
+	}
+
+	int GCMesh::crot_symedge_i(SymEdge s)
+	{
+		int index = get_symedge(s.nxt).rot;
+		return index != -1 ? get_symedge(index).nxt : -1;
+	}
+
+	glm::vec2 GCMesh::get_vertex(int index)
+	{
+		return point_positions[index];
+	}
+
+	int GCMesh::get_label(int index)
+	{
+		return edge_label[index];
+	}
+
+	vec2 GCMesh::get_face_center(int face_i)
+	{
+		vec2 face_v[3];
+		face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
+		face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
+		face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
+
+		return (face_v[0] + face_v[1] + face_v[2]) / 3.f;
+	}
+
+	int GCMesh::get_index(SymEdge s)
+	{
+		return prev_symedge(s).nxt;
+	}
+
+	int GCMesh::get_face_vertex_symedge(int face, int vertex)
+	{
+		SymEdge s = sym_edges[tri_symedges[face].x];
+		if (s.vertex == vertex)
+			return get_index(s);
+		else if (get_symedge(s.nxt).vertex == vertex)
+			return s.nxt;
+		else if (prev_symedge(s).vertex == vertex)
+			return get_index(prev_symedge(s));
+		else
+			return -1;
+	}
+
+	bool GCMesh::face_contains_vertice(int face, int vertex)
+	{
+		SymEdge s = sym_edges[tri_symedges[face].x];
+		return s.vertex == vertex || get_symedge(s.nxt).vertex == vertex || prev_symedge(s).vertex == vertex;
+	}
+
+	bool GCMesh::face_contains_vertex(int vert, SymEdge s_triangle)
+	{
+		ivec3 tri = ivec3(s_triangle.vertex, get_symedge(s_triangle.nxt).vertex, prev_symedge(s_triangle).vertex);
+		return vert == tri.x || vert == tri.y || vert == tri.z;
+	}
+
+
+
+	//-----------------------------------------------------------
+	// Program functions
+	//-----------------------------------------------------------
 	void GCMesh::location_program()
 	{
 		for (int index = 0; index < point_positions.size(); index++)
@@ -746,6 +820,33 @@ namespace GPU
 	}
 	void GCMesh::marking_part_one_program()
 	{
+		for (int index = 0; index < seg_inserted.size(); index++)
+		{
+			// TODO: starting at the first symedge might not always be preferred, find a better solution
+			int magic1 = 0;
+			int magic2 = 0;
+			int starting_symedge = oriented_walk_point(0, seg_endpoint_indices[index].x, magic1);
+			int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y, magic2);
+
+			if (magic1 == 1 || magic2 == 1)
+			{
+				seg_inserted[index] = -1000;
+				return;
+			}
+			int connecting_edge = points_connected(starting_symedge, ending_symedge);
+			if (connecting_edge != -1)
+			{
+				edge_is_constrained[connecting_edge] = index;
+				edge_label[connecting_edge] = 0;
+				seg_inserted[index] = 1;
+				status = 1;
+			}
+			else
+			{
+				straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
+				straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
+			}
+		}
 	}
 	void GCMesh::marking_part_two_program()
 	{
@@ -774,6 +875,11 @@ namespace GPU
 	void GCMesh::validate_edges_program()
 	{
 	}
+
+
+	//-----------------------------------------------------------
+	// Shader functions
+	//-----------------------------------------------------------
 	void GCMesh::oriented_walk(int & curr_e, int point_i, bool & on_edge, vec2 & tri_cent)
 	{
 		bool done = false;
@@ -828,10 +934,355 @@ namespace GPU
 			}
 		}
 	}
-	void GCMesh::get_face(int face_i, std::array<vec2, 3>& face_v)
+	int GCMesh::oriented_walk_point(int curr_e, int goal_point_i, int & magic)
 	{
-		face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
-		face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
-		face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
+		vec2 tri_cent;
+		vec2 goal_point = get_vertex(goal_point_i);
+		while (true)
+		{
+			if (face_contains_vertice(get_symedge(curr_e).face, goal_point_i))
+				return get_face_vertex_symedge(get_symedge(curr_e).face, goal_point_i);
+
+			tri_cent = get_face_center(sym_edges[curr_e].face);
+
+			// Loop through edges to see if we should continue through the edge
+			// to the neighbouring triangle 
+			bool line_line_hit = false;
+			for (int i = 0; i < 3; i++)
+			{
+				if (sym_edges[sym_edges[curr_e].nxt].rot == -1)
+				{
+					curr_e = sym_edges[curr_e].nxt;
+					continue;
+				}
+
+				// handle degenerate triangles
+				bool not_valid_edge = false;
+				SymEdge other_e = prev_symedge(sym_symedge(sym_edges[curr_e]));
+
+				vec2 p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
+				vec2 p2 = point_positions[sym_edges[curr_e].vertex];
+				not_valid_edge = point_line_test(get_vertex(other_e.vertex), p1, p2);
+				if (not_valid_edge == true)
+				{
+					magic = 1;
+					return -1;
+					vec2 center_point = get_vertex(other_e.vertex);
+
+					while (not_valid_edge == true)
+					{
+						if (line_seg_intersection_ccw(tri_cent, goal_point, p1, center_point))
+						{
+							if (get_symedge(other_e.nxt).rot == -1)
+								break;
+							other_e = prev_symedge(sym_symedge(other_e));
+						}
+						else if (line_seg_intersection_ccw(tri_cent, goal_point, center_point, p2))
+						{
+							if (other_e.rot == -1)
+								break;
+							other_e = prev_symedge(get_symedge(other_e.rot));
+						}
+						else
+							break;
+
+						if (get_symedge(other_e.nxt).rot == -1)
+							break;
+
+						center_point = get_vertex(other_e.vertex);
+						not_valid_edge = point_line_test(center_point, p1, p2);
+					}
+
+					if (not_valid_edge == true)
+						continue;
+
+					// got out of the degenerate triangle mess here
+					center_point = get_face_center(sym_edges[curr_e].face);
+
+					for (int j = 0; j < 2; j++)
+					{
+						if (get_symedge(other_e.nxt).rot != -1)
+						{
+							line_line_hit = line_seg_intersection_ccw(
+								center_point,
+								goal_point,
+								point_positions[other_e.vertex],
+								point_positions[get_symedge(other_e.nxt).vertex]);
+
+							if (line_line_hit)
+							{
+								curr_e = sym_edges[sym_edges[other_e.nxt].rot].nxt;
+								break;
+							}
+						}
+
+						other_e = prev_symedge(other_e);
+					}
+					continue;
+				}
+
+				// No degenerate triangles detected
+				line_line_hit = line_seg_intersection_ccw(
+					tri_cent,
+					goal_point,
+					point_positions[sym_edges[curr_e].vertex],
+					point_positions[sym_edges[sym_edges[curr_e].nxt].vertex]);
+
+				if (line_line_hit)
+				{
+					curr_e = sym_edges[sym_edges[curr_e].nxt].rot;
+					break;
+				}
+				curr_e = sym_edges[curr_e].nxt;
+			}
+		}
+		return -1;
+	}
+
+	int GCMesh::points_connected(int e1, int e2)
+	{
+		int curr_e = e1;
+		bool reverse_direction = false;
+		int other_vertex = get_symedge(e2).vertex;
+
+		while (true)
+		{
+			if (get_symedge(sym_edges[curr_e].nxt).vertex == other_vertex)
+				return sym_edges[curr_e].edge;
+
+			else
+			{
+				if (!reverse_direction)
+				{
+					if (sym_edges[curr_e].rot == e1)
+						return -1;
+
+					if (sym_edges[curr_e].rot != -1)
+						curr_e = get_symedge(curr_e).rot;
+					else
+					{
+						reverse_direction = true;
+						curr_e = crot_symedge_i(get_symedge(e1));
+						if (curr_e == -1)
+							return -1;
+					}
+				}
+				else
+				{
+					curr_e = crot_symedge_i(get_symedge(curr_e));
+					if (curr_e == -1)
+						return -1;
+				}
+			}
+		}
+	}
+
+	void GCMesh::straight_walk(int segment_index, SymEdge s_starting_point, int ending_point_i)
+	{
+		SymEdge cur_edge = s_starting_point;
+		SymEdge prev_intersecting_edge = s_starting_point;
+		vec2 constraint_edge[2];
+		constraint_edge[0] = get_vertex(s_starting_point.vertex);
+		constraint_edge[1] = get_vertex(ending_point_i);
+		vec2 normalized_constrained_edge = normalize(constraint_edge[1] - constraint_edge[0]);
+
+		while (true)
+		{
+			vec2 v0 = get_vertex(get_symedge(cur_edge.nxt).vertex);
+			vec2 v1 = get_vertex(prev_symedge(cur_edge).vertex);
+			if (line_seg_intersection_ccw(constraint_edge[0], constraint_edge[1], v0, v1))
+			{
+				cur_edge = get_symedge(cur_edge.nxt);
+
+				// Check if the sym triangle contains the segment endpoint
+				if (face_contains_vertex(ending_point_i, sym_symedge(cur_edge)))
+				{
+					process_triangle(segment_index, cur_edge);
+					process_triangle(segment_index, sym_symedge(cur_edge));
+
+					// check if the edge satisfies to conditions and mark it to be flipped if needed, should always return here.
+					if (pre_candidate_check(cur_edge))
+						will_be_flipped(segment_index, cur_edge);
+					return;
+				}
+
+				prev_intersecting_edge = cur_edge;
+				process_triangle(segment_index, cur_edge);
+				if (pre_candidate_check(cur_edge) && will_be_flipped(segment_index, cur_edge))
+					return;
+				cur_edge = get_symedge(sym_symedge(cur_edge).nxt);
+				break;
+			}
+			cur_edge = get_symedge(cur_edge.rot);
+			if (cur_edge == s_starting_point)
+				return;
+		}
+
+		// walk towards the constraint endpoins and stop if we reach the triangle that contains the segment endpoint
+		while (true)
+		{
+			int checks;
+			for (checks = 0; checks < 2; checks++)
+			{
+				// Check if the sym triangle contains the segment endpoint
+				if (face_contains_vertex(ending_point_i, sym_symedge(cur_edge)))
+				{
+					process_triangle(segment_index, cur_edge);
+					process_triangle(segment_index, sym_symedge(cur_edge));
+					if (pre_candidate_check(cur_edge))
+						will_be_flipped(segment_index, cur_edge);
+					return;
+				}
+
+				// Checks if the segment intersects an edge
+				vec2 v0 = get_vertex(cur_edge.vertex);
+				vec2 v1 = get_vertex(get_symedge(cur_edge.nxt).vertex);
+
+				if (line_seg_intersection_ccw(constraint_edge[0], constraint_edge[1], v0, v1))
+				{
+					process_triangle(segment_index, cur_edge);
+					if (Qi_check(segment_index, prev_intersecting_edge, cur_edge) && will_be_flipped(segment_index, cur_edge))
+						return;
+					prev_intersecting_edge = cur_edge;
+					cur_edge = get_symedge(sym_symedge(cur_edge).nxt);
+					break;
+				}
+				cur_edge = get_symedge(cur_edge.nxt);
+			}
+
+
+		}
+
+	}
+
+	void GCMesh::process_triangle(int segment_index, SymEdge triangle)
+	{
+		// Assumes that the provided symedge is the symedge between the trianlges T, T+1
+		if (get_label(triangle.edge) != 3 &&
+			get_label(get_symedge(triangle.nxt).edge) != 3 &&
+			get_label(prev_symedge(triangle).edge) != 3 &&
+			(tri_seg_inters_index[triangle.face] > segment_index ||
+				tri_seg_inters_index[triangle.face] == -1))
+			tri_seg_inters_index[triangle.face] = segment_index;
+	}
+
+	bool GCMesh::will_be_flipped(int segment_index, SymEdge triangle)
+	{
+		if (tri_seg_inters_index[triangle.face] == segment_index && tri_seg_inters_index[sym_symedge(triangle).face] == segment_index)
+		{
+			edge_label[triangle.edge] = 2;
+			return true;
+		}
+
+		return false;
+	}
+
+	bool GCMesh::pre_candidate_check(SymEdge s)
+	{
+		vec2 p1 = get_vertex(get_symedge(get_symedge(s.nxt).nxt).vertex);
+		vec2 e1 = get_vertex(s.vertex);
+		vec2 e2 = get_vertex(get_symedge(s.nxt).vertex);
+		vec2 p2 = get_vertex(get_symedge(get_symedge(sym_symedge(s).nxt).nxt).vertex);
+		return polygonal_is_strictly_convex(4, p1, e1, p2, e2);
+	}
+
+	bool GCMesh::polygonal_is_strictly_convex(int num, vec2 p1, vec2 p2, vec2 p3, vec2 p4, vec2 p5)
+	{
+		// Definition of a stricly convex set from wikipedia
+		// https://en.wikipedia.org/wiki/Convex_set
+
+		// Let S be a vector space over the real numbers, or, more generally, over some ordered field. This includes Euclidean spaces. 
+		// A set C in S is said to be convex if, for all x and y in C and all t in the interval (0, 1), the point (1 − t)x + ty also belongs to C.
+		// In other words, every point on the line segment connecting x and y is in C
+		// This implies that a convex set in a real or complex topological vector space is path-connected, thus connected.
+		// Furthermore, C is strictly convex if every point on the line segment connecting x and y other than the endpoints is inside the interior of C.
+
+		// My made up solution
+		const vec2 point_array[5] = { p1, p2, p3, p4, p5 };
+		bool return_value = true;
+
+		for (int i = 0; i < num; i++)
+		{
+			vec2 line = point_array[(i + 1) % num] - point_array[i];
+
+			// rotate vector by 90 degrees
+			{
+				float tmp = line.x;
+				line.x = -line.y;
+				line.y = tmp;
+			}
+
+			for (int j = 0; j < num - 2; j++)
+				return_value = !return_value || check_side(line, point_array[(i + 2 + j) % num] - point_array[(i + 1) % 5]);
+		}
+		return return_value;
+	}
+
+	bool GCMesh::check_side(vec2 direction, vec2 other)
+	{
+		return dot(direction, other) > 0.f ? true : false;
+	}
+
+	bool GCMesh::Qi_check(int segment_index, SymEdge ei1, SymEdge ei)
+	{
+		vec2 s1 = get_vertex(seg_endpoint_indices[segment_index].x);
+		vec2 s2 = get_vertex(seg_endpoint_indices[segment_index].y);
+
+		vec2 vertices[5];
+
+		vertices[0] = get_vertex(prev_symedge(ei1).vertex);
+		bool edges_connected = ei1.vertex == ei.vertex;
+		if (edges_connected)
+		{
+			vertices[1] = get_vertex(ei.vertex);
+			vertices[2] = get_vertex(prev_symedge(sym_symedge(ei)).vertex);
+			vertices[3] = get_vertex(get_symedge(ei.nxt).vertex);
+			vertices[4] = get_vertex(get_symedge(ei1.nxt).vertex);
+		}
+		else
+		{
+			vertices[1] = get_vertex(ei1.vertex);
+			vertices[2] = get_vertex(ei.vertex);
+			vertices[3] = get_vertex(prev_symedge(sym_symedge(ei)).vertex);
+			vertices[4] = get_vertex(get_symedge(ei.nxt).vertex);
+		}
+
+		if (polygonal_is_strictly_convex(4, vertices[1], vertices[2], vertices[3], vertices[4]))
+		{
+			if (first_candidate_check(s1, s2, ei) ||
+				second_candidate_check(vertices[0], vertices[1], vertices[2], vertices[3], vertices[4]) ||
+				third_candidate_check(edges_connected, vertices[0], vertices[1], vertices[2], vertices[3], vertices[4]))
+			{
+				return true;
+			}
+			return false;
+		}
+		return false;
+	}
+
+	bool GCMesh::first_candidate_check(vec2 s1, vec2 s2, SymEdge ei)
+	{
+		vec2 p1 = get_vertex(prev_symedge(ei).vertex);
+		vec2 e1 = get_vertex(ei.vertex);
+		vec2 e2 = get_vertex(get_symedge(ei.nxt).vertex);
+		vec2 p2 = get_vertex(prev_symedge(sym_symedge(ei)).vertex);
+
+		bool intersects_first = segment_triangle_test(s1, s2, p1, e1, p2);
+		bool intersects_second = segment_triangle_test(s1, s2, p1, p2, e2);
+		return intersects_first ^ intersects_second;
+	}
+
+	bool GCMesh::second_candidate_check(vec2 p1, vec2 p2, vec2 p3, vec2 p4, vec2 p5)
+	{
+		// input parameters forms a pentagonal polygonal
+		return polygonal_is_strictly_convex(5, p1, p2, p3, p4, p5);
+	}
+
+	bool GCMesh::third_candidate_check(bool edges_connected, vec2 p1, vec2 p2, vec2 p3, vec2 p4, vec2 p5)
+	{
+		if (edges_connected)
+			return !polygonal_is_strictly_convex(4, p1, p2, p4, p5) && polygonal_is_strictly_convex(4, p1, p2, p3, p5) == true ? true : false;
+		else
+			return !polygonal_is_strictly_convex(4, p1, p2, p3, p5) && polygonal_is_strictly_convex(4, p1, p2, p4, p5) == true ? true : false;
 	}
 }
