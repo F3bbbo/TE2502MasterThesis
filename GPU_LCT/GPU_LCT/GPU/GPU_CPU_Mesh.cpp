@@ -168,9 +168,6 @@ namespace GPU
 			//glDispatchCompute((GLuint)256, 1, 1);
 			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-
-			if (counter == 4)
-				break;
 			//// Marking Step
 			marking_part_one_program();
 			//glUseProgram(m_marking_part_one_program);
@@ -817,7 +814,7 @@ namespace GPU
 				// or as point on edge if the point is on any of the edges 
 				for (int i = 0; i < 3; i++)
 				{
-					if (edge_is_constrained[sym_edges[orig_face[i]].edge] > -1)
+					if (edge_is_constrained[sym_edges[orig_face[i]].edge] < 0)
 					{
 						// Check if the point is on the edge
 						vec2 s1 = point_positions[sym_edges[orig_face[i]].vertex];
