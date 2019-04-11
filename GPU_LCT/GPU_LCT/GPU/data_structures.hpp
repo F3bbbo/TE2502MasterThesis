@@ -21,6 +21,14 @@ namespace GPU
 		int vertex = -1;
 		int edge = -1;
 		int face = -1;
+		bool operator==(SymEdge& o) {
+			return (
+				nxt == o.nxt &&
+				rot == o.rot &&
+				vertex == o.vertex &&
+				edge == o.edge &&
+				face == o.face);
+		};
 	};
 
 	struct NewPoint

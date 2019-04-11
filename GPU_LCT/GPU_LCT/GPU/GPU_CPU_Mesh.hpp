@@ -49,12 +49,24 @@ namespace GPU
 		int symedge_buffer_size;
 		int status;
 
-		// sym edge functions
+		// Access functions
 		int nxt(int edge);
 		int rot(int edge);
 		int sym(int edge);
 		int prev(int edge);
 		int crot(int edge);
+		void get_face(int face_i, std::array<vec2, 3> &face_v);
+		//SymEdge get_symedge(int index);
+		SymEdge prev_symedge(SymEdge s);
+		SymEdge sym_symedge(SymEdge s);
+		int crot_symedge_i(SymEdge s);
+		//vec2 get_vertex(int index);
+		int get_label(int index);
+		vec2 get_face_center(int face_i);
+		int get_index(SymEdge s);
+		int get_face_vertex_symedge(int face, int vertex);
+		bool face_contains_vertice(int face, int vertex);
+		bool face_contains_vertex(int vert, SymEdge s_triangle);
 
 		// CDT shaders
 		//GLuint m_location_program;
@@ -88,7 +100,21 @@ namespace GPU
 
 		// shader functions 
 		void oriented_walk(int &curr_e, int point_i, bool &on_edge, vec2 &tri_cent);
-		void get_face(int face_i, std::array<vec2, 3> &face_v);
+		// Marking_step_part_one functions
+		int oriented_walk_point(int curr_e, int goal_point_i, int &magic);
+		int points_connected(int e1, int e2);
+		void straight_walk(int segment_index, SymEdge s_starting_point, int ending_point_i);
+		void process_triangle(int segment_index, SymEdge triangle);
+		bool will_be_flipped(int segment_index, SymEdge triangle);
+		bool pre_candidate_check(SymEdge s);
+		bool polygonal_is_strictly_convex(int num, vec2 p1, vec2 p2, vec2 p3, vec2 p4, vec2 p5 = vec2(0.f, 0.f));
+		bool check_side(vec2 direction, vec2 other);
+		bool Qi_check(int segment_index, SymEdge ei1, SymEdge ei);
+		bool first_candidate_check(vec2 s1, vec2 s2, SymEdge ei);
+		bool second_candidate_check(vec2 p1, vec2 p2, vec2 p3, vec2 p4, vec2 p5);
+		bool third_candidate_check(bool edges_connected, vec2 p1, vec2 p2, vec2 p3, vec2 p4, vec2 p5);
+
+
 	};
 }
 #endif
