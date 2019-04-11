@@ -169,14 +169,14 @@ namespace GPU
 			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 
-
+			if (counter == 4)
+				break;
 			//// Marking Step
 			marking_part_one_program();
 			//glUseProgram(m_marking_part_one_program);
 			//glDispatchCompute((GLuint)256, 1, 1);
 			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
-			if (counter == 3)
-				break;
+
 			marking_part_two_program();
 			//glUseProgram(m_marking_part_two_program);
 			//glDispatchCompute((GLuint)256, 1, 1);
