@@ -100,20 +100,21 @@ void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 
 }
 
-void test_test_map(CPU::Mesh &m, GPU::GPUMesh &g_m)
+void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m)
 {
 	TestMap test_map;
 	test_map.set_map_size({ 0.5f, 0.5f }, { -0.5f, -0.5f });
 	test_map.set_num_obsticles({ 3, 3 });
 
-	auto obsticles = test_map.get_CPU_obsticles();
-	for (unsigned int i = 0; i < obsticles.size(); i++)
-	{
-		m.insert_constraint(std::move(obsticles[i]), i);
-	}
+	//auto obsticles = test_map.get_CPU_obsticles();
+	//for (unsigned int i = 0; i < obsticles.size(); i++)
+	//{
+	//	m.insert_constraint(std::move(obsticles[i]), i);
+	//}
 
 	// create GPU data
 	auto gpu_map = test_map.get_GPU_obstacles();
+	m.build_CDT(gpu_map.first, gpu_map.second);
 	g_m.build_CDT(gpu_map.first, gpu_map.second);
 }
 
@@ -128,14 +129,14 @@ int main()
 
 	GPU::GCMesh gc_mesh({ 1600, 800 });
 	gc_mesh.initiate_buffers({ 0.5f, 0.5f });
-	
+
 
 	/*CPU::Mesh m;
 	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });*/
 
 	//lct_example(m, g_mesh);
 
-	//test_test_map(m, g_mesh);
+	test_test_map(gc_mesh, g_mesh);
 
 	//m.transform_into_LCT();
 
