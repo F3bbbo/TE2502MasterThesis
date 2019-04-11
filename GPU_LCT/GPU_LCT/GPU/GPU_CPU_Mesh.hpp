@@ -121,6 +121,8 @@ namespace GPU
 		bool is_delaunay(int sym);
 		// Flipping_part_two functions
 		void set_quad_edges_label(int label, SymEdge edge);
+		// Flipping_part_three functions
+		void flip_edge(SymEdge edge);
 
 	};
 }
