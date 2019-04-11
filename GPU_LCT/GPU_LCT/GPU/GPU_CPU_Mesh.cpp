@@ -1,4 +1,4 @@
-﻿#include "GPU_CPU_Mesh.hpp"
+#include "GPU_CPU_Mesh.hpp"
 #include <fstream>
 #include "../trig_functions.hpp"
 
@@ -188,6 +188,7 @@ namespace GPU
 			//glDispatchCompute((GLuint)256, 1, 1);
 			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			flip_edges_part_two_program();
+
 			//glUseProgram(m_flip_edges_part_two_program);
 			//glDispatchCompute((GLuint)256, 1, 1);
 			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -754,11 +755,11 @@ namespace GPU
 					orig_face[i] = curr_e;
 					int sym = curr_e;
 					// sym operations
-					nxt(sym);
-					rot(sym);
+					sym = nxt(sym);
+					sym = rot(sym);
 					orig_sym[i] = sym;
 					// move curr_e to next edge of triangle
-					nxt(curr_e);
+					curr_e = nxt(curr_e);
 				}
 				int insert_point = tri_ins_point_index[index];
 				// Create symedge structure of the new triangles
@@ -795,19 +796,19 @@ namespace GPU
 					int new_edge = edge_indices[i];
 					// get both symedges of one new inner edge
 					int inner_edge = orig_face[i];
-					nxt(inner_edge);
+					inner_edge = nxt(inner_edge);
 					int inner_edge_sym = orig_face[next_id];
-					nxt(inner_edge_sym);
-					nxt(inner_edge_sym);
+					inner_edge_sym = nxt(inner_edge_sym);
+					inner_edge_sym = nxt(inner_edge_sym);
 					// set same edge index to both symedges
 					sym_edges[inner_edge].edge = new_edge;
 					sym_edges[inner_edge_sym].edge = new_edge;
 					// connect the edges syms together
 					int rot_connect_edge = inner_edge;
-					nxt(rot_connect_edge);
+					rot_connect_edge = nxt(rot_connect_edge);
 					sym_edges[rot_connect_edge].rot = inner_edge_sym;
 					int rot_connect_edge_sym = inner_edge_sym;
-					nxt(rot_connect_edge_sym);
+					rot_connect_edge_sym = nxt(rot_connect_edge_sym);
 					sym_edges[rot_connect_edge_sym].rot = inner_edge;
 					// connect original edge with its sym
 					sym_edges[inner_edge].rot = orig_sym[i];
@@ -821,7 +822,7 @@ namespace GPU
 						// Check if the point is on the edge
 						vec2 s1 = point_positions[sym_edges[orig_face[i]].vertex];
 						vec2 s2 = point_positions[sym_edges[orig_face[(i + 1) % 3]].vertex];
-						vec2 p = point_positions[index];
+						vec2 p = point_positions[point_index];
 						if (point_line_test(p, s1, s2))
 						{
 							edge_label[sym_edges[orig_face[i]].edge] = 3;
@@ -834,7 +835,7 @@ namespace GPU
 				}
 				// Set point as inserted
 				point_inserted[point_index] = 1;
-
+				tri_ins_point_index[index] = -1;
 			}
 		}
 	}
@@ -842,29 +843,36 @@ namespace GPU
 	{
 		for (int index = 0; index < seg_inserted.size(); index++)
 		{
-			// TODO: starting at the first symedge might not always be preferred, find a better solution
-			int magic1 = 0;
-			int magic2 = 0;
-			int starting_symedge = oriented_walk_point(0, seg_endpoint_indices[index].x, magic1);
-			int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y, magic2);
+			if (seg_inserted[index] == 0)
+			{
+				int endpoints_inserted = point_inserted[seg_endpoint_indices[index].x] * point_inserted[seg_endpoint_indices[index].y];
+				if (endpoints_inserted == 1)
+				{
+					// TODO: starting at the first symedge might not always be preferred, find a better solution
+					int magic1 = 0;
+					int magic2 = 0;
+					int starting_symedge = oriented_walk_point(0, seg_endpoint_indices[index].x, magic1);
+					int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y, magic2);
 
-			if (magic1 == 1 || magic2 == 1)
-			{
-				seg_inserted[index] = -1000;
-				return;
-			}
-			int connecting_edge = points_connected(starting_symedge, ending_symedge);
-			if (connecting_edge != -1)
-			{
-				edge_is_constrained[connecting_edge] = index;
-				edge_label[connecting_edge] = 0;
-				seg_inserted[index] = 1;
-				status = 1;
-			}
-			else
-			{
-				straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
-				straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
+					if (magic1 == 1 || magic2 == 1)
+					{
+						seg_inserted[index] = -1000;
+						return;
+					}
+					int connecting_edge = points_connected(starting_symedge, ending_symedge);
+					if (connecting_edge != -1)
+					{
+						edge_is_constrained[connecting_edge] = index;
+						edge_label[connecting_edge] = 0;
+						seg_inserted[index] = 1;
+						status = 1;
+					}
+					else
+					{
+						straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
+						straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
+					}
+				}
 			}
 		}
 	}
@@ -873,38 +881,41 @@ namespace GPU
 		for (unsigned int index = 0; index < tri_seg_inters_index.size(); index++)
 		{
 			int tri_sym = tri_symedges[index].x;
-			bool no_point_in_edges = edge_label[get_symedge(tri_sym).edge] != 3 &&
-				edge_label[get_symedge(nxt(tri_sym)).edge] != 3 &&
-				edge_label[get_symedge(prev(tri_sym)).edge] != 3;
-			if (no_point_in_edges)
+			if (tri_sym > -1)
 			{
-				if (tri_seg_inters_index[index] == -1)
+				bool no_point_in_edges = edge_label[get_symedge(tri_sym).edge] != 3 &&
+					edge_label[get_symedge(nxt(tri_sym)).edge] != 3 &&
+					edge_label[get_symedge(prev(tri_sym)).edge] != 3;
+				if (no_point_in_edges)
 				{
-					for (int i = 0; i < 3; i++)
+					if (tri_seg_inters_index[index] == -1)
 					{
-						if (edge_label[get_symedge(tri_sym).edge] == 1 && (is_delaunay(tri_sym) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
-							edge_label[get_symedge(tri_sym).edge] = 0;
-						tri_sym = nxt(tri_sym);
-					}
-				}
-				else
-				{
-					for (int i = 0; i < 3; i++)
-					{
-						int adjacent_triangle = get_symedge(nxt(tri_sym)).rot;
-						if (adjacent_triangle != -1 && edge_label[get_symedge(tri_sym).edge] == 2)
+						for (int i = 0; i < 3; i++)
 						{
-							vec2 segment_vertices[2];
-							segment_vertices[0] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].x);
-							segment_vertices[1] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].y);
-
-							std::array<vec2, 3> face_vertices;
-							get_face(get_symedge(rot(nxt(tri_sym))).face, face_vertices);
-
-							if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]))
+							if (edge_label[get_symedge(tri_sym).edge] == 1 && (is_delaunay(tri_sym) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
 								edge_label[get_symedge(tri_sym).edge] = 0;
+							tri_sym = nxt(tri_sym);
 						}
-						tri_sym = nxt(tri_sym);
+					}
+					else
+					{
+						for (int i = 0; i < 3; i++)
+						{
+							int adjacent_triangle = get_symedge(nxt(tri_sym)).rot;
+							if (adjacent_triangle != -1 && edge_label[get_symedge(tri_sym).edge] == 2)
+							{
+								vec2 segment_vertices[2];
+								segment_vertices[0] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].x);
+								segment_vertices[1] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].y);
+
+								std::array<vec2, 3> face_vertices;
+								get_face(get_symedge(rot(nxt(tri_sym))).face, face_vertices);
+
+								if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]))
+									edge_label[get_symedge(tri_sym).edge] = 0;
+							}
+							tri_sym = nxt(tri_sym);
+						}
 					}
 				}
 			}
@@ -914,35 +925,42 @@ namespace GPU
 	{
 		for (unsigned int index = 0; index < tri_seg_inters_index.size(); index++)
 		{
-			int highest_priority_s_edge = -1;
-			int h = -1;
-
-			SymEdge edge_sym = get_symedge(tri_symedges[index].x);
-			for (int i = 0; i < 3; i++)
+			if (tri_symedges[index].x > -1)
 			{
-				highest_priority_s_edge = h < edge_label[edge_sym.edge] ? get_index(edge_sym) : highest_priority_s_edge;
-				h = max(edge_label[edge_sym.edge], h);
-				edge_sym = nxt(edge_sym);
-			}
+				int highest_priority_s_edge = -1;
+				int h = -1;
 
-			int sym_symedge = nxt(get_symedge(highest_priority_s_edge)).rot;
-
-			int o_label1 = edge_label[nxt(get_symedge(sym_symedge)).edge];
-			int o_label2 = edge_label[prev_symedge(get_symedge(sym_symedge)).edge];
-
-			if (h > 0 && sym_symedge != -1 && o_label1 != h && o_label2 != h && o_label1 < h && o_label2 < h)
-			{
-				int nh = 0;
+				SymEdge edge_sym = get_symedge(tri_symedges[index].x);
 				for (int i = 0; i < 3; i++)
 				{
-					nh = h == edge_label[edge_sym.edge] ? nh + 1 : nh;
+					highest_priority_s_edge = h < edge_label[edge_sym.edge] ? get_index(edge_sym) : highest_priority_s_edge;
+					h = max(edge_label[edge_sym.edge], h);
 					edge_sym = nxt(edge_sym);
 				}
+				if (h > 0)
+				{
+					int sym_symedge = nxt(get_symedge(highest_priority_s_edge)).rot;
+					if (sym_symedge != -1)
+					{
+						int o_label1 = edge_label[nxt(get_symedge(sym_symedge)).edge];
+						int o_label2 = edge_label[prev_symedge(get_symedge(sym_symedge)).edge];
 
-				if (nh >= 2 || (nh == 1 && index < get_symedge(sym_symedge).face))
-					tri_edge_flip_index[index] = get_symedge(highest_priority_s_edge).edge;
-				else
-					tri_edge_flip_index[index] = -1;
+						if (o_label1 != h && o_label2 != h && o_label1 < h && o_label2 < h)
+						{
+							int nh = 0;
+							for (int i = 0; i < 3; i++)
+							{
+								nh = h == edge_label[edge_sym.edge] ? nh + 1 : nh;
+								edge_sym = nxt(edge_sym);
+							}
+
+							if (nh >= 2 || (nh == 1 && index < get_symedge(sym_symedge).face))
+								tri_edge_flip_index[index] = get_symedge(highest_priority_s_edge).edge;
+							else
+								tri_edge_flip_index[index] = -1;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -950,20 +968,23 @@ namespace GPU
 	{
 		for (unsigned int index = 0; index < tri_seg_inters_index.size(); index++)
 		{
-			if (tri_edge_flip_index[index] == -1)
+			if (tri_symedges[index].x > -1)
 			{
-				SymEdge edge_sym = get_symedge(tri_symedges[index].x);
-				for (int i = 0; i < 3; i++)
+				if (tri_edge_flip_index[index] == -1)
 				{
-					int sym = nxt(edge_sym).rot;
-					if (sym != -1 && tri_edge_flip_index[get_symedge(sym).face] == edge_sym.edge)
+					SymEdge edge_sym = get_symedge(tri_symedges[index].x);
+					for (int i = 0; i < 3; i++)
 					{
-						// This feels like bullshit
-						// tri_edge_flip_index[index] = edge_label[edge_sym.edge];
-						set_quad_edges_label(1, edge_sym);
-						break;
+						int sym = nxt(edge_sym).rot;
+						if (sym != -1 && tri_edge_flip_index[get_symedge(sym).face] == edge_sym.edge)
+						{
+							// This feels like bullshit
+							// tri_edge_flip_index[index] = edge_label[edge_sym.edge];
+							set_quad_edges_label(1, edge_sym);
+							break;
+						}
+						edge_sym = nxt(edge_sym);
 					}
-					edge_sym = nxt(edge_sym);
 				}
 			}
 		}
