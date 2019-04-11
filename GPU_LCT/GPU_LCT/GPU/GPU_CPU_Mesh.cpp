@@ -850,6 +850,45 @@ namespace GPU
 	}
 	void GCMesh::marking_part_two_program()
 	{
+		for (unsigned int index = 0; index < tri_seg_inters_index.size(); index++)
+		{
+			int tri_sym = tri_symedges[index].x;
+			bool no_point_in_edges = edge_label[get_symedge(tri_sym).edge] != 3 &&
+				edge_label[get_symedge(nxt(tri_sym)).edge] != 3 &&
+				edge_label[get_symedge(prev(tri_sym)).edge] != 3;
+			if (no_point_in_edges)
+			{
+				if (tri_seg_inters_index[index] == -1)
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						if (edge_label[get_symedge(tri_sym).edge] == 1 && (is_delaunay(tri_sym) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
+							edge_label[get_symedge(tri_sym).edge] = 0;
+						tri_sym = nxt(tri_sym);
+					}
+				}
+				else
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						int adjacent_triangle = get_symedge(nxt(tri_sym)).rot;
+						if (adjacent_triangle != -1 && edge_label[get_symedge(tri_sym).edge] == 2)
+						{
+							vec2 segment_vertices[2];
+							segment_vertices[0] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].x);
+							segment_vertices[1] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].y);
+
+							std::array<vec2, 3> face_vertices;
+							get_face(get_symedge(rot(nxt(tri_sym))).face, face_vertices);
+
+							if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]))
+								edge_label[get_symedge(tri_sym).edge] = 0;
+						}
+						tri_sym = nxt(tri_sym);
+					}
+				}
+			}
+		}
 	}
 	void GCMesh::flip_edges_part_one_program()
 	{
@@ -1284,5 +1323,39 @@ namespace GPU
 			return !polygonal_is_strictly_convex(4, p1, p2, p4, p5) && polygonal_is_strictly_convex(4, p1, p2, p3, p5) == true ? true : false;
 		else
 			return !polygonal_is_strictly_convex(4, p1, p2, p3, p5) && polygonal_is_strictly_convex(4, p1, p2, p4, p5) == true ? true : false;
+	}
+	bool GCMesh::is_delaunay(int sym)
+	{
+		int index = rot(nxt(sym));
+
+		if (index != -1)
+		{
+			mat4x4 mat;
+
+			vec2 face_vertices[3];
+			face_vertices[2] = get_vertex(get_symedge(sym).vertex);
+			face_vertices[0] = get_vertex(get_symedge(nxt(sym)).vertex);
+			face_vertices[1] = get_vertex(get_symedge(prev(sym)).vertex);
+			//get_face(sym.face, face_vertices);
+
+			for (int i = 0; i < 3; i++)
+			{
+				mat[0][i] = face_vertices[i].x;
+				mat[1][i] = face_vertices[i].y;
+				mat[2][i] = mat[0][i] * mat[0][i] + mat[1][i] * mat[1][i];
+				mat[3][i] = 1.f;
+			}
+
+			vec2 other = get_vertex(get_symedge(prev(index)).vertex);
+
+			mat[0][3] = other.x;
+			mat[1][3] = other.y;
+			mat[2][3] = mat[0][3] * mat[0][3] + mat[1][3] * mat[1][3];
+			mat[3][3] = 1.f;
+
+			if (determinant(mat) > 0)
+				return false;
+		}
+		return true;
 	}
 }
