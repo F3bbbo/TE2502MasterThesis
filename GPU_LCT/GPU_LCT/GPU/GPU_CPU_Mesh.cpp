@@ -970,6 +970,26 @@ namespace GPU
 	}
 	void GCMesh::flip_edges_part_three_program()
 	{
+		for (unsigned int index = 0; index < tri_seg_inters_index.size(); index++)
+		{
+			if (tri_edge_flip_index[index] != -1 && edge_label[tri_edge_flip_index[index]] != -1)
+			{
+				status = 1;
+
+				// find the symedge that constains the edge that should get flipped
+				SymEdge edge_to_be_flipped = get_symedge(tri_symedges[index].x);
+				SymEdge cur_edge = edge_to_be_flipped;
+				for (int i = 0; i < 3; i++)
+				{
+					edge_to_be_flipped = cur_edge.edge == tri_edge_flip_index[index] ? cur_edge : edge_to_be_flipped;
+					cur_edge = nxt(cur_edge);
+				}
+
+				edge_label[edge_to_be_flipped.edge] = 0;
+				tri_edge_flip_index[index] = -1;
+				flip_edge(edge_to_be_flipped);
+			}
+		}
 	}
 	void GCMesh::locate_disturbances_program()
 	{
@@ -1439,5 +1459,71 @@ namespace GPU
 
 		edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == -1 ? label : edge_label[nxt(edge).edge];
 		edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == -1 ? label : edge_label[prev(edge).edge];
+	}
+	void GCMesh::flip_edge(SymEdge edge)
+	{
+		// flips clockwise according to figure 8 in the paper.
+
+		int t_prim = edge.face;
+		int t = sym(edge).face;
+
+		int curr = get_index(edge);
+		int curr_sym = get_index(sym(edge));
+
+		int e1 = edge.nxt;
+		int e2 = nxt(edge).nxt;
+		int e3 = sym(edge).nxt;
+		int e4 = nxt(sym(edge)).nxt;
+
+		int e1_sym = nxt(get_symedge(e1)).rot;
+		int e2_sym = nxt(get_symedge(e2)).rot;
+		int e3_sym = nxt(get_symedge(e3)).rot;
+		int e4_sym = nxt(get_symedge(e4)).rot;
+
+		//e1
+		sym_edges[e1].nxt = curr;
+		sym_edges[e1].rot = e4_sym;
+
+		sym_edges[e1].face = t_prim;
+
+		//e2
+		sym_edges[e2].nxt = e3;
+		sym_edges[e2].rot = curr;
+
+		sym_edges[e2].face = t;
+
+		//e3
+		sym_edges[e3].nxt = curr_sym;
+		sym_edges[e3].rot = e2_sym;
+
+		sym_edges[e3].face = t;
+
+		//e4
+		sym_edges[e4].nxt = e1;
+		sym_edges[e4].rot = curr_sym;
+
+		sym_edges[e4].face = t_prim;
+
+		// curr
+		sym_edges[curr].nxt = e4;
+		sym_edges[curr].rot = e1_sym;
+
+		sym_edges[curr].vertex = get_symedge(e2).vertex;
+		sym_edges[curr].face = t_prim;
+
+		// curr_sym
+		sym_edges[curr_sym].nxt = e2;
+		sym_edges[curr_sym].rot = e3_sym;
+
+		sym_edges[curr_sym].vertex = get_symedge(e4).vertex;
+		sym_edges[curr_sym].face = t;
+
+		// update face symedges
+		tri_symedges[t_prim] = ivec4(curr, e4, e1, -1);
+		tri_symedges[t] = ivec4(curr_sym, e2, e3, -1);
+
+		// reset
+		tri_seg_inters_index[t_prim] = -1;
+		tri_seg_inters_index[t] = -1;
 	}
 }
