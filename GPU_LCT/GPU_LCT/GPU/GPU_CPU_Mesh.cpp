@@ -856,7 +856,7 @@ namespace GPU
 
 					if (magic1 == 1 || magic2 == 1)
 					{
-						seg_inserted[index] = -1000;
+						seg_inserted[index] = 0;
 						return;
 					}
 					int connecting_edge = points_connected(starting_symedge, ending_symedge);
@@ -1118,7 +1118,7 @@ namespace GPU
 				if (not_valid_edge == true)
 				{
 					magic = 1;
-					return -1;
+					return 0;
 					vec2 center_point = get_vertex(other_e.vertex);
 
 					while (not_valid_edge == true)
