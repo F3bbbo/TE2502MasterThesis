@@ -533,14 +533,29 @@ namespace GPU
 		return sym_edges[edge].rot;
 	}
 
+	SymEdge GCMesh::rot(SymEdge s)
+	{
+		return get_symedge(s.rot);
+	}
+
 	int GCMesh::sym(int edge)
 	{
 		return rot(nxt(edge));
 	}
 
+	SymEdge GCMesh::sym(SymEdge s)
+	{
+		return rot(nxt(s));
+	}
+
 	int GCMesh::prev(int edge)
 	{
 		return nxt(nxt(edge));
+	}
+
+	SymEdge GCMesh::prev(SymEdge s)
+	{
+		return nxt(nxt(s));
 	}
 
 	int GCMesh::crot(int edge)
@@ -933,6 +948,25 @@ namespace GPU
 	}
 	void GCMesh::flip_edges_part_two_program()
 	{
+		for (unsigned int index = 0; index < tri_seg_inters_index.size(); index++)
+		{
+			if (tri_edge_flip_index[index] == -1)
+			{
+				SymEdge edge_sym = get_symedge(tri_symedges[index].x);
+				for (int i = 0; i < 3; i++)
+				{
+					int sym = nxt(edge_sym).rot;
+					if (sym != -1 && tri_edge_flip_index[get_symedge(sym).face] == edge_sym.edge)
+					{
+						// This feels like bullshit
+						// tri_edge_flip_index[index] = edge_label[edge_sym.edge];
+						set_quad_edges_label(1, edge_sym);
+						break;
+					}
+					edge_sym = nxt(edge_sym);
+				}
+			}
+		}
 	}
 	void GCMesh::flip_edges_part_three_program()
 	{
@@ -1395,5 +1429,15 @@ namespace GPU
 				return false;
 		}
 		return true;
+	}
+	void GCMesh::set_quad_edges_label(int label, SymEdge edge)
+	{
+		edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == -1 ? label : edge_label[nxt(edge).edge];
+		edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == -1 ? label : edge_label[prev(edge).edge];
+
+		edge = sym(edge);
+
+		edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == -1 ? label : edge_label[nxt(edge).edge];
+		edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == -1 ? label : edge_label[prev(edge).edge];
 	}
 }
