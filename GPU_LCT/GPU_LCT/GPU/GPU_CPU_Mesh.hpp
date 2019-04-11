@@ -53,8 +53,11 @@ namespace GPU
 		int nxt(int edge);
 		SymEdge nxt(SymEdge s);
 		int rot(int edge);
+		SymEdge rot(SymEdge s);
 		int sym(int edge);
+		SymEdge sym(SymEdge s);
 		int prev(int edge);
+		SymEdge prev(SymEdge s);
 		int crot(int edge);
 		void get_face(int face_i, std::array<vec2, 3> &face_v);
 		//SymEdge get_symedge(int index);
@@ -116,6 +119,8 @@ namespace GPU
 		bool third_candidate_check(bool edges_connected, vec2 p1, vec2 p2, vec2 p3, vec2 p4, vec2 p5);
 		// Marking_step_part_two functions
 		bool is_delaunay(int sym);
+		// Flipping_part_two functions
+		void set_quad_edges_label(int label, SymEdge edge);
 
 	};
 }
