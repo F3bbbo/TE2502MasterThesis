@@ -523,6 +523,11 @@ namespace GPU
 		return sym_edges[edge].nxt;
 	}
 
+	SymEdge GCMesh::nxt(SymEdge s)
+	{
+		return get_symedge(s.nxt);
+	}
+
 	int GCMesh::rot(int edge)
 	{
 		return sym_edges[edge].rot;
@@ -892,6 +897,39 @@ namespace GPU
 	}
 	void GCMesh::flip_edges_part_one_program()
 	{
+		for (unsigned int index = 0; index < tri_seg_inters_index.size(); index++)
+		{
+			int highest_priority_s_edge = -1;
+			int h = -1;
+
+			SymEdge edge_sym = get_symedge(tri_symedges[index].x);
+			for (int i = 0; i < 3; i++)
+			{
+				highest_priority_s_edge = h < edge_label[edge_sym.edge] ? get_index(edge_sym) : highest_priority_s_edge;
+				h = max(edge_label[edge_sym.edge], h);
+				edge_sym = nxt(edge_sym);
+			}
+
+			int sym_symedge = nxt(get_symedge(highest_priority_s_edge)).rot;
+
+			int o_label1 = edge_label[nxt(get_symedge(sym_symedge)).edge];
+			int o_label2 = edge_label[prev_symedge(get_symedge(sym_symedge)).edge];
+
+			if (h > 0 && sym_symedge != -1 && o_label1 != h && o_label2 != h && o_label1 < h && o_label2 < h)
+			{
+				int nh = 0;
+				for (int i = 0; i < 3; i++)
+				{
+					nh = h == edge_label[edge_sym.edge] ? nh + 1 : nh;
+					edge_sym = nxt(edge_sym);
+				}
+
+				if (nh >= 2 || (nh == 1 && index < get_symedge(sym_symedge).face))
+					tri_edge_flip_index[index] = get_symedge(highest_priority_s_edge).edge;
+				else
+					tri_edge_flip_index[index] = -1;
+			}
+		}
 	}
 	void GCMesh::flip_edges_part_two_program()
 	{
