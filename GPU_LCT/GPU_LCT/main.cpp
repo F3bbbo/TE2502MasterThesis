@@ -100,11 +100,11 @@ void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 
 }
 
-void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m)
+void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims)
 {
 	TestMap test_map;
-	test_map.set_map_size({ 0.5f, 0.5f }, { -0.5f, -0.5f });
-	test_map.set_num_obsticles({ 3, 3 });
+	test_map.set_map_size(dims, -dims);
+	test_map.set_num_obsticles({ 20, 20 });
 
 	//auto obsticles = test_map.get_CPU_obsticles();
 	//for (unsigned int i = 0; i < obsticles.size(); i++)
@@ -115,7 +115,7 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m)
 	// create GPU data
 	auto gpu_map = test_map.get_GPU_obstacles();
 	m.build_CDT(gpu_map.first, gpu_map.second);
-	g_m.build_CDT(gpu_map.first, gpu_map.second);
+	//g_m.build_CDT(gpu_map.first, gpu_map.second);
 }
 
 int main()
@@ -124,11 +124,12 @@ int main()
 	Renderer renderer({ 1600, 800 });
 
 	GPU::GPUMesh g_mesh({ 1600, 800 });
-	g_mesh.initiate_buffers({ 0.5f, 0.5f });
+	glm::vec2 map_start = { 1.0f, 1.0f };
+	g_mesh.initiate_buffers(map_start);
 	//g_mesh.build_CDT({ { -0.25f, -0.25f }, { -0.25f, 0.25f }, { 0.25f, 0.25f }, { 0.25f, -0.25f } }, { {0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 2} });
 
 	GPU::GCMesh gc_mesh({ 1600, 800 });
-	gc_mesh.initiate_buffers({ 0.5f, 0.5f });
+	gc_mesh.initiate_buffers(map_start);
 
 
 	/*CPU::Mesh m;
@@ -136,7 +137,7 @@ int main()
 
 	//lct_example(m, g_mesh);
 
-	test_test_map(gc_mesh, g_mesh);
+	test_test_map(gc_mesh, g_mesh, map_start);
 
 	//m.transform_into_LCT();
 
@@ -149,12 +150,12 @@ int main()
 	debug_faces.build(gc_mesh);
 
 	DebugObject debug_edges(DRAW_EDGES);
-	debug_edges.set_edge_thiccness(5.f);
+	debug_edges.set_edge_thiccness(1.f);
 	debug_edges.set_color({ 1.f, 0.246201f, 0.201556f });
 	debug_edges.build(gc_mesh);
 
 	DebugObject debug_edges_constraints(DRAW_EDGES);
-	debug_edges_constraints.set_edge_thiccness(5.f);
+	debug_edges_constraints.set_edge_thiccness(1.f);
 	debug_edges_constraints.draw_constraints(true);
 	debug_edges_constraints.set_color({ 0.1f, 0.6f, 0.1f });
 	debug_edges_constraints.build(gc_mesh);
@@ -164,7 +165,7 @@ int main()
 	symedge_visualizer.set_color({ 0.f, 0.f, 0.8f });
 
 	DebugObject debug_points(DRAW_POINTS);
-	debug_points.set_point_thiccness(10.f);
+	debug_points.set_point_thiccness(4.f);
 	debug_points.set_color({ 1.f, 0.672443f, 0.201556f });
 	debug_points.build(gc_mesh);
 
