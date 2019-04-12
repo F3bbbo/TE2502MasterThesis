@@ -10,6 +10,8 @@
 
 bool line_seg_intersection_ccw(glm::vec2 p1, glm::vec2 q1, glm::vec2 p2, glm::vec2 q2);
 
+bool line_line_test(glm::vec2 p1, glm::vec2 q1, glm::vec2 p2, glm::vec2 q2, float epsi = EPSILON);
+
 enum Ori {
 	COLINEAR,
 	CLOCKWISE,
@@ -23,6 +25,8 @@ glm::vec2 tri_centroid(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3);
 bool point_equal(glm::vec2 p1, glm::vec2 p2, float epsi = EPSILON);
 
 bool point_line_test(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2, float epsi = EPSILON);
+
+bool point_ray_test(glm::vec2 p1, glm::vec2 r1, glm::vec2 r2, float epsi = EPSILON);
 
 bool point_triangle_test(glm::vec2 p1, glm::vec2 t1, glm::vec2 t2, glm::vec2 t3, float epsi = EPSILON);
 
