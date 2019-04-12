@@ -25,6 +25,36 @@ Ori orientation(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3)
 	return (val > 0.0f) ? CLOCKWISE : COUNTER_CLOCKWISE;
 }
 
+float vec2_cross(glm::vec2 &v, glm::vec2& w)
+{
+	return v.x*w.y - v.y*w.x;
+}
+
+bool line_line_test(glm::vec2 p1, glm::vec2 p2, glm::vec2 q1, glm::vec2 q2, float epsi)
+{
+	glm::vec2 s = p2 - p1;
+	glm::vec2 r = q2 - q1;
+	float rs = vec2_cross(s, r);
+	glm::vec2 qp = (q1 - p1);
+	float qpr = vec2_cross(qp, r);
+	if (abs(rs) < epsi && abs(qpr) < epsi) // case 1
+	{
+		return false;
+	}
+	else if (abs(rs) < epsi && !(abs(qpr) < epsi)) // case 2
+	{
+		return false;
+	}
+	else // case 3
+	{
+		float u = qpr / rs;
+		float t = vec2_cross(qp, s) / rs;
+		if (0.0f <= u && u <= 1.0f && 0.0f <= t && t <= 1.0f)
+			return true;
+	}
+	return false;
+}
+
 glm::vec2 tri_centroid(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3)
 {
 	return (p1 + p2 + p3) / 3.0f;
@@ -40,8 +70,7 @@ bool point_equal(glm::vec2 p1, glm::vec2 p2, float epsi)
 
 bool point_line_test(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2, float epsi)
 {
-	//glm::vec2 dist_vec = project_point_on_line(p1, s1, s2);
-	//return abs(glm::distance(dist_vec, p1)) < epsi ? true : false;
+
 	glm::vec3 v1 = glm::vec3(s1 - p1, 0.0f);
 	glm::vec3 v2 = glm::vec3(s1 - s2, 0.0f);
 	if (fabs(glm::length(glm::cross(v1, v2))) > epsi)
@@ -53,6 +82,12 @@ bool point_line_test(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2, float epsi)
 		return false;
 
 	return true;
+}
+
+bool point_ray_test(glm::vec2 p1, glm::vec2 r1, glm::vec2 r2, float epsi)
+{
+	glm::vec2 dist_vec = project_point_on_line(p1, r1, r2);
+	return abs(glm::distance(dist_vec, p1)) < epsi ? true : false;
 }
 
 float sign(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3)
