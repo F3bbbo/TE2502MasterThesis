@@ -721,9 +721,11 @@ namespace GPU
 		{
 			// If triangle has a point assigned to it add the point to it
 			int point_index = tri_ins_point_index[index];
-			if (point_index > -1)
+			if (point_index > -1 /*&& is_valid_face(index)*/)
 			{
 				status = 1;
+				if (!is_valid_face(index))
+					break;
 
 				// Create array of the indices of the three new triangles
 				int tri_indices[3];
@@ -1082,6 +1084,22 @@ namespace GPU
 				return;
 			}
 		}
+	}
+	bool GCMesh::is_valid_face(int face_i)
+	{
+		ivec4 syms = tri_symedges[face_i];
+		//for (int i = 0; i < 3; i++)
+		//{
+		//	if (edge_label[sym_edges[syms[i]].edge] == 3)
+		//		return false;
+		//}
+		vec2 a = point_positions[sym_edges[syms.x].vertex];
+		vec2 b = point_positions[sym_edges[syms.y].vertex];
+		vec2 c = point_positions[sym_edges[syms.z].vertex];
+		vec2 ab = b - a;
+		vec2 ac = c - a;
+
+		return (abs(dot(normalize(ab), normalize(ac))) < (1.0f - EPSILON)) ? true : false;
 	}
 	int GCMesh::oriented_walk_point(int curr_e, int goal_point_i, int & magic)
 	{
