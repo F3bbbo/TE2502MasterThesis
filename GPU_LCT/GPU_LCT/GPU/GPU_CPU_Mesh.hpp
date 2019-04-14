@@ -104,6 +104,8 @@ namespace GPU
 
 		// shader functions 
 		void oriented_walk(int &curr_e, int point_i, bool &on_edge, vec2 &tri_cent);
+		// insertion step
+		bool is_valid_face(int face_i);
 		// Marking_step_part_one functions
 		int oriented_walk_point(int curr_e, int goal_point_i, int &magic);
 		int points_connected(int e1, int e2);
