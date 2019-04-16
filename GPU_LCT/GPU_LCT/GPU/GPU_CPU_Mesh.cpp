@@ -822,7 +822,7 @@ namespace GPU
 						vec2 s1 = point_positions[sym_edges[orig_face[i]].vertex];
 						vec2 s2 = point_positions[sym_edges[orig_face[(i + 1) % 3]].vertex];
 						vec2 p = point_positions[point_index];
-						if (point_line_test(p, s1, s2))
+						if (point_line_test(p, s1, s2, 0.001f))
 						{
 							edge_label[sym_edges[orig_face[i]].edge] = 3;
 						}
