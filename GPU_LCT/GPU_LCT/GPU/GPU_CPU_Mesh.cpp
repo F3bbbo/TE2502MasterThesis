@@ -1077,7 +1077,7 @@ namespace GPU
 
 			if (line_line_hit)
 			{
-				curr_e = sym_edges[sym_edges[curr_e].nxt].rot; // sym
+				curr_e = nxt(sym_edges[sym_edges[curr_e].nxt].rot); // sym
 			}
 			else
 			{
@@ -1197,7 +1197,7 @@ namespace GPU
 
 				if (line_line_hit)
 				{
-					curr_e = sym_edges[sym_edges[curr_e].nxt].rot;
+					curr_e = nxt(sym_edges[sym_edges[curr_e].nxt].rot);
 					break;
 				}
 				curr_e = sym_edges[curr_e].nxt;
