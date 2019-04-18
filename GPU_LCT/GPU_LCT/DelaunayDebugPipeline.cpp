@@ -32,12 +32,12 @@ void DelaunayDebugPipeline::draw(glm::mat4x4& camera_matrix)
 
 		if (circle.draw_left_side())
 		{
-			glViewport(0, 0, m_screen_res.x / 2, m_screen_res.y);
+			glViewport(0, 0, m_screen_res.x / 2 - 10, m_screen_res.y);
 			glUniform2f(viewport_offset, 0.f, 0.f);
 		}
 		else
 		{
-			glViewport(m_screen_res.x / 2, 0, m_screen_res.x / 2, m_screen_res.y);
+			glViewport(m_screen_res.x / 2 + 10, 0, m_screen_res.x / 2, m_screen_res.y);
 			glUniform2f(viewport_offset, 800.f, 0.f);
 		}
 		circle.bind_VAO();
