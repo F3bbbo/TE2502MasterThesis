@@ -125,7 +125,20 @@ namespace GPU
 		void set_quad_edges_label(int label, SymEdge edge);
 		// Flipping_part_three functions
 		void flip_edge(SymEdge edge);
-
+		// test functions
+		template<typename T>
+		std::vector<int> find_equal(std::vector<T> arr, T e)
+		{
+			std::vector<int> ret;
+			for (int i = 0; i < arr.size(); i++)
+			{
+				if (arr[i] == e)
+				{
+					ret.push_back(i);
+				}
+			}
+			return ret;
+		};
 	};
 }
 #endif
