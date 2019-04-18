@@ -16,7 +16,7 @@ public:
 	DebugPipeline(glm::ivec2 screen_res);
 	~DebugPipeline();
 
-	void draw();
+	void draw(glm::mat4x4& camera_matrix);
 	int add_drawable(DebugObject&& object);
 	bool is_compatible(int type);
 private:

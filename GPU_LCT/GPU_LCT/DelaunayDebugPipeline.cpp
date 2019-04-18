@@ -13,7 +13,7 @@ DelaunayDebugPipeline::~DelaunayDebugPipeline()
 {
 }
 
-void DelaunayDebugPipeline::draw()
+void DelaunayDebugPipeline::draw(glm::mat4x4& camera_matrix)
 {
 	glUseProgram(m_passes[DELAUNAY_DEBUG_PASS]);
 	GLuint color_location = glGetUniformLocation(m_passes[DELAUNAY_DEBUG_PASS], "input_data.color");
@@ -21,6 +21,9 @@ void DelaunayDebugPipeline::draw()
 	GLuint screen_resolution_location = glGetUniformLocation(m_passes[DELAUNAY_DEBUG_PASS], "input_data.screen_resolution");
 	GLuint viewport_offset = glGetUniformLocation(m_passes[DELAUNAY_DEBUG_PASS], "input_data.viewport_offset");
 	glUniform1f(screen_resolution_location, (GLfloat)m_screen_res.y);
+
+	int matrix_location = glGetUniformLocation(m_passes[DELAUNAY_DEBUG_PASS], "matrix");
+	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, glm::value_ptr(camera_matrix));
 
 	for (auto& circle : m_circles)
 	{

@@ -1,4 +1,5 @@
 #include "Renderer.hpp"
+
 void GLAPIENTRY
 MessageCallback(GLenum source,
 	GLenum type,
@@ -40,6 +41,15 @@ Renderer::Renderer(glm::ivec2 screen_res)
 	glEnable(GL_DEBUG_OUTPUT);
 	//Set up debug callback
 	glDebugMessageCallback(MessageCallback, NULL);
+	
+	auto glambda = [](GLFWwindow* window, double xoffset, double yoffset) {
+		Camera::m_dirty = true;
+		if (yoffset > 0)
+			Camera::m_zoom *= 0.9f;
+		else
+			Camera::m_zoom *= 1.1f; };
+	
+	glfwSetScrollCallback(m_window, glambda);
 }
 
 Renderer::~Renderer()
@@ -84,17 +94,50 @@ bool Renderer::mouse_clicked()
 glm::vec2 Renderer::get_mouse_pos()
 {
 	m_click_mouse = false;
-	return mouse_pos;
+	return m_mouse_pos;
 }
 
 void Renderer::draw_frame()
 {
+	glm::mat4x4 camera_matrix = m_camera.get_matrix();
 	for (auto& pipeline : m_pipelines)
-		pipeline->draw();
+		pipeline->draw(camera_matrix);
 }
 
 void Renderer::processInput()
 {
+	if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
+	{
+		double xpos, ypos;
+		glfwGetCursorPos(m_window, &xpos, &ypos);
+		ypos = -ypos;
+
+		if (m_middle_mouse_button_pressed == false)
+		{
+			m_scroll_mouse_pos = vec2(xpos, ypos);
+			m_middle_mouse_button_pressed = true;
+		}
+		else
+		{
+			glm::vec2 delta = (m_scroll_mouse_pos - vec2(xpos, ypos)) / (glm::vec2)m_screen_res;
+			m_scroll_mouse_pos = vec2(xpos, ypos);
+			m_camera.translate({ delta.x * Camera::m_zoom, delta.y * Camera::m_zoom, 0.f });
+		}
+	}
+	else
+		m_middle_mouse_button_pressed = false;
+
+
+	if (glfwGetKey(m_window, GLFW_KEY_KP_ADD) == GLFW_PRESS)
+		Camera::m_zoom_speed += 0.1f;
+
+	if (glfwGetKey(m_window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS)
+		Camera::m_zoom_speed -= 0.1f;
+
+	if (glfwGetKey(m_window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
+		m_update_both_symedges = m_update_both_symedges ? false : true;
+
+
 	if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(m_window, true);
 
@@ -205,7 +248,7 @@ void Renderer::processInput()
 		glfwGetCursorPos(m_window, &x, &y);
 		x = x / (m_screen_res.x / 2.0) * 2.0 - 1.0;
 		y = -(y / m_screen_res.y * 2.0 - 1.0);
-		mouse_pos = glm::vec2(x, y);
+		m_mouse_pos = glm::vec2(x, y);
 		m_click_mouse = true;
 	}
 }
