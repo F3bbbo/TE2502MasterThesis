@@ -150,12 +150,12 @@ int main()
 	debug_faces.build(gc_mesh);
 
 	DebugObject debug_edges(DRAW_EDGES);
-	debug_edges.set_edge_thiccness(1.f);
+	debug_edges.set_edge_thiccness(5.f);
 	debug_edges.set_color({ 1.f, 0.246201f, 0.201556f });
 	debug_edges.build(gc_mesh);
 
 	DebugObject debug_edges_constraints(DRAW_EDGES);
-	debug_edges_constraints.set_edge_thiccness(1.f);
+	debug_edges_constraints.set_edge_thiccness(5.f);
 	debug_edges_constraints.draw_constraints(true);
 	debug_edges_constraints.set_color({ 0.1f, 0.6f, 0.1f });
 	debug_edges_constraints.build(gc_mesh);
@@ -165,7 +165,7 @@ int main()
 	symedge_visualizer.set_color({ 0.f, 0.f, 0.8f });
 
 	DebugObject debug_points(DRAW_POINTS);
-	debug_points.set_point_thiccness(4.f);
+	debug_points.set_point_thiccness(10.f);
 	debug_points.set_color({ 1.f, 0.672443f, 0.201556f });
 	debug_points.build(gc_mesh);
 
