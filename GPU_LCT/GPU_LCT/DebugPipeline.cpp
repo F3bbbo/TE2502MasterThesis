@@ -15,9 +15,9 @@ void DebugPipeline::draw(glm::mat4x4& camera_matrix)
 	for (auto& model : m_debug_objects)
 	{
 		if (model.second.draw_left_side())
-			glViewport(0, 0, m_screen_res.x / 2, m_screen_res.y);
+			glViewport(0, 0, m_screen_res.x / 2 - 10, m_screen_res.y);
 		else
-			glViewport(m_screen_res.x / 2, 0, m_screen_res.x / 2, m_screen_res.y);
+			glViewport(m_screen_res.x / 2 + 10, 0, m_screen_res.x / 2, m_screen_res.y);
 		model.second.bind_VAO();
 		model.second.draw_object();
 	}
