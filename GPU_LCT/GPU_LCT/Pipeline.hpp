@@ -9,6 +9,8 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 enum Shader
 {
@@ -27,7 +29,7 @@ public:
 	void add_pass(int type, ShaderPath&& input);
 	
 	virtual bool is_compatible(int type) = 0;
-	virtual void draw() = 0;
+	virtual void draw(glm::mat4x4& camera_matrix) = 0;
 protected:
 	void compile_shaders(int type, ShaderPath&& input);
 

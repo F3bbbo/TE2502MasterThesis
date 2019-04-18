@@ -102,6 +102,9 @@
     <ClCompile Include="GPU\GPU_CPU_Mesh.cpp">
       <Filter>Source Files\GPU</Filter>
     </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="trig_functions.hpp">
@@ -157,6 +160,9 @@
     </ClInclude>
     <ClInclude Include="GPU\GPU_CPU_Mesh.hpp">
       <Filter>Header Files\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.hpp">
+      <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -18,7 +18,7 @@ public:
 	~DelaunayDebugPipeline();
 
 	std::vector<DelaunayDebugObject> m_circles;
-	void draw();
+	void draw(glm::mat4x4& camera_matrix);
 	bool is_compatible(int type);
 	glm::ivec2 m_screen_res;
 };

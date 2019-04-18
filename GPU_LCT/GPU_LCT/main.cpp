@@ -137,7 +137,7 @@ int main()
 
 	//lct_example(m, g_mesh);
 
-	test_test_map(gc_mesh, g_mesh, map_start);
+	//test_test_map(gc_mesh, g_mesh, map_start);
 
 	//m.transform_into_LCT();
 

@@ -13,6 +13,7 @@
 #include "GPU/GPU_Mesh.hpp"
 #include "GPU/GPU_CPU_Mesh.hpp"
 #include <array>
+#include "Camera.hpp"
 
 class Renderer
 {
@@ -55,15 +56,18 @@ private:
 	GPU::GCMesh* m_gc_mesh;
 	bool m_GPU_edge_dirty = true;
 	std::array<glm::vec2, 2> m_curr_gpu_edge;
+	
+	Camera m_camera;
+	glm::vec2 m_scroll_mouse_pos;
+	bool m_middle_mouse_button_pressed = false;
 	// Debug walking variables
-
 	bool m_update_both_symedges = false;
 	bool m_left_side = true;
 	bool m_pressed_r = false;
 	bool m_pressed_n = false;
 	bool m_pressed_mouse = false;
 	bool m_click_mouse = false;
-	glm::vec2 mouse_pos;
-};
+	glm::vec2 m_mouse_pos;
 
+};
 #endif
