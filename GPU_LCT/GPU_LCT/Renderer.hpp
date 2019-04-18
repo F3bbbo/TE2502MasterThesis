@@ -28,6 +28,8 @@ public:
 			m_pipelines.push_back(std::make_unique<T>(pipeline));
 	}
 
+	void set_camera_base_zoom(glm::vec2 dimensions, float padding);
+
 	void run();
 	void set_debug_edge(CPU::SymEdge* start_edge, GPU::SymEdge gc_start_edge);
 	glm::ivec2 get_screen_res();

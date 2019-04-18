@@ -123,13 +123,16 @@ int main()
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
 
+	glm::vec2 map_scaling = { 1.0f, 1.0f };
+
 	GPU::GPUMesh g_mesh({ 1600, 800 });
-	glm::vec2 map_start = { 1.0f, 1.0f };
-	g_mesh.initiate_buffers(map_start);
+	g_mesh.initiate_buffers(map_scaling);
 	//g_mesh.build_CDT({ { -0.25f, -0.25f }, { -0.25f, 0.25f }, { 0.25f, 0.25f }, { 0.25f, -0.25f } }, { {0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 2} });
 
+	renderer.set_camera_base_zoom(map_scaling, 2.3f);
+
 	GPU::GCMesh gc_mesh({ 1600, 800 });
-	gc_mesh.initiate_buffers(map_start);
+	gc_mesh.initiate_buffers(map_scaling);
 
 
 	/*CPU::Mesh m;
