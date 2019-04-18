@@ -121,7 +121,7 @@ void Renderer::processInput()
 		{
 			glm::vec2 delta = (m_scroll_mouse_pos - vec2(xpos, ypos)) / (glm::vec2)m_screen_res;
 			m_scroll_mouse_pos = vec2(xpos, ypos);
-			m_camera.translate({ delta.x * Camera::m_zoom, delta.y * Camera::m_zoom, 0.f });
+			m_camera.translate({ delta.x * Camera::m_zoom * m_camera.translate_speed_factor, delta.y * Camera::m_zoom * m_camera.translate_speed_factor, 0.f });
 		}
 	}
 	else
@@ -129,10 +129,10 @@ void Renderer::processInput()
 
 
 	if (glfwGetKey(m_window, GLFW_KEY_KP_ADD) == GLFW_PRESS)
-		Camera::m_zoom_speed += 0.1f;
+		m_camera.translate_speed_factor *= 1.1f;
 
 	if (glfwGetKey(m_window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS)
-		Camera::m_zoom_speed -= 0.1f;
+		m_camera.translate_speed_factor *= 0.9f;
 
 	if (glfwGetKey(m_window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
 		m_update_both_symedges = m_update_both_symedges ? false : true;

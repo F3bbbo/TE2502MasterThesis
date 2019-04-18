@@ -20,6 +20,7 @@ public:
 	static float m_zoom;
 	static float m_zoom_speed;
 	static bool m_dirty;
+	float translate_speed_factor = 1.f;
 private:
 
 	glm::vec3 m_position = glm::vec3(0.f, 0.f, 0.f);
