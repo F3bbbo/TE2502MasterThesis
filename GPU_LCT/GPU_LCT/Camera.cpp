@@ -39,7 +39,14 @@ void Camera::translate(glm::vec3 vec)
 
 void Camera::zoom(float factor)
 {
-	m_half_width = int(m_half_width * Camera::m_zoom_speed);
-	m_half_height = int(m_half_height * Camera::m_zoom_speed);
+	m_half_width = m_half_width * Camera::m_zoom_speed;
+	m_half_height = m_half_height * Camera::m_zoom_speed;
+	m_dirty = true;
+}
+
+void Camera::set_starting_dimensions(float width, float height)
+{
+	m_half_width = width / 2.f;
+	m_half_height = height / 2.f;
 	m_dirty = true;
 }

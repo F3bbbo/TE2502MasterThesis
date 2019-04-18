@@ -56,6 +56,12 @@ Renderer::~Renderer()
 {
 }
 
+void Renderer::set_camera_base_zoom(glm::vec2 dimensions, float padding)
+{
+	dimensions *= padding;
+	m_camera.set_starting_dimensions(dimensions.x, dimensions.y);
+}
+
 void Renderer::run()
 {
 	if (!glfwWindowShouldClose(m_window))
