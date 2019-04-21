@@ -724,8 +724,8 @@ namespace GPU
 			if (point_index > -1 /*&& is_valid_face(index)*/)
 			{
 				status = 1;
-				if (!is_valid_face(index))
-					break;
+				//if (!is_valid_face(index))
+				//	break;
 
 				// Create array of the indices of the three new triangles
 				int tri_indices[3];
@@ -822,7 +822,7 @@ namespace GPU
 						vec2 s1 = point_positions[sym_edges[orig_face[i]].vertex];
 						vec2 s2 = point_positions[sym_edges[orig_face[(i + 1) % 3]].vertex];
 						vec2 p = point_positions[point_index];
-						if (point_line_test(p, s1, s2, 0.001f))
+						if (point_line_test(p, s1, s2))
 						{
 							edge_label[sym_edges[orig_face[i]].edge] = 3;
 						}
@@ -850,6 +850,7 @@ namespace GPU
 					// TODO: starting at the first symedge might not always be preferred, find a better solution
 					int magic1 = 0;
 					int magic2 = 0;
+					int start_index = tri_symedges[point_tri_index[seg_endpoint_indices[index].x]].x;
 					int starting_symedge = oriented_walk_point(0, seg_endpoint_indices[index].x, magic1);
 					int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y, magic2);
 
@@ -893,8 +894,6 @@ namespace GPU
 						{
 							if (edge_label[get_symedge(tri_sym).edge] == 1 && ((!is_flippable(tri_sym) || is_delaunay(tri_sym)) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
 								edge_label[get_symedge(tri_sym).edge] = 0;
-							else if (edge_label[get_symedge(tri_sym).edge] == 2 && !is_flippable(tri_sym))
-								edge_label[get_symedge(tri_sym).edge] = 0;
 							else if (edge_label[get_symedge(tri_sym).edge] == 3 && !is_flippable(tri_sym))
 								edge_label[get_symedge(tri_sym).edge] = 0;
 							tri_sym = nxt(tri_sym);
@@ -914,7 +913,7 @@ namespace GPU
 								std::array<vec2, 3> face_vertices;
 								get_face(get_symedge(rot(nxt(tri_sym))).face, face_vertices);
 
-								if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]))
+								if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]) || !is_flippable(tri_sym))
 									edge_label[get_symedge(tri_sym).edge] = 0;
 							}
 							tri_sym = nxt(tri_sym);
@@ -1133,7 +1132,7 @@ namespace GPU
 
 				vec2 p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
 				vec2 p2 = point_positions[sym_edges[curr_e].vertex];
-				not_valid_edge = point_line_test(get_vertex(other_e.vertex), p1, p2);
+				not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
 				if (not_valid_edge == true)
 				{
 					magic = 1;
@@ -1193,7 +1192,7 @@ namespace GPU
 				}
 
 				// No degenerate triangles detected
-				line_line_hit = line_seg_intersection_ccw(
+				line_line_hit = line_line_test(
 					tri_cent,
 					goal_point,
 					point_positions[sym_edges[curr_e].vertex],

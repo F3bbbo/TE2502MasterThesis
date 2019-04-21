@@ -2,7 +2,7 @@
 #ifndef TRIG_FUNCTIONS_HPP
 #define TRIG_FUNCTIONS_HPP
 #include<glm/vec2.hpp>
-#define EPSILON 0.00005f
+#define EPSILON 0.0001f
 #include <array>
 #include <vector>
 
