@@ -121,6 +121,7 @@ namespace GPU
 		bool third_candidate_check(bool edges_connected, vec2 p1, vec2 p2, vec2 p3, vec2 p4, vec2 p5);
 		// Marking_step_part_two functions
 		bool is_delaunay(int sym);
+		bool is_flippable(int e);
 		// Flipping_part_two functions
 		void set_quad_edges_label(int label, SymEdge edge);
 		// Flipping_part_three functions

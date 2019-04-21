@@ -891,7 +891,11 @@ namespace GPU
 					{
 						for (int i = 0; i < 3; i++)
 						{
-							if (edge_label[get_symedge(tri_sym).edge] == 1 && (is_delaunay(tri_sym) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
+							if (edge_label[get_symedge(tri_sym).edge] == 1 && ((!is_flippable(tri_sym) || is_delaunay(tri_sym)) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
+								edge_label[get_symedge(tri_sym).edge] = 0;
+							else if (edge_label[get_symedge(tri_sym).edge] == 2 && !is_flippable(tri_sym))
+								edge_label[get_symedge(tri_sym).edge] = 0;
+							else if (edge_label[get_symedge(tri_sym).edge] == 3 && !is_flippable(tri_sym))
 								edge_label[get_symedge(tri_sym).edge] = 0;
 							tri_sym = nxt(tri_sym);
 						}
@@ -1485,6 +1489,21 @@ namespace GPU
 				return false;
 		}
 		return true;
+	}
+	bool GCMesh::is_flippable(int e)
+	{
+		int e_sym = sym(e);
+		if (e_sym > -1)
+		{
+			vec2 a = point_positions[sym_edges[e_sym].vertex];
+			vec2 d = point_positions[sym_edges[prev(e_sym)].vertex];
+
+			vec2 c = point_positions[sym_edges[e].vertex];
+			vec2 b = point_positions[sym_edges[prev(e)].vertex];
+
+			return line_line_test(a, c, b, d);
+		}
+		return false;
 	}
 	void GCMesh::set_quad_edges_label(int label, SymEdge edge)
 	{
