@@ -32,6 +32,8 @@ float vec2_cross(glm::vec2 &v, glm::vec2& w)
 
 bool line_line_test(glm::vec2 p1, glm::vec2 p2, glm::vec2 q1, glm::vec2 q2, float epsi)
 {
+	// solution found:
+	//https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
 	glm::vec2 s = p2 - p1;
 	glm::vec2 r = q2 - q1;
 	float rs = vec2_cross(s, r);
@@ -39,7 +41,20 @@ bool line_line_test(glm::vec2 p1, glm::vec2 p2, glm::vec2 q1, glm::vec2 q2, floa
 	float qpr = vec2_cross(qp, r);
 	if (abs(rs) < epsi && abs(qpr) < epsi) // case 1
 	{
-		return false;
+		float r2 = dot(r, r);
+		float t0 = dot((q1 - p1), r) / r2;
+		float sr = dot(s, r);
+		float t1 = t0 + (sr / r2);
+		if (sr < 0.0f)
+		{
+			float tmp = t0;
+			t0 = t1;
+			t1 = tmp;
+		}
+		if ((t0 < 0.0f && t1 < 0.0f) || t0 > 1.0f && t1 > 1.0f)
+			return false;
+		else
+			return true;
 	}
 	else if (abs(rs) < epsi && !(abs(qpr) < epsi)) // case 2
 	{
