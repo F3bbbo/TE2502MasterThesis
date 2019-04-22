@@ -44,7 +44,7 @@ void TestMap::generate_map()
 				}
 				else
 				{
-					tmp = new Square();
+					tmp = new Triangle();
 				}
 				shape_type = (shape_type + 1) % 2;
 				tmp->set_location(curr_pos);
