@@ -146,6 +146,8 @@ int main()
 
 	//m.Locate_point({ 0.5f, 0.5f });
 	//m.Locate_point({ 0.f, 0.f });
+	float edge_thiccness = 2.0f;
+	float point_thiccness = 4.0f;
 
 	// Left side objects
 	DebugObject debug_faces(DRAW_FACES);
@@ -153,22 +155,22 @@ int main()
 	debug_faces.build(gc_mesh);
 
 	DebugObject debug_edges(DRAW_EDGES);
-	debug_edges.set_edge_thiccness(5.f);
+	debug_edges.set_edge_thiccness(edge_thiccness);
 	debug_edges.set_color({ 1.f, 0.246201f, 0.201556f });
 	debug_edges.build(gc_mesh);
 
 	DebugObject debug_edges_constraints(DRAW_EDGES);
-	debug_edges_constraints.set_edge_thiccness(5.f);
+	debug_edges_constraints.set_edge_thiccness(edge_thiccness);
 	debug_edges_constraints.draw_constraints(true);
 	debug_edges_constraints.set_color({ 0.1f, 0.6f, 0.1f });
 	debug_edges_constraints.build(gc_mesh);
 
 	DebugObject symedge_visualizer({ glm::vec2(-0.25f, 0.25f), glm::vec2(0.25f, -0.25f) }, DRAW_EDGES);
-	symedge_visualizer.set_edge_thiccness(5.f);
+	symedge_visualizer.set_edge_thiccness(point_thiccness);
 	symedge_visualizer.set_color({ 0.f, 0.f, 0.8f });
 
 	DebugObject debug_points(DRAW_POINTS);
-	debug_points.set_point_thiccness(10.f);
+	debug_points.set_point_thiccness(point_thiccness);
 	debug_points.set_color({ 1.f, 0.672443f, 0.201556f });
 	debug_points.build(gc_mesh);
 
@@ -180,25 +182,25 @@ int main()
 	r_debug_faces.set_draw_left_side(false);
 
 	DebugObject r_debug_edges(DRAW_EDGES);
-	r_debug_edges.set_edge_thiccness(5.f);
+	r_debug_edges.set_edge_thiccness(edge_thiccness);
 	r_debug_edges.set_color({ 1.f, 0.246201f, 0.201556f });
 	r_debug_edges.build(g_mesh);
 	r_debug_edges.set_draw_left_side(false);
 
 	DebugObject r_debug_edges_constraints(DRAW_EDGES);
-	r_debug_edges_constraints.set_edge_thiccness(5.f);
+	r_debug_edges_constraints.set_edge_thiccness(edge_thiccness);
 	r_debug_edges_constraints.draw_constraints(true);
 	r_debug_edges_constraints.set_color({ 0.1f, 0.6f, 0.1f });
 	r_debug_edges_constraints.build(g_mesh);
 	r_debug_edges_constraints.set_draw_left_side(false);
 
 	DebugObject r_symedge_visualizer({ glm::vec2(-0.25f, 0.25f), glm::vec2(0.25f, -0.25f) }, DRAW_EDGES);
-	r_symedge_visualizer.set_edge_thiccness(5.f);
+	r_symedge_visualizer.set_edge_thiccness(edge_thiccness);
 	r_symedge_visualizer.set_color({ 0.f, 0.f, 0.8f });
 	r_symedge_visualizer.set_draw_left_side(false);
 
 	DebugObject r_debug_points(DRAW_POINTS);
-	r_debug_points.set_point_thiccness(10.f);
+	r_debug_points.set_point_thiccness(point_thiccness);
 	r_debug_points.set_color({ 1.f, 0.672443f, 0.201556f });
 	r_debug_points.build(g_mesh);
 	r_debug_points.set_draw_left_side(false);
