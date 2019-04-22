@@ -41,14 +41,14 @@ Renderer::Renderer(glm::ivec2 screen_res)
 	glEnable(GL_DEBUG_OUTPUT);
 	//Set up debug callback
 	glDebugMessageCallback(MessageCallback, NULL);
-	
+
 	auto glambda = [](GLFWwindow* window, double xoffset, double yoffset) {
 		Camera::m_dirty = true;
 		if (yoffset > 0)
 			Camera::m_zoom *= 0.9f;
 		else
 			Camera::m_zoom *= 1.1f; };
-	
+
 	glfwSetScrollCallback(m_window, glambda);
 }
 
@@ -159,7 +159,11 @@ void Renderer::processInput()
 
 	if (glfwGetKey(m_window, GLFW_KEY_E) == GLFW_PRESS)
 	{
-		LOG(std::to_string(m_current_GPU_edge.edge));
+		LOG(std::to_string(m_gc_current_edge.edge));
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		LOG(std::to_string(m_gc_mesh->get_symedge(m_gc_mesh->get_symedge(m_gc_current_edge.nxt).nxt).nxt));
 	}
 
 	if (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS)
