@@ -64,7 +64,7 @@ bool line_line_test(glm::vec2 p1, glm::vec2 p2, glm::vec2 q1, glm::vec2 q2, floa
 	{
 		float u = qpr / rs;
 		float t = vec2_cross(qp, s) / rs;
-		if (0.0f <= u && u <= 1.0f && 0.0f <= t && t <= 1.0f)
+		if ((0.0f - epsi) <= u && u <= (1.0f + epsi) && (0.0f - epsi) <= t && t <= (1.0f + epsi))
 			return true;
 	}
 	return false;
