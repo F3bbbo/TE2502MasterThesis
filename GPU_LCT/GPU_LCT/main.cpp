@@ -104,7 +104,7 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims)
 {
 	TestMap test_map;
 	test_map.set_map_size(dims, -dims);
-	test_map.set_num_obsticles({ 11, 11 });
+	test_map.set_num_obsticles({ 19, 19 });
 
 	//auto obsticles = test_map.get_CPU_obsticles();
 	//for (unsigned int i = 0; i < obsticles.size(); i++)
@@ -247,7 +247,7 @@ int main()
 	renderer.add_pipeline(std::move(ddp));
 	//set debug edge of renderer
 
-	renderer.set_debug_edge(nullptr, gc_mesh.get_symedge(0));
+	renderer.set_debug_edge(nullptr, gc_mesh.get_symedge(6378));
 	renderer.set_gc_mesh(&gc_mesh);
 	renderer.set_gpu_mesh(&g_mesh);
 
