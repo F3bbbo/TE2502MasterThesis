@@ -1208,7 +1208,8 @@ namespace GPU
 
 				if (line_line_hit)
 				{
-					curr_e = nxt(sym_edges[sym_edges[curr_e].nxt].rot);
+					curr_e = sym_edges[sym_edges[sym_edges[curr_e].nxt].rot].nxt;
+					//curr_e = nxt(sym_edges[sym_edges[curr_e].nxt].rot);
 					break;
 				}
 				curr_e = sym_edges[curr_e].nxt;
