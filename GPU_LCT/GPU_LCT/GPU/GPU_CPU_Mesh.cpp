@@ -886,6 +886,14 @@ namespace GPU
 				bool no_point_in_edges = edge_label[get_symedge(tri_sym).edge] != 3 &&
 					edge_label[get_symedge(nxt(tri_sym)).edge] != 3 &&
 					edge_label[get_symedge(prev(tri_sym)).edge] != 3;
+				// go through edges checking so edges can be flipped
+				for (int i = 0; i < 3; i++)
+				{
+					if (edge_label[get_symedge(tri_sym).edge] == 1 && !is_flippable(tri_sym))
+						edge_label[get_symedge(tri_sym).edge] = 0;
+
+					tri_sym = nxt(tri_sym);
+				}
 				if (no_point_in_edges)
 				{
 					if (tri_seg_inters_index[index] == -1)
@@ -894,8 +902,7 @@ namespace GPU
 						{
 							if (edge_label[get_symedge(tri_sym).edge] == 1 && ((!is_flippable(tri_sym) || is_delaunay(tri_sym)) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
 								edge_label[get_symedge(tri_sym).edge] = 0;
-							else if (edge_label[get_symedge(tri_sym).edge] == 3 && !is_flippable(tri_sym))
-								edge_label[get_symedge(tri_sym).edge] = 0;
+
 							tri_sym = nxt(tri_sym);
 						}
 					}
