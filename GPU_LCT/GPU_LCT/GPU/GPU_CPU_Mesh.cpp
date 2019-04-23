@@ -167,7 +167,8 @@ namespace GPU
 			//glUseProgram(m_insertion_program);
 			//glDispatchCompute((GLuint)256, 1, 1);
 			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
+			if (counter == 6)
+				break;
 			//// Marking Step
 			marking_part_one_program();
 			//glUseProgram(m_marking_part_one_program);
