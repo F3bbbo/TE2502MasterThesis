@@ -1140,7 +1140,8 @@ namespace GPU
 
 				vec2 p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
 				vec2 p2 = point_positions[sym_edges[curr_e].vertex];
-				not_valid_edge = point_line_test(get_vertex(other_e.vertex), p1, p2);
+				not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
+				//not_valid_edge = point_line_test(get_vertex(other_e.vertex), p1, p2);
 				if (not_valid_edge == true)
 				{
 					magic = 1;

@@ -91,9 +91,9 @@ bool point_line_test(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2, float epsi)
 	if (fabs(glm::length(glm::cross(v1, v2))) > epsi)
 		return false;
 	float dot_p = glm::dot(v1, v2);
-	if (dot_p < epsi)
+	if (dot_p < epsi * epsi)
 		return false;
-	if (dot_p > (glm::length2(v2) - epsi))
+	if (dot_p > (glm::length2(v2) - epsi * epsi))
 		return false;
 
 	return true;
