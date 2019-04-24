@@ -104,7 +104,7 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims)
 {
 	TestMap test_map;
 	test_map.set_map_size(dims, -dims);
-	test_map.set_num_obsticles({ 19, 19 });
+	test_map.set_num_obsticles(dims);
 
 	//auto obsticles = test_map.get_CPU_obsticles();
 	//for (unsigned int i = 0; i < obsticles.size(); i++)
@@ -122,8 +122,8 @@ int main()
 {
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
-
-	glm::vec2 map_scaling = { 1.0f, 1.0f };
+	float scale = 50.0f;
+	glm::vec2 map_scaling = { scale, scale };
 
 	GPU::GPUMesh g_mesh({ 1600, 800 });
 	g_mesh.initiate_buffers(map_scaling);
