@@ -852,7 +852,7 @@ namespace GPU
 					int magic1 = 0;
 					int magic2 = 0;
 					int start_index = tri_symedges[point_tri_index[seg_endpoint_indices[index].x]].x;
-					int starting_symedge = oriented_walk_point(0, seg_endpoint_indices[index].x, magic1);
+					int starting_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].x, magic1);
 					int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y, magic2);
 
 					if (magic1 == 1 || magic2 == 1)
@@ -1134,71 +1134,7 @@ namespace GPU
 					continue;
 				}
 
-				// handle degenerate triangles
-				bool not_valid_edge = false;
-				SymEdge other_e = prev_symedge(sym_symedge(sym_edges[curr_e]));
 
-				vec2 p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
-				vec2 p2 = point_positions[sym_edges[curr_e].vertex];
-				not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
-				//not_valid_edge = point_line_test(get_vertex(other_e.vertex), p1, p2);
-				if (not_valid_edge == true)
-				{
-					magic = 1;
-					return 0;
-					vec2 center_point = get_vertex(other_e.vertex);
-
-					while (not_valid_edge == true)
-					{
-						if (line_seg_intersection_ccw(tri_cent, goal_point, p1, center_point))
-						{
-							if (get_symedge(other_e.nxt).rot == -1)
-								break;
-							other_e = prev_symedge(sym_symedge(other_e));
-						}
-						else if (line_seg_intersection_ccw(tri_cent, goal_point, center_point, p2))
-						{
-							if (other_e.rot == -1)
-								break;
-							other_e = prev_symedge(get_symedge(other_e.rot));
-						}
-						else
-							break;
-
-						if (get_symedge(other_e.nxt).rot == -1)
-							break;
-
-						center_point = get_vertex(other_e.vertex);
-						not_valid_edge = point_line_test(center_point, p1, p2);
-					}
-
-					if (not_valid_edge == true)
-						continue;
-
-					// got out of the degenerate triangle mess here
-					center_point = get_face_center(sym_edges[curr_e].face);
-
-					for (int j = 0; j < 2; j++)
-					{
-						if (get_symedge(other_e.nxt).rot != -1)
-						{
-							line_line_hit = line_seg_intersection_ccw(
-								center_point,
-								goal_point,
-								point_positions[other_e.vertex],
-								point_positions[get_symedge(other_e.nxt).vertex]);
-
-							if (line_line_hit)
-							{
-								curr_e = sym_edges[sym_edges[other_e.nxt].rot].nxt;
-								break;
-							}
-						}
-
-						other_e = prev_symedge(other_e);
-					}
-					continue;
-				}
 
 				// No degenerate triangles detected
 				line_line_hit = line_line_test(
@@ -1209,9 +1145,52 @@ namespace GPU
 
 				if (line_line_hit)
 				{
-					curr_e = sym_edges[sym_edges[sym_edges[curr_e].nxt].rot].nxt;
-					//curr_e = nxt(sym_edges[sym_edges[curr_e].nxt].rot);
-					break;
+					// handle degenerate triangles
+					bool not_valid_edge = false;
+					SymEdge other_e = prev(sym(sym_edges[curr_e]));
+
+					vec2 p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
+					vec2 p2 = point_positions[sym_edges[curr_e].vertex];
+					not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
+					//not_valid_edge = point_line_test(get_vertex(other_e.vertex), p1, p2);
+					if (not_valid_edge == true)
+					{
+						//magic = 1;
+						//return 0;
+						curr_e = sym(curr_e);
+						while (not_valid_edge == true)
+						{
+							// check if face contains vertex
+							if (face_contains_vertice(get_symedge(curr_e).face, goal_point_i))
+								return get_face_vertex_symedge(get_symedge(curr_e).face, goal_point_i);
+							float dir;
+							int i = 0;
+							do {
+								// continue until the edge of triangle is found that is facing the other
+								// compared to the intial edge, so we are checking when the edges start going the other
+								// direction by doing the dot product between the last edge and next edge, when the dot is 
+								// negative it implies that the next edge is facing another direction than the previous ones.
+								curr_e = nxt(curr_e);
+								vec2 ab = point_positions[sym_edges[prev(curr_e)].vertex] - point_positions[sym_edges[curr_e].vertex];
+								vec2 bc = point_positions[sym_edges[curr_e].vertex] - point_positions[sym_edges[nxt(curr_e)].vertex];
+								dir = dot(ab, bc);
+							} while (dir > 0.0f);
+							// check if we are out of the degenerate triangulation
+							other_e = prev_symedge(sym(sym_edges[curr_e]));
+							p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
+							p2 = point_positions[sym_edges[curr_e].vertex];
+							not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
+							curr_e = sym(curr_e);
+						}
+						// move to other triangle
+						curr_e = nxt(curr_e);
+						break;
+					}
+					else {
+						curr_e = sym_edges[sym_edges[sym_edges[curr_e].nxt].rot].nxt;
+						//curr_e = nxt(sym_edges[sym_edges[curr_e].nxt].rot);
+						break;
+					}
 				}
 				curr_e = sym_edges[curr_e].nxt;
 			}
@@ -1318,7 +1297,7 @@ namespace GPU
 				vec2 v0 = get_vertex(cur_edge.vertex);
 				vec2 v1 = get_vertex(get_symedge(cur_edge.nxt).vertex);
 
-				if (line_seg_intersection_ccw(constraint_edge[0], constraint_edge[1], v0, v1))
+				if (line_line_test(constraint_edge[0], constraint_edge[1], v0, v1))
 				{
 					process_triangle(segment_index, cur_edge);
 					if (Qi_check(segment_index, prev_intersecting_edge, cur_edge) && will_be_flipped(segment_index, cur_edge))
