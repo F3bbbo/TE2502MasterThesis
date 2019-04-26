@@ -1327,7 +1327,7 @@ namespace GPU
 
 	bool GCMesh::will_be_flipped(int segment_index, SymEdge triangle)
 	{
-		if (tri_seg_inters_index[triangle.face] == segment_index && tri_seg_inters_index[sym_symedge(triangle).face] == segment_index)
+		if (tri_seg_inters_index[triangle.face] == segment_index && tri_seg_inters_index[sym_symedge(triangle).face] == segment_index && edge_label[triangle.edge] < 3)
 		{
 			edge_label[triangle.edge] = 2;
 			return true;
