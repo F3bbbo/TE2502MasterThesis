@@ -690,29 +690,37 @@ namespace GPU
 			{
 				std::array<vec2, 3> tri_points;
 				get_face(index, tri_points);
-				// calculate the centroid of the triangle
-				vec2 tri_cent = (tri_points[0] + tri_points[1] + tri_points[2]) / 3.0f;
-				int point_index = -1;
-				float best_dist = FLT_MAX;
-				// Figure out which point should be the new point of this triangle
-				for (int i = 0; i < point_positions.size(); i++)
+				// check so the triangle is not a degenerate triangle
+				if (!point_ray_test(tri_points[0], tri_points[1], tri_points[2]))
 				{
-					if (point_tri_index[i] == index)
+					// calculate the centroid of the triangle
+					vec2 tri_cent = (tri_points[0] + tri_points[1] + tri_points[2]) / 3.0f;
+					int point_index = -1;
+					float best_dist = FLT_MAX;
+					// Figure out which point should be the new point of this triangle
+					for (int i = 0; i < point_positions.size(); i++)
 					{
-						// Check so it is an uninserted point.
-						if (point_inserted[i] == 0)
+						if (point_tri_index[i] == index)
 						{
-							vec2 pos = point_positions[i];
-							float dist = distance(pos, tri_cent);
-							if (dist < best_dist)
+							// Check so it is an uninserted point.
+							if (point_inserted[i] == 0)
 							{
-								best_dist = dist;
-								point_index = i;
+								vec2 pos = point_positions[i];
+								float dist = distance(pos, tri_cent);
+								if (dist < best_dist)
+								{
+									// Check so point is not on an edge with label 3
+									if (valid_point_into_face(index, pos))
+									{
+										best_dist = dist;
+										point_index = i;
+									}
+								}
 							}
 						}
 					}
+					tri_ins_point_index[index] = point_index;
 				}
-				tri_ins_point_index[index] = point_index;
 			}
 		}
 	}
@@ -1111,6 +1119,30 @@ namespace GPU
 		vec2 ac = c - a;
 
 		return (abs(dot(normalize(ab), normalize(ac))) < (1.0f - EPSILON)) ? true : false;
+	}
+	bool GCMesh::valid_point_into_face(int face, vec2 p)
+	{
+		int curr_e = tri_symedges[face].x;
+		for (int i = 0; i < 3; i++)
+		{
+			SymEdge curr_sym = sym_edges[curr_e];
+			vec2 s1 = point_positions[curr_sym.vertex];
+			vec2 s2 = point_positions[sym_edges[nxt(curr_e)].vertex];
+			if (point_line_test(p, s1, s2) && edge_label[curr_sym.edge] == 3)
+			{
+				int e_sym = sym(curr_e);
+				if (e_sym > -1)
+				{
+					std::array<vec2, 3> tri_points;
+					get_face(sym_edges[e_sym].face, tri_points);
+					if (point_ray_test(tri_points[0], tri_points[1], tri_points[2]))
+					{
+						return false;
+					}
+				}
+			}
+		}
+		return true;
 	}
 	int GCMesh::oriented_walk_point(int curr_e, int goal_point_i, int & magic)
 	{
