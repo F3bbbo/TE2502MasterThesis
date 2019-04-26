@@ -1148,6 +1148,7 @@ namespace GPU
 	{
 		vec2 tri_cent;
 		vec2 goal_point = get_vertex(goal_point_i);
+		float epsi = EPSILON;
 		while (true)
 		{
 			if (face_contains_vertice(get_symedge(curr_e).face, goal_point_i))
@@ -1173,10 +1174,12 @@ namespace GPU
 					tri_cent,
 					goal_point,
 					point_positions[sym_edges[curr_e].vertex],
-					point_positions[sym_edges[sym_edges[curr_e].nxt].vertex]);
+					point_positions[sym_edges[sym_edges[curr_e].nxt].vertex],
+					epsi);
 
 				if (line_line_hit)
 				{
+					epsi = EPSILON;
 					// handle degenerate triangles
 					bool not_valid_edge = false;
 					SymEdge other_e = prev(sym(sym_edges[curr_e]));
@@ -1226,6 +1229,8 @@ namespace GPU
 				}
 				curr_e = sym_edges[curr_e].nxt;
 			}
+			epsi *= 2.0f;
+
 		}
 		return -1;
 	}
