@@ -165,6 +165,10 @@ void Renderer::processInput()
 	{
 		LOG(std::to_string(m_gc_mesh->get_symedge(m_gc_mesh->get_symedge(m_gc_current_edge.nxt).nxt).nxt));
 	}
+	if (glfwGetKey(m_window, GLFW_KEY_L) == GLFW_PRESS)
+	{
+		LOG(std::to_string(m_gc_mesh->get_label(m_gc_current_edge.edge)));
+	}
 
 	if (glfwGetKey(m_window, GLFW_KEY_R) == GLFW_PRESS)
 	{

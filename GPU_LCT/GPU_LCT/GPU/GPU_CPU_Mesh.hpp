@@ -21,6 +21,7 @@ namespace GPU
 		std::vector<glm::vec2> get_vertices();
 		glm::vec2 get_vertex(int index);
 		SymEdge get_symedge(int index);
+		int get_label(int index);
 		std::vector<std::pair<glm::ivec2, bool>> get_edges();
 		std::vector<glm::ivec3> get_faces();
 		int locate_face(glm::vec2 p);
@@ -65,7 +66,7 @@ namespace GPU
 		SymEdge sym_symedge(SymEdge s);
 		int crot_symedge_i(SymEdge s);
 		//vec2 get_vertex(int index);
-		int get_label(int index);
+		//int get_label(int index);
 		vec2 get_face_center(int face_i);
 		int get_index(SymEdge s);
 		int get_face_vertex_symedge(int face, int vertex);
