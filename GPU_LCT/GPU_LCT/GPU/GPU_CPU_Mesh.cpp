@@ -896,9 +896,13 @@ namespace GPU
 					edge_label[get_symedge(nxt(tri_sym)).edge] != 3 &&
 					edge_label[get_symedge(prev(tri_sym)).edge] != 3;
 				// go through edges checking so edges can be flipped
+				// TODO: move this to be done only if there is no edge with label 2 in the triangle
+				// Problem: A problem would occur with the flipping when a triangle with a label 2 
+				// would discard that label and then would not process the label 1 appropriately, 
+				// so now label ones are processed all the time.
 				for (int i = 0; i < 3; i++)
 				{
-					if (edge_label[get_symedge(tri_sym).edge] == 1 && !is_flippable(tri_sym))
+					if (edge_label[get_symedge(tri_sym).edge] == 1 && ((!is_flippable(tri_sym) || is_delaunay(tri_sym)) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
 						edge_label[get_symedge(tri_sym).edge] = 0;
 
 					tri_sym = nxt(tri_sym);
