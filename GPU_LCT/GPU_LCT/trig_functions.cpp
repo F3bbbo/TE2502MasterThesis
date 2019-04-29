@@ -86,10 +86,15 @@ bool point_equal(glm::vec2 p1, glm::vec2 p2, float epsi)
 bool point_line_test(glm::vec2 p1, glm::vec2 s1, glm::vec2 s2, float epsi)
 {
 
-	glm::vec3 v1 = glm::vec3(s1 - p1, 0.0f);
-	glm::vec3 v2 = glm::vec3(s1 - s2, 0.0f);
-	if (fabs(glm::length(glm::cross(v1, v2))) > epsi)
+	//glm::vec3 v1 = glm::vec3(s1 - p1, 0.0f);
+	//glm::vec3 v2 = glm::vec3(s1 - s2, 0.0f);
+	//if (fabs(glm::length(glm::cross(v1, v2))) > epsi)
+	//	return false;
+	glm::vec2 dist_vec = project_point_on_line(p1, s1, s2);
+	if (!point_ray_test(p1, s1, s2, epsi))
 		return false;
+	glm::vec2 v1 = s1 - p1;
+	glm::vec2 v2 = s1 - s2;
 	float dot_p = glm::dot(v1, v2);
 	if (dot_p < epsi * epsi)
 		return false;
