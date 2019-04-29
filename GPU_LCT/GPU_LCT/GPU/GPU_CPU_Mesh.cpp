@@ -1209,8 +1209,8 @@ namespace GPU
 
 					vec2 p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
 					vec2 p2 = point_positions[sym_edges[curr_e].vertex];
-					not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
-					//not_valid_edge = point_line_test(get_vertex(other_e.vertex), p1, p2);
+					//not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
+					not_valid_edge = check_for_sliver_tri(other_e.nxt);
 					if (not_valid_edge == true)
 					{
 						//magic = 1;
@@ -1235,9 +1235,10 @@ namespace GPU
 							} while (dir > 0.0f);
 							// check if we are out of the degenerate triangulation
 							other_e = prev_symedge(sym(sym_edges[curr_e]));
-							p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
-							p2 = point_positions[sym_edges[curr_e].vertex];
-							not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
+							//p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
+							//p2 = point_positions[sym_edges[curr_e].vertex];
+							//not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
+							not_valid_edge = check_for_sliver_tri(other_e.nxt);
 							curr_e = sym(curr_e);
 						}
 						// move to other triangle
@@ -1294,6 +1295,29 @@ namespace GPU
 				}
 			}
 		}
+	}
+
+	bool GCMesh::check_for_sliver_tri(int sym_edge)
+	{
+		// first find the longest edge
+		float best_dist = 0.0f;
+		int best_i = -1;
+		std::array<vec2, 3> tri;
+		get_face(sym_edges[sym_edge].face, tri);
+		for (int i = 0; i < 3; i++)
+		{
+			float dist = distance(tri[i], tri[(i + 1) % 3]);
+			if (dist > best_dist)
+			{
+				best_i = i;
+				best_dist = dist;
+			}
+		}
+		// then check if the third point is on the ray of that line.
+		vec2 p1 = tri[(best_i + 2) % 3];
+		vec2 s1 = tri[best_i];
+		vec2 s2 = tri[(best_i + 1) % 3];
+		return point_ray_test(p1, s1, s2);
 	}
 
 	void GCMesh::straight_walk(int segment_index, SymEdge s_starting_point, int ending_point_i)
