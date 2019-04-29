@@ -1432,7 +1432,7 @@ namespace GPU
 			}
 
 			for (int j = 0; j < num - 2; j++)
-				return_value = !return_value || check_side(line, point_array[(i + 2 + j) % num] - point_array[(i + 1) % 5]);
+				return_value = !return_value || check_side(line, point_array[(i + 2 + j) % num] - point_array[(i + 1) % num]);
 		}
 		return return_value;
 	}
@@ -1549,7 +1549,7 @@ namespace GPU
 			vec2 c = point_positions[sym_edges[e].vertex];
 			vec2 b = point_positions[sym_edges[prev(e)].vertex];
 			// first check so the new triangles will not be degenerate
-			if (point_ray_test(a, d, b) || point_ray_test(d, b, c))
+			if (point_ray_test(a, d, b) || point_ray_test(c, d, b))
 				return false;
 			// then check so they will not overlap other triangles
 			return line_line_test(a, c, b, d);
