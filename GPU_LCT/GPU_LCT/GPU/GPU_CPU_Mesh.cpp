@@ -862,7 +862,9 @@ namespace GPU
 					int start_index = tri_symedges[point_tri_index[seg_endpoint_indices[index].x]].x;
 					int starting_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].x, magic1);
 					int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y, magic2);
-
+					// update the points triangle indexes
+					point_tri_index[sym_edges[starting_symedge].vertex] = sym_edges[starting_symedge].face;
+					point_tri_index[sym_edges[ending_symedge].vertex] = sym_edges[ending_symedge].face;
 					if (magic1 == 1 || magic2 == 1)
 					{
 						seg_inserted[index] = 0;
