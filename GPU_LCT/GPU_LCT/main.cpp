@@ -247,7 +247,7 @@ int main()
 	renderer.add_pipeline(std::move(ddp));
 	//set debug edge of renderer
 
-	renderer.set_debug_edge(nullptr, gc_mesh.get_symedge(6378));
+	renderer.set_debug_edge(nullptr, gc_mesh.get_symedge(0));
 	renderer.set_gc_mesh(&gc_mesh);
 	renderer.set_gpu_mesh(&g_mesh);
 

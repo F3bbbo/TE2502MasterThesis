@@ -1529,7 +1529,10 @@ namespace GPU
 
 			vec2 c = point_positions[sym_edges[e].vertex];
 			vec2 b = point_positions[sym_edges[prev(e)].vertex];
-
+			// first check so the new triangles will not be degenerate
+			if (point_line_test(a, d, b) || point_line_test(d, b, c))
+				return false;
+			// then check so they will not overlap other triangles
 			return line_line_test(a, c, b, d);
 		}
 		return false;
