@@ -933,7 +933,7 @@ namespace GPU
 								std::array<vec2, 3> face_vertices;
 								get_face(get_symedge(rot(nxt(tri_sym))).face, face_vertices);
 
-								if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]) || !is_flippable(tri_sym))
+								if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]))
 									edge_label[get_symedge(tri_sym).edge] = 0;
 							}
 							tri_sym = nxt(tri_sym);
@@ -1368,7 +1368,7 @@ namespace GPU
 
 	bool GCMesh::will_be_flipped(int segment_index, SymEdge triangle)
 	{
-		if (tri_seg_inters_index[triangle.face] == segment_index && tri_seg_inters_index[sym_symedge(triangle).face] == segment_index && edge_label[triangle.edge] < 3)
+		if (tri_seg_inters_index[triangle.face] == segment_index && tri_seg_inters_index[sym_symedge(triangle).face] == segment_index && edge_label[triangle.edge] < 3 && is_flippable(get_index(triangle)))
 		{
 			edge_label[triangle.edge] = 2;
 			return true;
