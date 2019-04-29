@@ -122,7 +122,7 @@ int main()
 {
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
-	float scale = 50.0f;
+	float scale = 40.0f;
 	glm::vec2 map_scaling = { scale, scale };
 
 	GPU::GPUMesh g_mesh({ 1600, 800 });
