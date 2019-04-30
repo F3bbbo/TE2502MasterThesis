@@ -110,7 +110,7 @@ namespace GPU
 		// insertion_tri step
 		bool valid_point_into_face(int face, vec2 p);
 		// Marking_step_part_one functions
-		int oriented_walk_point(int curr_e, int goal_point_i, int &magic);
+		int oriented_walk_point(int curr_e, int goal_point_i);
 		int points_connected(int e1, int e2);
 		bool check_for_sliver_tri(int sym_edge);
 		void straight_walk(int segment_index, SymEdge s_starting_point, int ending_point_i);

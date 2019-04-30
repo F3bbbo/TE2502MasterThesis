@@ -861,20 +861,12 @@ namespace GPU
 				int endpoints_inserted = point_inserted[seg_endpoint_indices[index].x] * point_inserted[seg_endpoint_indices[index].y];
 				if (endpoints_inserted == 1)
 				{
-					// TODO: starting at the first symedge might not always be preferred, find a better solution
-					int magic1 = 0;
-					int magic2 = 0;
 					int start_index = tri_symedges[point_tri_index[seg_endpoint_indices[index].x]].x;
-					int starting_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].x, magic1);
-					int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y, magic2);
+					int starting_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].x);
+					int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y);
 					// update the points triangle indexes
 					point_tri_index[sym_edges[starting_symedge].vertex] = sym_edges[starting_symedge].face;
 					point_tri_index[sym_edges[ending_symedge].vertex] = sym_edges[ending_symedge].face;
-					if (magic1 == 1 || magic2 == 1)
-					{
-						seg_inserted[index] = 0;
-						return;
-					}
 					int connecting_edge = points_connected(starting_symedge, ending_symedge);
 					if (connecting_edge != -1)
 					{
@@ -1172,7 +1164,7 @@ namespace GPU
 		}
 		return true;
 	}
-	int GCMesh::oriented_walk_point(int curr_e, int goal_point_i, int & magic)
+	int GCMesh::oriented_walk_point(int curr_e, int goal_point_i)
 	{
 		vec2 tri_cent;
 		vec2 goal_point = get_vertex(goal_point_i);
