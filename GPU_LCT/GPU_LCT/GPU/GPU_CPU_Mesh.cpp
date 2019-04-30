@@ -206,7 +206,12 @@ namespace GPU
 
 		LOG(std::string("Number of iterations: ") + std::to_string(counter));
 		LOG(std::string("Elapsed time in ms: ") + std::to_string(timer.elapsed_time()));
-
+		auto labels_3 = find_equal(edge_label, 3);
+		LOG("Label_3: " + std::to_string(labels_3.size()));
+		auto labels_2 = find_equal(edge_label, 2);
+		LOG("Label_2: " + std::to_string(labels_2.size()));
+		auto labels_1 = find_equal(edge_label, 1);
+		LOG("Label_1: " + std::to_string(labels_1.size()));
 		/*glUseProgram(m_insert_in_edge_program);
 		glDispatchCompute((GLuint)256, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);*/
