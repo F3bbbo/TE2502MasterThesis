@@ -1302,6 +1302,54 @@ namespace GPU
 	}
 	void GCMesh::validate_edges_program()
 	{
+		for (int index = 0; index < tri_symedges.size(); index++)
+		{
+			if (tri_ins_point_index[index] != -1)
+			{
+				// find the symedge which the point should be inserted into
+
+				vec2 p = get_vertex(tri_ins_point_index[index]);
+				SymEdge curr_insertion_symedge = get_symedge(tri_symedges[index].x);
+
+				for (int i = 0; i < 3; i++)
+				{
+					if (point_line_test(p,
+						get_vertex(curr_insertion_symedge.vertex),
+						get_vertex(nxt(curr_insertion_symedge).vertex)))
+						break;
+					curr_insertion_symedge = nxt(curr_insertion_symedge);
+				}
+
+				// Check adjacent triangles for if they want to insert their point into one of their edges
+				int adjacent_face_index = -1;
+
+				for (int adjacent_triangle = 0; adjacent_triangle < 3; adjacent_triangle++)
+				{
+					if (adjacent_tri_point_intersects_edge(curr_insertion_symedge, adjacent_face_index) && index > adjacent_face_index)
+					{
+						tri_ins_point_index[index] = -1;
+						return;
+					}
+					curr_insertion_symedge = nxt(curr_insertion_symedge);
+				}
+
+				// check other side
+				if (nxt(curr_insertion_symedge).rot != -1)
+				{
+					curr_insertion_symedge = nxt(sym(curr_insertion_symedge));
+
+					for (int adjacent_triangle = 0; adjacent_triangle < 2; adjacent_triangle++)
+					{
+						if (adjacent_tri_point_intersects_edge(curr_insertion_symedge, adjacent_face_index) && index > adjacent_face_index)
+						{
+							tri_ins_point_index[index] = -1;
+							return;
+						}
+						curr_insertion_symedge = nxt(curr_insertion_symedge);
+					}
+				}
+			}
+		}
 	}
 
 
@@ -1890,5 +1938,36 @@ namespace GPU
 		// reset
 		tri_seg_inters_index[t_prim] = -1;
 		tri_seg_inters_index[t] = -1;
+	}
+	bool GCMesh::adjacent_tri_point_intersects_edge(SymEdge curr_edge, int & face_index)
+	{
+		// checks if the adjacent triangle wants to insert its point in the provided edge
+
+		// if there exists an adjacent triangle that wants to insert a point
+		if (nxt(curr_edge).rot != -1 && tri_ins_point_index[sym(curr_edge).face] != -1)
+		{
+			SymEdge other_insertion_symedge = sym(curr_edge);
+
+			vec2 other_point = get_vertex(tri_ins_point_index[other_insertion_symedge.face]);
+
+			// Check if the adjacent triangle wants to insert into same edge, if true: let the triangle with the lowest index do its insertion
+			if (point_line_test(other_point,
+				get_vertex(other_insertion_symedge.vertex),
+				get_vertex(nxt(other_insertion_symedge).vertex)))
+			{
+				face_index = other_insertion_symedge.face;
+				return true;
+			}
+			else
+			{
+				face_index = -1;
+				return false;
+			}
+		}
+		else
+		{
+			face_index = -1;
+			return false;
+		}
 	}
 }
