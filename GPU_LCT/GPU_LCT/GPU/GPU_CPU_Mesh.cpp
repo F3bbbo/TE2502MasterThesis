@@ -1119,6 +1119,13 @@ namespace GPU
 	}
 	void GCMesh::locate_point_triangle_program()
 	{
+		for (int index = 0; index < point_positions.size(); index++)
+		{
+			if (point_inserted[index] == 0)
+			{
+				point_tri_index[index] = oriented_walk_point(point_tri_index[index], index);
+			}
+		}
 	}
 	void GCMesh::validate_edges_program()
 	{
