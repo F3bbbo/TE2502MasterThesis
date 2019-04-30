@@ -77,6 +77,7 @@ namespace GPU
 		int get_face_vertex_symedge(int face, int vertex);
 		bool face_contains_vertice(int face, int vertex);
 		bool face_contains_vertex(int vert, SymEdge s_triangle);
+		std::array<vec2, 2> get_segment(int index);
 
 		// CDT shaders
 		//GLuint m_location_program;
@@ -139,7 +140,8 @@ namespace GPU
 		// Locate refinements functions
 		int find_closest_constraint(vec2 a, vec2 b, vec2 c);
 		bool possible_disturbance(vec2 a, vec2 b, vec2 c, vec2 s[2]);
-
+		int find_segment_symedge(int start, int segment);
+		void oriented_walk_edge(int &curr_e, vec2 point, bool &on_edge);
 		// Validate_edges functions
 		bool adjacent_tri_point_intersects_edge(SymEdge curr_edge, int &face_index);
 

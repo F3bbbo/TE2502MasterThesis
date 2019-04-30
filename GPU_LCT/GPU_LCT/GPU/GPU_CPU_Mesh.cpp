@@ -704,6 +704,15 @@ namespace GPU
 		return vert == tri.x || vert == tri.y || vert == tri.z;
 	}
 
+	std::array<vec2, 2> GCMesh::get_segment(int index)
+	{
+		ivec2 seg_edge_i = seg_endpoint_indices[index];
+		std::array<vec2, 2> s;
+		s[0] = point_positions[seg_edge_i[0]];
+		s[1] = point_positions[seg_edge_i[1]];
+		return s;
+	}
+
 
 
 	//-----------------------------------------------------------
@@ -1136,7 +1145,8 @@ namespace GPU
 				// Loop through edges of the triangles finding the closest constraints
 				// to each traversal.
 				ivec4 tri_symedge_i = tri_symedges[index];
-				vec2 tri[3] = get_triangle(sym_edges[tri_symedge_i.x].face);
+				std::array<vec2, 3> tri;
+				get_face(sym_edges[tri_symedge_i.x].face, tri);
 				//			tri_insert_points[index].pos = tri[0];
 				for (int i = 0; i < 3; i++)
 				{
@@ -2060,6 +2070,75 @@ namespace GPU
 			return true;
 
 		return false;
+	}
+
+	int GCMesh::find_segment_symedge(int start, int segment)
+	{
+		std::array<vec2, 2> seg_p = get_segment(segment);
+		vec2 goal = (seg_p[0] + seg_p[1]) / 2.0f;
+		bool on_edge;
+		oriented_walk_edge(start, goal, on_edge);
+		if (on_edge)
+			return start;
+		else
+			return -1;
+	}
+
+	void GCMesh::oriented_walk_edge(int & curr_e, vec2 point, bool & on_edge)
+	{
+		bool done = false;
+		vec2 goal = point;
+		int iter = 0;
+		on_edge = false;
+		while (!done) {
+			on_edge = false;
+			// Loop through triangles edges to check if point is on the edge 
+			for (int i = 0; i < 3; i++)
+			{
+				bool hit;
+				hit = point_line_test(goal,
+					point_positions[sym_edges[curr_e].vertex],
+					point_positions[sym_edges[sym_edges[curr_e].nxt].vertex]);
+				if (hit)
+				{
+					on_edge = true;
+					return;
+				}
+				curr_e = sym_edges[curr_e].nxt;
+			}
+			// calculate triangle centroid
+			std::array<vec2, 3> tri_points;
+			get_face(sym_edges[curr_e].face, tri_points);
+			vec2 tri_cent;
+			tri_cent = (tri_points[0] + tri_points[1] + tri_points[2]) / 3.0f;
+			// Loop through edges to see if we should continue through the edge
+			// to the neighbouring triangle 
+			bool line_line_hit = false;
+			for (int i = 0; i < 3; i++)
+			{
+				line_line_hit = line_line_test(
+					tri_cent,
+					goal,
+					point_positions[sym_edges[curr_e].vertex],
+					point_positions[sym_edges[sym_edges[curr_e].nxt].vertex]
+				);
+
+				if (line_line_hit)
+				{
+					break;
+				}
+				curr_e = sym_edges[curr_e].nxt;
+			}
+
+			if (line_line_hit)
+			{
+				curr_e = sym_edges[sym_edges[curr_e].nxt].rot; // sym
+			}
+			else
+			{
+				return;
+			}
+		}
 	}
 
 
