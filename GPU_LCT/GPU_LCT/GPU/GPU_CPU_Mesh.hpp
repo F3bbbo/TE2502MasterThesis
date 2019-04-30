@@ -136,6 +136,10 @@ namespace GPU
 		// Flipping_part_three functions
 		void flip_edge(SymEdge edge);
 		// LCT functions
+		// Locate refinements functions
+		int find_closest_constraint(vec2 a, vec2 b, vec2 c);
+		bool possible_disturbance(vec2 a, vec2 b, vec2 c, vec2 s[2]);
+
 		// Validate_edges functions
 		bool adjacent_tri_point_intersects_edge(SymEdge curr_edge, int &face_index);
 

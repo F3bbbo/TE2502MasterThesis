@@ -1108,10 +1108,86 @@ namespace GPU
 			}
 		}
 	}
+
 	void GCMesh::locate_disturbances_program()
 	{
+		for (int index = 0; index < tri_seg_inters_index.size(); index++)
+		{
+			int num_constraints = 0;
+			int c_edge_i[3];
+			int tri_edge_i[3];
+			// loop checking for constraints in triangle
+			for (int i = 0; i < 3; i++)
+			{
+				// Checking if edge of triangle is constrained.
+				if (edge_is_constrained[sym_edges[tri_symedges[index][i]].edge] > -1)
+				{
+					c_edge_i[num_constraints] = tri_symedges[index][i];
+					tri_edge_i[num_constraints] = tri_symedges[index][i];
+					num_constraints++;
+				}
+				else {
+					c_edge_i[num_constraints] = -1;
+				}
+			}
+			// if no constraints where found in triangle look for nearby constraints
+			if (num_constraints == 0)
+			{
+				// Loop through edges of the triangles finding the closest constraints
+				// to each traversal.
+				ivec4 tri_symedge_i = tri_symedges[index];
+				vec2 tri[3] = get_triangle(sym_edges[tri_symedge_i.x].face);
+				//			tri_insert_points[index].pos = tri[0];
+				for (int i = 0; i < 3; i++)
+				{
+					int cc = find_closest_constraint(tri[(i + 1) % 3], tri[(i + 2) % 3], tri[i]);
+					// Check if a segment was found
+					if (cc > -1)
+					{
+						cc = find_segment_symedge(tri_symedge_i[i], cc);
+						// Check if corresponding constraint to segment was found
+						if (cc > -1)
+						{
+							c_edge_i[num_constraints] = cc;
+							tri_edge_i[num_constraints] = tri_symedge_i[i];
+							num_constraints++;
+						}
+					}
 
+				}
+			}
+
+			// find disturbances
+			for (int i = 0; i < 3; i++)
+			{
+				if (c_edge_i[i] > -1)
+				{
+					int disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], true);
+					if (disturb <= -1)
+					{
+						disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], false);
+					}
+					// TODO: add closest constraints to a buffer.
+					NewPoint tmp;
+					if (disturb >= 0)
+					{
+						bool success;
+						vec2 calc_pos = calculate_refinement(c_edge_i[i], disturb, success);
+						if (success)
+						{
+							tmp.pos = calc_pos;
+							tmp.index = atomicAdd(status, 1);
+							tmp.face_i = sym_edges[c_edge_i[i]].face;
+							tri_insert_points[index] = tmp;
+						}
+					}
+				}
+
+			}
+
+		}
 	}
+
 	void GCMesh::add_new_points_program()
 	{
 		for (int index = 0; index < tri_seg_inters_index.size(); index++)
@@ -1131,6 +1207,7 @@ namespace GPU
 			}
 		}
 	}
+
 	void GCMesh::insert_in_edge_program()
 	{
 		for (int index = 0; index < tri_seg_inters_index.size(); index++)
@@ -1300,6 +1377,7 @@ namespace GPU
 			}
 		}
 	}
+
 	void GCMesh::validate_edges_program()
 	{
 		for (int index = 0; index < tri_symedges.size(); index++)
@@ -1939,6 +2017,52 @@ namespace GPU
 		tri_seg_inters_index[t_prim] = -1;
 		tri_seg_inters_index[t] = -1;
 	}
+
+	int GCMesh::find_closest_constraint(vec2 a, vec2 b, vec2 c)
+	{
+		float dist = FLT_MAX;
+		int ret = -2;
+		for (int i = 0; i < seg_endpoint_indices.size(); i++)
+		{
+			ivec2 seg_i = seg_endpoint_indices[i];
+			vec2 s[2];
+			s[0] = point_positions[seg_i[0]];
+			s[1] = point_positions[seg_i[1]];
+			if (possible_disturbance(a, b, c, s))
+			{
+				bool projectable;
+				vec2 b_prim = project_point_on_segment(b, s[0], s[1], projectable);
+				if (projectable)
+				{
+					float b_dist = length(b_prim - b);
+					if (b_dist < dist && !(point_equal(b_prim, a) || point_equal(b_prim, c)))
+					{
+						dist = b_dist;
+						ret = i;
+					}
+				}
+			}
+		}
+		return ret;
+	}
+
+	bool GCMesh::possible_disturbance(vec2 a, vec2 b, vec2 c, vec2 s[2])
+	{
+		vec2 sector_c = project_point_on_line(b, a, c);
+		float dist = 2.f * length(sector_c - a);
+		sector_c = a + normalize(c - a) * dist;
+		if (edge_intersects_sector(a, b, sector_c, s))
+			return true;
+		vec2 p = get_symmetrical_corner(a, b, c);
+		sector_c = c + normalize(a - c) * dist;
+
+		if (edge_intersects_sector(a, b, sector_c, s))
+			return true;
+
+		return false;
+	}
+
+
 	bool GCMesh::adjacent_tri_point_intersects_edge(SymEdge curr_edge, int & face_index)
 	{
 		// checks if the adjacent triangle wants to insert its point in the provided edge

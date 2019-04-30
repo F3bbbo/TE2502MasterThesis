@@ -115,6 +115,11 @@ float sign(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3)
 	return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
 }
 
+bool point_triangle_test(glm::vec2 p1, vec2 tri[3], float epsi)
+{
+	return point_triangle_test(p1, tri[0], tri[1], tri[2], epsi);
+}
+
 bool point_triangle_test(glm::vec2 p1, glm::vec2 t1, glm::vec2 t2, glm::vec2 t3, float epsi)
 {
 
@@ -231,6 +236,25 @@ glm::vec2 project_point_on_line(glm::vec2 point, glm::vec2 a, glm::vec2 b)
 	return a + glm::dot(ap, ab) * ab;
 }
 
+vec2 project_point_on_segment(vec2 point, vec2 a, vec2 b, bool & projectable)
+{
+	vec2 point_proj = project_point_on_line(point, a, b);
+	vec2 line = b - a;
+	float proj_len = dot(normalize(line), point_proj - a);
+	projectable = true;
+	if (proj_len < 0.0f)
+	{
+		projectable = false;
+		point_proj = a;
+	}
+	else if (proj_len * proj_len > dot(line, line))
+	{
+		projectable = false;
+		point_proj = b;
+	}
+	return point_proj;
+}
+
 glm::vec2 get_symmetrical_corner(glm::vec2 a, glm::vec2 b, glm::vec2 c)
 {
 	glm::vec2 ac = c - a;
@@ -254,6 +278,32 @@ bool point_inside_triangle(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 p)
 	float combined_area = area_of_triangle(p, a, b) + area_of_triangle(p, b, c) + area_of_triangle(p, a, c);
 	float abc_area = area_of_triangle(a, b, c);
 	return (combined_area > abc_area - EPSILON) && (combined_area < abc_area + EPSILON);
+}
+
+bool edge_intersects_sector(vec2 a, vec2 b, vec2 c, vec2 segment[2])
+{
+	// Assumes that b is the origin of the sector
+	vec2 center_prim = project_point_on_line(b, segment[0], segment[1]);
+	float center_prim_length = length(center_prim - b);
+	float sector_radius = min(length(a - b), length(c - b));
+
+	if (length(a - b) < length(c - b))
+		c = b + normalize(c - b) * sector_radius;
+	else
+		a = b + normalize(a - b) * sector_radius;
+
+	vec2 tri[3] = { a, b, c };
+	bool inside_triangle = point_triangle_test(center_prim, tri);
+	bool inside_circle = center_prim_length <= sector_radius;
+	vec2 point;
+	point = line_line_intersection_point(b, center_prim, a, c, EPSILON);
+	if (point_equal(point, vec2(FLT_MAX)))
+		return false;
+
+	bool other_side_of_ac = dot(point - b, center_prim - b) > 0 && center_prim_length > length(point - b);
+	if (inside_triangle || (inside_circle && other_side_of_ac))
+		return true;
+	return false;
 }
 
 glm::vec2 circle_center_from_points(glm::vec2 a, glm::vec2 b, glm::vec2 c)

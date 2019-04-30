@@ -954,7 +954,7 @@ void main(void)
 						tmp.pos = calc_pos;
 						tmp.index = atomicAdd(status, 1);
 						tmp.face_i = sym_edges[c_edge_i[i]].face;
-						tri_insert_points[gid] = tmp;
+						tri_insert_points[index] = tmp;
 					}	
 				}
 			}
