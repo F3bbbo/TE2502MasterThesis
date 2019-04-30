@@ -1133,7 +1133,7 @@ namespace GPU
 	}
 	void GCMesh::insert_in_edge_program()
 	{
-		for (int index = 0; index < point_positions.size(); index++)
+		for (int index = 0; index < tri_seg_inters_index.size(); index++)
 		{
 			if (tri_ins_point_index[index] >= 0)
 			{
@@ -1289,6 +1289,7 @@ namespace GPU
 			}
 		}
 	}
+
 	void GCMesh::locate_point_triangle_program()
 	{
 		for (int index = 0; index < point_positions.size(); index++)
