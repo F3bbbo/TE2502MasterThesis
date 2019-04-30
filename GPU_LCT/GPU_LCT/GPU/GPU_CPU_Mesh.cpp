@@ -1110,9 +1110,26 @@ namespace GPU
 	}
 	void GCMesh::locate_disturbances_program()
 	{
+
 	}
 	void GCMesh::add_new_points_program()
 	{
+		for (int index = 0; index < tri_seg_inters_index.size(); index++)
+		{
+			NewPoint new_point = tri_insert_points[index];
+			if (new_point.index >= 0)
+			{
+				int point_index = point_positions.size() - new_point.index - 1;
+				point_positions[point_index] = new_point.pos;
+				point_inserted[point_index] = 0;
+				point_tri_index[point_index] = new_point.face_i;
+				// reset the insert point data structure
+				new_point.pos = vec2(0.0f);
+				new_point.index = -1;
+				new_point.face_i = -1;
+				tri_insert_points[index] = new_point;
+			}
+		}
 	}
 	void GCMesh::insert_in_edge_program()
 	{
