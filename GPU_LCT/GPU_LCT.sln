@@ -30,7 +30,6 @@ Global
 		{C29547CD-9C57-4181-99B6-5A7553EC6E55}.Release|x64.ActiveCfg = Release|x64
 		{C29547CD-9C57-4181-99B6-5A7553EC6E55}.Release|x64.Build.0 = Release|x64
 		{C29547CD-9C57-4181-99B6-5A7553EC6E55}.Release|x86.ActiveCfg = Release|Win32
-		{C29547CD-9C57-4181-99B6-5A7553EC6E55}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
