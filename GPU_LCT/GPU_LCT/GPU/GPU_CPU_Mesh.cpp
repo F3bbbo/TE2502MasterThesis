@@ -2397,6 +2397,24 @@ namespace GPU
 		return e;
 	}
 
+	vec2 GCMesh::calculate_refinement(int c, int v_sym, bool & success)
+	{
+		std::array<vec2, 3> tri;
+		get_face(sym_edges[v_sym].face, tri);
+		vec2 circle_center = circle_center_from_points(tri[0], tri[1], tri[2]);
+		float radius = distance(circle_center, tri[0]);
+		std::array<vec2, 2> constraint_edge = get_edge(c);
+		std::array<vec2, 2> inter_points = ray_circle_intersection(constraint_edge[1], constraint_edge[0], circle_center, radius, success);
+		if (success)
+		{
+			return (inter_points[0] + inter_points[1]) / 2.0f;
+		}
+		else
+		{
+			return vec2(0.0f);
+		}
+	}
+
 
 	bool GCMesh::adjacent_tri_point_intersects_edge(SymEdge curr_edge, int & face_index)
 	{

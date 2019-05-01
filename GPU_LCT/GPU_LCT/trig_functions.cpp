@@ -317,6 +317,34 @@ int point_equal_tri_vert(vec2 p, std::array<vec2, 3> & tri)
 	return -1;
 }
 
+std::array<vec2, 2> ray_circle_intersection(vec2 ray0, vec2 ray1, vec2 center, float r, bool & hit)
+{
+	std::array<vec2, 2> result;
+	vec2 dir = normalize(ray1 - ray0);
+	vec2 l = center - ray0;
+	float s = dot(l, dir);
+	float l_2 = dot(l, l);
+	float m_2 = l_2 - (s * s);
+	float r_2 = (r*r);
+	if (m_2 > r_2)
+	{
+		hit = false;
+		return result;
+	}
+	float q = sqrt(r_2 - m_2);
+
+	float t[2];
+	t[0] = s - q;
+	t[1] = s + q;
+
+	for (int i = 0; i < 2; i++)
+	{
+		result[i] = ray0 + dir * t[i];
+	}
+	hit = true;
+	return result;
+}
+
 glm::vec2 circle_center_from_points(glm::vec2 a, glm::vec2 b, glm::vec2 c)
 {
 	glm::vec2 ab = b - a;

@@ -64,4 +64,6 @@ bool edge_intersects_sector(vec2 a, vec2 b, vec2 c, vec2 segment[2]);
 
 int point_equal_tri_vert(vec2 p, std::array<vec2, 3> & tri);
 
+std::array<vec2, 2> ray_circle_intersection(vec2 ray0, vec2 ray1, vec2 center, float r, bool &hit);
+
 #endif

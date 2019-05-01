@@ -152,6 +152,7 @@ namespace GPU
 		bool is_orthogonally_projectable(vec2 v, vec2 a, vec2 b);
 		float local_clearance(vec2 b, std::array<vec2, 2> &segment);
 		vec2 find_e_point(int &v_sym, vec2 v, vec2 v_prim);
+		vec2 calculate_refinement(int c, int v_sym, bool &success);
 		// Validate_edges functions
 		bool adjacent_tri_point_intersects_edge(SymEdge curr_edge, int &face_index);
 
