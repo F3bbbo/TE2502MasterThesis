@@ -16,9 +16,10 @@ namespace GPU
 		GCMesh(glm::ivec2 screen_res);
 		~GCMesh();
 		void initiate_buffers(glm::vec2 scale = { 1.f, 1.f });
-		void build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
-		void refine_LCT();
+		long long build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
+		long long refine_LCT();
 		std::vector<glm::vec2> get_vertices();
+		size_t get_num_vertices();
 		glm::vec2 get_vertex(int index);
 		SymEdge get_symedge(int index);
 		int get_label(int index);

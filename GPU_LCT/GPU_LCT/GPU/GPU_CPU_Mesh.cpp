@@ -82,7 +82,7 @@ namespace GPU
 		//m_status.create_buffer(type, std::vector<int>(1, 1), GL_DYNAMIC_DRAW, 12, 1);
 	}
 
-	void GCMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
+	long long GCMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
 	{
 		append_vec(point_positions, points);
 		append_vec(point_inserted, std::vector<int>(points.size(), 0));
@@ -239,10 +239,14 @@ namespace GPU
 		//auto triangle_data_new_points = tri_insert_points.get_buffer_data<NewPoint>();
 
 		auto status_data = status;
+		return timer.elapsed_time();
 	}
 
-	void GCMesh::refine_LCT()
+	long long GCMesh::refine_LCT()
 	{
+		Timer timer;
+		timer.start();
+
 		int i = 0;
 		int num_new_points;
 		do
@@ -369,11 +373,18 @@ namespace GPU
 				break;
 			}
 		} while (false);
+		timer.stop();
+		return timer.elapsed_time();
 	}
 
 	std::vector<glm::vec2> GCMesh::get_vertices()
 	{
 		return point_positions;
+	}
+
+	size_t GCMesh::get_num_vertices()
+	{
+		return point_positions.size();
 	}
 
 
