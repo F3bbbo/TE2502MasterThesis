@@ -13,12 +13,20 @@ class Log
 {
 public:
 	template <typename T>
-	static void log(int type, const char* file, long line , T message)
+	static void log(int type, const char* file, long line, T message, bool data = true)
 	{
-		std::string str = std::string(file);
-		str = str.substr(str.rfind('\\') + 1);
-		str += ": (" + to_string(type) + ") on line " + std::to_string(line) + ": " + message + "\n \n";
+		std::string str;
+		if (data)
+		{
+			str = std::string(file);
+			str = str.substr(str.rfind('\\') + 1);
+			str += ": (" + to_string(type) + ") on line " + std::to_string(line) + ": " + message + "\n \n";
+		}
+		else
+			str = message;
+
 		std::cout << str;
+
 		switch (type)
 		{
 			case NOTICE :
@@ -43,6 +51,7 @@ private:
 };
 
 #define LOG_T(TYPE, STRING) ( (TYPE >= NOTICE && TYPE <= CRITICAL) ? Log::log(TYPE, __FILE__, __LINE__, STRING) : void(0))
+#define LOG_ND(STRING) (Log::log(NOTICE, __FILE__, __LINE__, STRING, false))
 #define LOG(STRING) (Log::log(NOTICE, __FILE__, __LINE__, STRING))
 
 #endif
