@@ -461,6 +461,53 @@ namespace GPU
 		return ret_val;
 	}
 
+	void GCMesh::save_to_file(std::string filename)
+	{
+		filename = "Output files/" + filename;
+		std::string str = "";
+		std::ofstream output (filename.c_str(), std::ofstream::out | std::ofstream::binary);
+		int size;
+		if (output.is_open())
+		{
+			size = (int)point_positions.size() * (int)sizeof(glm::vec2);
+			output.write((char*)&size,sizeof(int));
+			output.write((char*)point_positions.data(), size);
+			
+			size = (int)point_inserted.size() * (int)sizeof(int);
+			output.write((char*)&size,sizeof(int));
+			output.write((char*)point_inserted.data(), size);
+
+			output.close();
+		}
+	}
+
+	void GCMesh::load_from_file(std::string filename)
+	{
+		filename = "Output files/" + filename;
+		std::ifstream input (filename.c_str(), std::ifstream::in | std::ifstream::binary);
+		int value;
+		if (input.is_open())
+		{
+			input.read((char*)&value, sizeof(int));
+			float* buff = new float[value];
+			input.read((char*)buff, value);
+			for (int i = 0; i < value / sizeof(float); i++)
+				std::cout << buff[i];
+			delete[] buff;
+
+			input.read((char*)&value, sizeof(int));
+			int* ibuff = new int[value];
+			input.read((char*)ibuff, value);
+			for (int i = 0; i < value / sizeof(int); i++)
+				std::cout << ibuff[i];
+			delete[] ibuff;
+
+			input.close();
+		}
+		else
+			LOG_T(WARNING, "can not open file:" + filename);
+	}
+
 	void GCMesh::setup_compute_shaders()
 	{
 		// CDT

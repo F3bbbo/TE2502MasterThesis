@@ -7,6 +7,8 @@
 #include "..//Timer.hpp"
 #include <glm/glm.hpp>
 #include <utility>
+#include <fstream>
+
 using namespace glm;
 namespace GPU
 {
@@ -26,6 +28,8 @@ namespace GPU
 		std::vector<std::pair<glm::ivec2, bool>> get_edges();
 		std::vector<glm::ivec3> get_faces();
 		int locate_face(glm::vec2 p);
+		void save_to_file(std::string filename);
+		void load_from_file(std::string filename);
 	private:
 		void setup_compute_shaders();
 		void compile_cs(GLuint& program, const char* path, int work_group_size = 64);
