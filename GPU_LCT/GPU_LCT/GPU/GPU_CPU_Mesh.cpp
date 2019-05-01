@@ -713,6 +713,14 @@ namespace GPU
 		return s;
 	}
 
+	std::array<vec2, 2> GCMesh::get_edge(int s_edge)
+	{
+		std::array<vec2, 2> edge;
+		edge[0] = point_positions[sym_edges[s_edge].vertex];
+		edge[1] = point_positions[sym_edges[nxt(s_edge)].vertex];
+		return edge;
+	}
+
 
 
 	//-----------------------------------------------------------
@@ -2139,6 +2147,203 @@ namespace GPU
 				return;
 			}
 		}
+	}
+
+	int GCMesh::find_constraint_disturbance(int constraint, int edge_ac, bool right)
+	{
+		vec2 R[3];
+		vec2 a;
+		// Set variables needed to calculate R
+		if (right)
+		{
+			R[0] = point_positions[sym_edges[edge_ac].vertex];
+			R[1] = point_positions[sym_edges[prev(edge_ac)].vertex];
+			a = point_positions[sym_edges[nxt(edge_ac)].vertex];
+		}
+		else {
+			R[0] = point_positions[sym_edges[nxt(edge_ac)].vertex];
+			R[1] = point_positions[sym_edges[prev(edge_ac)].vertex];
+			a = point_positions[sym_edges[edge_ac].vertex];
+		}
+		// Calculate R
+		vec2 ac = R[0] - a;
+		vec2 dir = normalize(ac);
+		vec2 ab = R[1] - a;
+		float b_prim = dot(dir, ab);
+		R[2] = R[1] + (dir * (length(ac) - b_prim));
+		// Loop through points trying to find disturbance to current traversal
+		float best_dist = FLT_MAX;
+		int first_disturb = -1;
+		float best_dist_b = 0.0f;
+		std::array<vec2, 3> tri;
+		get_face(sym_edges[edge_ac].face, tri);
+		for (int i = 0; i < point_positions.size(); i++)
+		{
+			vec2 point = point_positions[i];
+
+			// check if point is inside of R
+			if (point_triangle_test(point, R))
+			{
+				// If point is one of the triangles point continue to next point
+				if (point_equal_tri_vert(point, tri) > -1)
+					continue;
+				// TODO: Change oriented walk to start from last point instead of the constraint
+				int v_edge = oriented_walk_point(constraint, i);
+				float dist = is_disturbed(constraint, prev(edge_ac), v_edge);
+				if (dist > 0.0f)
+				{
+					if (dist < best_dist)
+					{
+						first_disturb = v_edge;
+						best_dist = dist;
+						best_dist_b = distance(point_positions[sym_edges[v_edge].vertex],
+							point_positions[sym_edges[prev(edge_ac)].vertex]);
+					}
+					else if (dist < (best_dist + EPSILON))
+					{
+						// if new point has the same distance as the previous one
+						// check if it is closer to b
+						float dist_b = distance(point_positions[sym_edges[v_edge].vertex],
+							point_positions[sym_edges[prev(edge_ac)].vertex]);
+						if (dist_b < best_dist_b)
+						{
+							first_disturb = v_edge;
+							best_dist = dist;
+							best_dist_b = dist_b;
+						}
+					}
+				}
+
+			}
+		}
+
+		return first_disturb;
+	}
+
+	float GCMesh::is_disturbed(int constraint, int b_sym, int & v_sym)
+	{
+		// 1
+		if (!no_collinear_constraints(v_sym))
+			return -1.0f;
+
+		// 2
+		vec2 v = point_positions[sym_edges[v_sym].vertex];
+		vec2 a = point_positions[sym_edges[prev(b_sym)].vertex];
+		vec2 b = point_positions[sym_edges[b_sym].vertex];
+		vec2 c = point_positions[sym_edges[nxt(b_sym)].vertex];
+
+		if (!is_orthogonally_projectable(v, a, c))
+			return -1.0f;
+
+		// 3
+		std::array<vec2, 2> c_endpoints = get_edge(constraint);
+		vec2 v_prim = project_point_on_line(v, c_endpoints[0], c_endpoints[1]);
+		if (!(line_line_test(v, v_prim, a, c) && line_line_test(v, v_prim, b, c)))
+			return -1.0f;
+
+		// 4
+		float dist_v_segment = length(v_prim - v);
+		if (!(dist_v_segment < local_clearance(b, c_endpoints)))
+			return -1.0f;
+
+		// 5 
+		vec2 e = find_e_point(v_sym, v, v_prim);
+		if (!(dist_v_segment < length(v - e)))
+			return -1.0f;
+
+		return dist_v_segment;
+	}
+
+	bool GCMesh::no_collinear_constraints(int v)
+	{
+		int edge;
+		bool reverse = false;
+		int curr_constraint = v;
+		int last_constraint = -1;
+		vec2 point = point_positions[sym_edges[v].vertex];
+		// first check if initial value is an constraint
+		if (edge_is_constrained[sym_edges[v].edge] != -1)
+		{
+			curr_constraint = v;
+		}
+		else {
+			curr_constraint = find_next_rot_constraint(v, v, reverse);
+		}
+		while (curr_constraint != -1)
+		{
+			vec2 curr_vec = normalize(point_positions[sym_edges[nxt(curr_constraint)].vertex] - point);
+			// explore if current constraint is collinear with another constraint
+			bool explore_rd = reverse;
+			edge = find_next_rot_constraint(v, curr_constraint, explore_rd);
+			while (edge != -1)
+			{
+
+				//if it is a constraint check if it is collinear with curr_constraint
+				vec2 other_vec = normalize(point_positions[sym_edges[nxt(edge)].vertex] - point);
+				if (dot(curr_vec, other_vec) < -1 + EPSILON)
+				{
+					return false;
+				}
+				// find next constraint
+				edge = find_next_rot_constraint(v, edge, explore_rd);
+			}
+
+			// find next constraint to explore
+			curr_constraint = find_next_rot_constraint(v, curr_constraint, reverse);
+		}
+		return true;
+	}
+
+	int GCMesh::find_next_rot(int start, int curr, bool & reverse)
+	{
+		int edge = curr;
+		//Move to nxt edge to check if it is a constraint
+		if (reverse) // reverse
+		{
+			edge = crot(edge);
+		}
+		else // forward
+		{
+			edge = rot(edge);
+			if (edge == start)
+			{
+				return -1;
+			}
+			else if (edge == -1)
+			{
+				reverse = true;
+				edge = start;
+				edge = crot(edge);
+			}
+		}
+		return edge;
+	}
+
+	int GCMesh::find_next_rot_constraint(int start, int curr, bool & reverse)
+	{
+		curr = find_next_rot(start, curr, reverse);
+		while (curr != -1)
+		{
+			if (edge_is_constrained[sym_edges[curr].edge] != -1)
+			{
+				return curr;
+			}
+			curr = find_next_rot(start, curr, reverse);
+		}
+		return curr;
+	}
+
+	bool GCMesh::is_orthogonally_projectable(vec2 v, vec2 a, vec2 b)
+	{
+		vec2 line = b - a;
+		vec2 projected_point = project_point_on_line(v, a, b);
+
+		float projected_length = dot(normalize(line), projected_point - a);
+
+		if (projected_length < 0.f || projected_length * projected_length > dot(line, line))
+			return false;
+
+		return true;
 	}
 
 

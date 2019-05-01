@@ -62,4 +62,6 @@ bool point_inside_triangle(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 p);
 
 bool edge_intersects_sector(vec2 a, vec2 b, vec2 c, vec2 segment[2]);
 
+int point_equal_tri_vert(vec2 p, std::array<vec2, 3> & tri);
+
 #endif

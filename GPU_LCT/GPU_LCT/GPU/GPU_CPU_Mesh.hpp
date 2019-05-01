@@ -78,6 +78,7 @@ namespace GPU
 		bool face_contains_vertice(int face, int vertex);
 		bool face_contains_vertex(int vert, SymEdge s_triangle);
 		std::array<vec2, 2> get_segment(int index);
+		std::array<vec2, 2>  get_edge(int s_edge);
 
 		// CDT shaders
 		//GLuint m_location_program;
@@ -142,6 +143,12 @@ namespace GPU
 		bool possible_disturbance(vec2 a, vec2 b, vec2 c, vec2 s[2]);
 		int find_segment_symedge(int start, int segment);
 		void oriented_walk_edge(int &curr_e, vec2 point, bool &on_edge);
+		int find_constraint_disturbance(int constraint, int edge_ac, bool right);
+		float is_disturbed(int constraint, int b_sym, int& v_sym);
+		bool no_collinear_constraints(int v);
+		int find_next_rot(int start, int curr, bool &reverse);
+		int find_next_rot_constraint(int start, int curr, bool& reverse);
+		bool is_orthogonally_projectable(vec2 v, vec2 a, vec2 b);
 		// Validate_edges functions
 		bool adjacent_tri_point_intersects_edge(SymEdge curr_edge, int &face_index);
 

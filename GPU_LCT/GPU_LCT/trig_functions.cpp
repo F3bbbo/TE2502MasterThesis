@@ -306,6 +306,17 @@ bool edge_intersects_sector(vec2 a, vec2 b, vec2 c, vec2 segment[2])
 	return false;
 }
 
+
+int point_equal_tri_vert(vec2 p, std::array<vec2, 3> & tri)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		if (point_equal(p, tri[i]))
+			return i;
+	}
+	return -1;
+}
+
 glm::vec2 circle_center_from_points(glm::vec2 a, glm::vec2 b, glm::vec2 c)
 {
 	glm::vec2 ab = b - a;
