@@ -105,6 +105,9 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="TestFunctions.cpp">
+      <Filter>Source Files\Test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="trig_functions.hpp">
@@ -163,6 +166,9 @@
     </ClInclude>
     <ClInclude Include="Camera.hpp">
       <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="TestFunctions.hpp">
+      <Filter>Header Files\Test</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

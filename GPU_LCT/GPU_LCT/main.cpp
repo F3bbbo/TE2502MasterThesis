@@ -11,6 +11,8 @@
 #include "GPU/GPU_Mesh.hpp"
 #include "GPU/GPU_CPU_Mesh.hpp"
 
+#include "TestFunctions.hpp"
+
 void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 {
 	/*glm::vec2 point = { 0.4f, -0.4f };
@@ -134,6 +136,8 @@ int main()
 	GPU::GCMesh gc_mesh({ 1600, 800 });
 	gc_mesh.initiate_buffers(map_scaling);
 
+	// testing function
+	//test_range({ 1600, 800 }, 2, { 2, 2 }, { 1, 1 }, { 2, 2 }, { 1, 1 }, false);
 
 	/*CPU::Mesh m;
 	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });*/

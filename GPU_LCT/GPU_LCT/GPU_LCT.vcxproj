@@ -179,6 +179,7 @@
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Shapes.cpp" />
+    <ClCompile Include="TestFunctions.cpp" />
     <ClCompile Include="TestMap.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="trig_functions.cpp" />
@@ -200,6 +201,7 @@
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="Renderer.hpp" />
     <ClInclude Include="Shapes.hpp" />
+    <ClInclude Include="TestFunctions.hpp" />
     <ClInclude Include="TestMap.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="trig_functions.hpp" />
