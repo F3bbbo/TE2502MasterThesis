@@ -723,6 +723,7 @@ namespace GPU
 
 
 
+
 	//-----------------------------------------------------------
 	// Program functions
 	//-----------------------------------------------------------
@@ -2344,6 +2345,56 @@ namespace GPU
 			return false;
 
 		return true;
+	}
+
+	float GCMesh::local_clearance(vec2 b, std::array<vec2, 2>& segment)
+	{
+		vec2 b_prim = project_point_on_line(b, segment[0], segment[1]);
+		return length(b - b_prim);
+	}
+
+	vec2 GCMesh::find_e_point(int & v_sym, vec2 v, vec2 v_prim)
+	{
+		vec2 e;
+		int edge = v_sym;
+		bool reverse = false;
+		while (true)
+		{
+			// Check if edge leads to finding point e
+			e = point_positions[sym_edges[nxt(edge)].vertex];
+			vec2 d = point_positions[sym_edges[prev(edge)].vertex];
+			if (line_line_test(v, v_prim, e, d))
+			{
+				v_sym = edge;
+				return e;
+			}
+
+			// Move to next edge
+			if (reverse)
+			{
+				edge = crot(edge);
+				if (edge == -1)
+				{
+					break;
+				}
+			}
+			else
+			{
+				edge = rot(edge);
+				if (edge == v_sym)
+				{
+					break;
+				}
+				else if (edge == -1)
+				{
+					reverse = true;
+					edge = v_sym;
+				}
+			}
+		}
+		// should not happen, error
+		e = vec2(FLT_MAX);
+		return e;
 	}
 
 

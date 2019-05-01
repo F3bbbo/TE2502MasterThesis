@@ -80,6 +80,7 @@ namespace GPU
 		std::array<vec2, 2> get_segment(int index);
 		std::array<vec2, 2>  get_edge(int s_edge);
 
+
 		// CDT shaders
 		//GLuint m_location_program;
 		void location_program();
@@ -149,6 +150,8 @@ namespace GPU
 		int find_next_rot(int start, int curr, bool &reverse);
 		int find_next_rot_constraint(int start, int curr, bool& reverse);
 		bool is_orthogonally_projectable(vec2 v, vec2 a, vec2 b);
+		float local_clearance(vec2 b, std::array<vec2, 2> &segment);
+		vec2 find_e_point(int &v_sym, vec2 v, vec2 v_prim);
 		// Validate_edges functions
 		bool adjacent_tri_point_intersects_edge(SymEdge curr_edge, int &face_index);
 
