@@ -49,7 +49,7 @@ namespace GPU
 		std::vector<int> tri_ins_point_index;
 		std::vector<int> tri_seg_inters_index;
 		std::vector<int> tri_edge_flip_index;
-		std::vector<NewPoint> tri_insert_points;
+		std::vector<NewPoint> refine_points;
 		// symedges
 		std::vector<SymEdge> sym_edges;
 		int symedge_buffer_size;

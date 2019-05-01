@@ -61,7 +61,7 @@ namespace GPU
 		//tri_edge_flip_index.create_buffer(type, std::vector<int>(2, -1), usage, 10, n);
 		tri_edge_flip_index = std::vector<int>(2, -1);
 		//tri_insert_points.create_buffer(type, std::vector<NewPoint>(2), usage, 13, n);
-		tri_insert_points = std::vector<NewPoint>(2);
+
 
 		// Separate sym edge list
 
@@ -78,6 +78,7 @@ namespace GPU
 
 		//m_nr_of_symedges.create_uniform_buffer<int>({ m_sym_edges.element_count() }, usage);
 		symedge_buffer_size = sym_edges.size();
+		refine_points = std::vector<NewPoint>(sym_edges.size());
 		status = 1;
 		//m_status.create_buffer(type, std::vector<int>(1, 1), GL_DYNAMIC_DRAW, 12, 1);
 	}
@@ -102,7 +103,7 @@ namespace GPU
 		append_vec(tri_ins_point_index, std::vector<int>(num_new_tri, -1));
 		append_vec(tri_edge_flip_index, std::vector<int>(num_new_tri, -1));
 		append_vec(tri_seg_inters_index, std::vector<int>(num_new_tri, -1));
-		append_vec(tri_insert_points, std::vector<NewPoint>(num_new_tri));
+
 
 		// fix new sizes of edge buffers 
 		// TODO: fix so it can handle repeated insertions
@@ -113,6 +114,7 @@ namespace GPU
 		// TODO: fix so it can handle repeated insertions
 		int num_new_sym_edges = points.size() * 6;
 		append_vec(sym_edges, std::vector<SymEdge>(num_new_sym_edges));
+		append_vec(refine_points, std::vector<NewPoint>(num_new_sym_edges));
 		// TODO, maybe need to check if triangle buffers needs to grow
 
 		//m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
@@ -276,7 +278,7 @@ namespace GPU
 				append_vec(tri_ins_point_index, std::vector<int>(num_new_tri, -1));
 				append_vec(tri_edge_flip_index, std::vector<int>(num_new_tri, -1));
 				append_vec(tri_seg_inters_index, std::vector<int>(num_new_tri, -1));
-				append_vec(tri_insert_points, std::vector<NewPoint>(num_new_tri));
+
 
 				// fix new size of segment buffers
 				append_vec(seg_endpoint_indices, std::vector<glm::ivec2>(num_new_segs));
@@ -291,6 +293,7 @@ namespace GPU
 				int num_new_sym_edges = num_new_points * 6;
 				//m_sym_edges, );
 				append_vec(sym_edges, std::vector<SymEdge>(num_new_sym_edges));
+				append_vec(refine_points, std::vector<NewPoint>(num_new_sym_edges));
 				// TODO, maybe need to check if triangle buffers needs to grow
 				symedge_buffer_size = sym_edges.size();
 
@@ -1182,24 +1185,36 @@ namespace GPU
 				{
 					if (c_edge_i[i] > -1)
 					{
+						// test right side
 						int disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], true);
-						if (disturb <= -1)
-						{
-							disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], false);
-						}
-						// TODO: add closest constraints to a buffer.
-						NewPoint tmp;
 						if (disturb >= 0)
 						{
 							bool success;
 							vec2 calc_pos = calculate_refinement(c_edge_i[i], disturb, success);
 							if (success)
 							{
+								NewPoint tmp;
 								tmp.pos = calc_pos;
 								//tmp.index = atomicAdd(status, 1);
 								tmp.index = status++;
 								tmp.face_i = sym_edges[c_edge_i[i]].face;
-								tri_insert_points[index] = tmp;
+								refine_points[disturb] = tmp;
+							}
+						}
+						// test left side
+						disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], false);
+						if (disturb >= 0)
+						{
+							bool success;
+							vec2 calc_pos = calculate_refinement(c_edge_i[i], disturb, success);
+							if (success)
+							{
+								NewPoint tmp;
+								tmp.pos = calc_pos;
+								//tmp.index = atomicAdd(status, 1);
+								tmp.index = status++;
+								tmp.face_i = sym_edges[c_edge_i[i]].face;
+								refine_points[disturb] = tmp;
 							}
 						}
 					}
@@ -1212,9 +1227,9 @@ namespace GPU
 
 	void GCMesh::add_new_points_program()
 	{
-		for (int index = 0; index < tri_seg_inters_index.size(); index++)
+		for (int index = 0; index < symedge_buffer_size; index++)
 		{
-			NewPoint new_point = tri_insert_points[index];
+			NewPoint new_point = refine_points[index];
 			if (new_point.index >= 0)
 			{
 				int point_index = point_positions.size() - new_point.index - 1;
@@ -1225,7 +1240,7 @@ namespace GPU
 				new_point.pos = vec2(0.0f);
 				new_point.index = -1;
 				new_point.face_i = -1;
-				tri_insert_points[index] = new_point;
+				refine_points[index] = new_point;
 			}
 		}
 	}
@@ -1395,7 +1410,12 @@ namespace GPU
 		{
 			if (point_inserted[index] == 0)
 			{
-				point_tri_index[index] = oriented_walk_point(point_tri_index[index], index);
+				int curr_e = point_tri_index[index];
+				bool on_edge = false;
+				vec2 tri_center;
+				oriented_walk(curr_e, index, on_edge, tri_center);
+				point_tri_index[index] = curr_e;
+				tri_ins_point_index[sym_edges[curr_e].face] = index;
 			}
 		}
 	}
