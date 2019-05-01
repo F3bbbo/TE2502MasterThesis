@@ -1195,7 +1195,8 @@ namespace GPU
 						if (success)
 						{
 							tmp.pos = calc_pos;
-							tmp.index = atomicAdd(status, 1);
+							//tmp.index = atomicAdd(status, 1);
+							tmp.index = status++;
 							tmp.face_i = sym_edges[c_edge_i[i]].face;
 							tri_insert_points[index] = tmp;
 						}
