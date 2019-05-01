@@ -212,6 +212,7 @@ namespace GPU
 		LOG("Label_2: " + std::to_string(labels_2.size()));
 		auto labels_1 = find_equal(edge_label, 1);
 		LOG("Label_1: " + std::to_string(labels_1.size()));
+		LOG("Num points: " + std::to_string(point_inserted.size()));
 		/*glUseProgram(m_insert_in_edge_program);
 		glDispatchCompute((GLuint)256, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);*/
@@ -249,6 +250,7 @@ namespace GPU
 
 		int i = 0;
 		int num_new_points;
+
 		do
 		{
 			// Locate disturbances
@@ -1131,80 +1133,80 @@ namespace GPU
 	{
 		for (int index = 0; index < tri_seg_inters_index.size(); index++)
 		{
-			int num_constraints = 0;
-			int c_edge_i[3];
-			int tri_edge_i[3];
-			// loop checking for constraints in triangle
-			for (int i = 0; i < 3; i++)
+			if (tri_symedges[index].x > -1)
 			{
-				// Checking if edge of triangle is constrained.
-				if (edge_is_constrained[sym_edges[tri_symedges[index][i]].edge] > -1)
-				{
-					c_edge_i[num_constraints] = tri_symedges[index][i];
-					tri_edge_i[num_constraints] = tri_symedges[index][i];
-					num_constraints++;
-				}
-				else {
-					c_edge_i[num_constraints] = -1;
-				}
-			}
-			// if no constraints where found in triangle look for nearby constraints
-			if (num_constraints == 0)
-			{
-				// Loop through edges of the triangles finding the closest constraints
-				// to each traversal.
-				ivec4 tri_symedge_i = tri_symedges[index];
-				std::array<vec2, 3> tri;
-				get_face(sym_edges[tri_symedge_i.x].face, tri);
-				//			tri_insert_points[index].pos = tri[0];
+				int num_constraints = 0;
+				int c_edge_i[3] = { -1.0f,-1.0f,-1.0f };
+				int tri_edge_i[3];
+				// loop checking for constraints in triangle
 				for (int i = 0; i < 3; i++)
 				{
-					int cc = find_closest_constraint(tri[(i + 1) % 3], tri[(i + 2) % 3], tri[i]);
-					// Check if a segment was found
-					if (cc > -1)
+					// Checking if edge of triangle is constrained.
+					if (edge_is_constrained[sym_edges[tri_symedges[index][i]].edge] > -1)
 					{
-						cc = find_segment_symedge(tri_symedge_i[i], cc);
-						// Check if corresponding constraint to segment was found
+						c_edge_i[num_constraints] = tri_symedges[index][i];
+						tri_edge_i[num_constraints] = tri_symedges[index][i];
+						num_constraints++;
+					}
+				}
+				// if no constraints where found in triangle look for nearby constraints
+				if (num_constraints == 0)
+				{
+					// Loop through edges of the triangles finding the closest constraints
+					// to each traversal.
+					ivec4 tri_symedge_i = tri_symedges[index];
+					std::array<vec2, 3> tri;
+					get_face(sym_edges[tri_symedge_i.x].face, tri);
+					//			tri_insert_points[index].pos = tri[0];
+					for (int i = 0; i < 3; i++)
+					{
+						int cc = find_closest_constraint(tri[(i + 1) % 3], tri[(i + 2) % 3], tri[i]);
+						// Check if a segment was found
 						if (cc > -1)
 						{
-							c_edge_i[num_constraints] = cc;
-							tri_edge_i[num_constraints] = tri_symedge_i[i];
-							num_constraints++;
+							cc = find_segment_symedge(tri_symedge_i[i], cc);
+							// Check if corresponding constraint to segment was found
+							if (cc > -1)
+							{
+								c_edge_i[num_constraints] = cc;
+								tri_edge_i[num_constraints] = tri_symedge_i[i];
+								num_constraints++;
+							}
 						}
+
 					}
-
 				}
-			}
 
-			// find disturbances
-			for (int i = 0; i < 3; i++)
-			{
-				if (c_edge_i[i] > -1)
+				// find disturbances
+				for (int i = 0; i < num_constraints; i++)
 				{
-					int disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], true);
-					if (disturb <= -1)
+					if (c_edge_i[i] > -1)
 					{
-						disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], false);
-					}
-					// TODO: add closest constraints to a buffer.
-					NewPoint tmp;
-					if (disturb >= 0)
-					{
-						bool success;
-						vec2 calc_pos = calculate_refinement(c_edge_i[i], disturb, success);
-						if (success)
+						int disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], true);
+						if (disturb <= -1)
 						{
-							tmp.pos = calc_pos;
-							//tmp.index = atomicAdd(status, 1);
-							tmp.index = status++;
-							tmp.face_i = sym_edges[c_edge_i[i]].face;
-							tri_insert_points[index] = tmp;
+							disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], false);
+						}
+						// TODO: add closest constraints to a buffer.
+						NewPoint tmp;
+						if (disturb >= 0)
+						{
+							bool success;
+							vec2 calc_pos = calculate_refinement(c_edge_i[i], disturb, success);
+							if (success)
+							{
+								tmp.pos = calc_pos;
+								//tmp.index = atomicAdd(status, 1);
+								tmp.index = status++;
+								tmp.face_i = sym_edges[c_edge_i[i]].face;
+								tri_insert_points[index] = tmp;
+							}
 						}
 					}
+
 				}
 
 			}
-
 		}
 	}
 
