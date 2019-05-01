@@ -117,6 +117,7 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims)
 	// create GPU data
 	auto gpu_map = test_map.get_GPU_obstacles();
 	m.build_CDT(gpu_map.first, gpu_map.second);
+	m.refine_LCT();
 	//g_m.build_CDT(gpu_map.first, gpu_map.second);
 }
 
@@ -124,7 +125,7 @@ int main()
 {
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
-	float scale = 60.0f;
+	float scale = 30.0f;
 	glm::vec2 map_scaling = { scale, scale };
 
 	GPU::GPUMesh g_mesh({ 1600, 800 });

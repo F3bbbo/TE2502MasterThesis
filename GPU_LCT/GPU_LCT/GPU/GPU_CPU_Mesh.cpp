@@ -266,9 +266,9 @@ namespace GPU
 			{
 				// increase sizes of arrays, 
 				// based on how many new points are inserted
-				append_vec(point_positions, std::vector<glm::vec2>(num_new_points));
-				append_vec(point_inserted, std::vector<int>(num_new_points));
-				append_vec(point_tri_index, std::vector<int>(num_new_points));
+				//append_vec(point_positions, std::vector<glm::vec2>(num_new_points));
+				//append_vec(point_inserted, std::vector<int>(num_new_points));
+				//append_vec(point_tri_index, std::vector<int>(num_new_points));
 				// segments
 				int num_new_tri = num_new_points * 2;
 				int num_new_segs = num_new_points;
@@ -294,6 +294,8 @@ namespace GPU
 				//m_sym_edges, );
 				append_vec(sym_edges, std::vector<SymEdge>(num_new_sym_edges));
 				append_vec(refine_points, std::vector<NewPoint>(num_new_sym_edges));
+				new_points.clear();
+				new_points.resize(num_new_points);
 				// TODO, maybe need to check if triangle buffers needs to grow
 				symedge_buffer_size = sym_edges.size();
 
@@ -319,8 +321,14 @@ namespace GPU
 				m_sym_edges.bind_buffer();
 				m_nr_of_symedges.bind_buffer();*/
 
-				// add new points to the point buffers
+				// add new points to the new_points buffer
 				add_new_points_program();
+				// remove duplicate points
+				remove_duplicate_points();
+				// add the the points without duplicates to the point buffers
+				append_vec(point_positions, new_points);
+				append_vec(point_inserted, std::vector<int>(new_points.size(), 0));
+				append_vec(point_tri_index, std::vector<int>(new_points.size(), 0));
 				//glUseProgram(m_add_new_points_program);
 				//glDispatchCompute((GLuint)256, 1, 1);
 				//glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -377,7 +385,7 @@ namespace GPU
 			{
 				break;
 			}
-		} while (false);
+		} while (true);
 		timer.stop();
 		return timer.elapsed_time();
 	}
@@ -385,11 +393,11 @@ namespace GPU
 	std::vector<glm::vec2> GCMesh::get_vertices()
 	{
 		return point_positions;
-	}
-
-	size_t GCMesh::get_num_vertices()
-	{
-		return point_positions.size();
+	}
+
+	size_t GCMesh::get_num_vertices()
+	{
+		return point_positions.size();
 	}
 
 
@@ -464,53 +472,53 @@ namespace GPU
 		}
 
 		return ret_val;
-	}
-
-	void GCMesh::save_to_file(std::string filename)
-	{
-		filename = "Output files/" + filename;
-		std::string str = "";
-		std::ofstream output (filename.c_str(), std::ofstream::out | std::ofstream::binary);
-		int size;
-		if (output.is_open())
-		{
-			size = (int)point_positions.size() * (int)sizeof(glm::vec2);
-			output.write((char*)&size,sizeof(int));
-			output.write((char*)point_positions.data(), size);
-			
-			size = (int)point_inserted.size() * (int)sizeof(int);
-			output.write((char*)&size,sizeof(int));
-			output.write((char*)point_inserted.data(), size);
-
-			output.close();
-		}
-	}
-
-	void GCMesh::load_from_file(std::string filename)
-	{
-		filename = "Output files/" + filename;
-		std::ifstream input (filename.c_str(), std::ifstream::in | std::ifstream::binary);
-		int value;
-		if (input.is_open())
-		{
-			input.read((char*)&value, sizeof(int));
-			float* buff = new float[value];
-			input.read((char*)buff, value);
-			for (int i = 0; i < value / sizeof(float); i++)
-				std::cout << buff[i];
-			delete[] buff;
-
-			input.read((char*)&value, sizeof(int));
-			int* ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				std::cout << ibuff[i];
-			delete[] ibuff;
-
-			input.close();
-		}
-		else
-			LOG_T(WARNING, "can not open file:" + filename);
+	}
+
+	void GCMesh::save_to_file(std::string filename)
+	{
+		filename = "Output files/" + filename;
+		std::string str = "";
+		std::ofstream output (filename.c_str(), std::ofstream::out | std::ofstream::binary);
+		int size;
+		if (output.is_open())
+		{
+			size = (int)point_positions.size() * (int)sizeof(glm::vec2);
+			output.write((char*)&size,sizeof(int));
+			output.write((char*)point_positions.data(), size);
+			
+			size = (int)point_inserted.size() * (int)sizeof(int);
+			output.write((char*)&size,sizeof(int));
+			output.write((char*)point_inserted.data(), size);
+
+			output.close();
+		}
+	}
+
+	void GCMesh::load_from_file(std::string filename)
+	{
+		filename = "Output files/" + filename;
+		std::ifstream input (filename.c_str(), std::ifstream::in | std::ifstream::binary);
+		int value;
+		if (input.is_open())
+		{
+			input.read((char*)&value, sizeof(int));
+			float* buff = new float[value];
+			input.read((char*)buff, value);
+			for (int i = 0; i < value / sizeof(float); i++)
+				std::cout << buff[i];
+			delete[] buff;
+
+			input.read((char*)&value, sizeof(int));
+			int* ibuff = new int[value];
+			input.read((char*)ibuff, value);
+			for (int i = 0; i < value / sizeof(int); i++)
+				std::cout << ibuff[i];
+			delete[] ibuff;
+
+			input.close();
+		}
+		else
+			LOG_T(WARNING, "can not open file:" + filename);
 	}
 
 	void GCMesh::setup_compute_shaders()
@@ -1232,10 +1240,10 @@ namespace GPU
 			NewPoint new_point = refine_points[index];
 			if (new_point.index >= 0)
 			{
-				int point_index = point_positions.size() - new_point.index - 1;
-				point_positions[point_index] = new_point.pos;
-				point_inserted[point_index] = 0;
-				point_tri_index[point_index] = new_point.face_i;
+				//int point_index = point_positions.size() - new_point.index - 1;
+				new_points[new_point.index] = new_point.pos;
+				//point_inserted[point_index] = 0;
+				//point_tri_index[point_index] = new_point.face_i;
 				// reset the insert point data structure
 				new_point.pos = vec2(0.0f);
 				new_point.index = -1;
@@ -1243,6 +1251,32 @@ namespace GPU
 				refine_points[index] = new_point;
 			}
 		}
+	}
+
+	void GCMesh::remove_duplicate_points()
+	{
+		// loops backwards to remove as far back as possible
+		int i = 0;
+		int num_valid_points = new_points.size();
+		while (i < num_valid_points)
+		{
+			int j = i + 1;
+			while (j < num_valid_points)
+			{
+				if (point_equal(new_points[i], new_points[j]))
+				{
+					// swap away point behind the valid pointsto be removed later.
+					vec2 tmp = new_points[j];
+					new_points[j] = new_points[--num_valid_points];
+					new_points[num_valid_points] = tmp;
+				}
+				j++;
+			}
+			i++;
+		}
+		// removed the last points
+		new_points.erase(new_points.begin() + num_valid_points, new_points.end());
+
 	}
 
 	void GCMesh::insert_in_edge_program()

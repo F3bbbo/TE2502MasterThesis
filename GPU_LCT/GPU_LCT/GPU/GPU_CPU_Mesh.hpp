@@ -49,7 +49,9 @@ namespace GPU
 		std::vector<int> tri_ins_point_index;
 		std::vector<int> tri_seg_inters_index;
 		std::vector<int> tri_edge_flip_index;
+		// LCT refinement points
 		std::vector<NewPoint> refine_points;
+		std::vector<vec2> new_points;
 		// symedges
 		std::vector<SymEdge> sym_edges;
 		int symedge_buffer_size;
@@ -104,6 +106,7 @@ namespace GPU
 		void locate_disturbances_program();
 		//GLuint m_add_new_points_program;
 		void add_new_points_program();
+		void remove_duplicate_points();
 		//GLuint m_insert_in_edge_program;
 		void insert_in_edge_program();
 		//GLuint m_locate_point_triangle_program;
