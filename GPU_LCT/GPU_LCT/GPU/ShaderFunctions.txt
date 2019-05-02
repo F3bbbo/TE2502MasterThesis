@@ -1,83 +1,3 @@
-#version 430
-#define EPSILON 0.0001f
-layout(local_size_x = 1, local_size_y= 1) in;
-
-struct SymEdge{
-	int nxt;
-	int rot;
-
-	int vertex;
-	int edge;
-	int face;
-};
-
-//-----------------------------------------------------------
-// Inputs
-//-----------------------------------------------------------
-
-layout(std430, binding = 0) buffer Point_position
-{
-	vec2 point_positions[];
-};
-
-layout(std430, binding = 1) buffer Points1
-{
-	int point_inserted[];
-};
-
-layout(std430, binding = 2) buffer Points2
-{
-	int point_tri_index[];
-};
-
-layout(std430, binding = 3) buffer Edge0
-{
-	int edge_label[];
-};
-
-layout(std430, binding = 4) buffer Edge1
-{
-	int edge_is_constrained[];
-};
-
-layout(std430, binding = 5) buffer Seg0
-{
-	ivec2 seg_endpoint_indices[];
-};
-
-layout(std430, binding = 6) buffer Seg1
-{
-	int seg_inserted[];
-};
-
-layout(std430, binding = 7) buffer Tri_buff_0
-{
-	ivec4 tri_symedges[];
-};
-layout(std430, binding = 8) buffer Tri_buff_1
-{
-	int tri_ins_point_index[];
-};
-layout(std430, binding = 9) buffer Tri_buff_2
-{
-	int tri_seg_inters_index[];
-};
-layout(std430, binding = 10) buffer Tri_buff_3
-{
-	int tri_edge_flip_index[];
-};
-layout(std430, binding = 11) buffer symedge_buff
-{
-	SymEdge sym_edges[];
-};
-layout(std430, binding = 12) buffer status_buff
-{
-	int status;
-};
-//-----------------------------------------------------------
-// Uniforms
-//-----------------------------------------------------------
-
 //-----------------------------------------------------------
 // Access Functions
 //-----------------------------------------------------------
@@ -116,7 +36,7 @@ vec2 project_point_on_line(vec2 point, vec2 a, vec2 b)
 	return a + dot(ap, ab) * ab;
 }
 
-bool point_ray_test(vec2 p1, vec2 r1, vec2 r2, float epsi = EPSILON)
+bool point_ray_test(vec2 p1, vec2 r1, vec2 r2, float epsi)
 {
 	vec2 dist_vec = project_point_on_line(p1, r1, r2);
 	return abs(distance(dist_vec, p1)) < epsi ? true : false;
@@ -216,43 +136,4 @@ void oriented_walk(inout int curr_e, int point_i, out bool on_edge)
 			return;
 		}
 	}
-}
-
-// Each thread represents one point
-void main(void)
-{
-	uint gid = gl_GlobalInvocationID.x;
-	int index = int(gid);
-	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
-	while(index < point_positions.length())
-	{
-		
-		if (point_inserted[index] == 0)
-		{
-			bool on_edge;
-			// find out which triangle the point is now
-			int curr_e = tri_symedges[point_tri_index[index]].x;;
-			oriented_walk(
-				curr_e,
-				index,
-				on_edge);
-			if (on_edge)
-			{
-				int sym_e = sym(curr_e);
-				if (sym_e > -1)
-				{
-					// if neighbour triangle has a lower index 
-					// chose that one as the triangle for the point.
-					if (sym_edges[sym_e].face < sym_edges[curr_e].face)
-					{
-						curr_e = sym_e;
-					}
-				}
-			}
-			point_tri_index[index] = sym_edges[curr_e].face;
-		}
-		index += num_threads;
-		
-	}
-
 }
