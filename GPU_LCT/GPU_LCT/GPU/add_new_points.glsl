@@ -83,10 +83,15 @@ layout(std430, binding = 12) buffer status_buff
 {
 	int status;
 };
-layout(std430, binding = 13) buffer Tri_buff_4
+layout(std430, binding = 13) buffer ref_buff
 {
-	NewPoint tri_insert_points[];
+	NewPoint refine_points[];
 };
+layout(std430, binding = 13) buffer new_points_buff
+{
+	vec2 new_points[];
+};
+
 
 
 
@@ -99,18 +104,15 @@ void main(void)
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
 	while(index < tri_seg_inters_index.length())
 	{
-		NewPoint new_point = tri_insert_points[index];
-		if(new_point.index >= 0)
+		NewPoint new_point = refine_points[index];
+		if (new_point.index >= 0)
 		{
-			int point_index = point_positions.length() - new_point.index - 1;
-			point_positions[point_index] = new_point.pos;
-			point_inserted[point_index] = 0;
-			point_tri_index[point_index] = new_point.face_i;
+			new_points[new_point.index] = new_point.pos;
 			// reset the insert point data structure
 			new_point.pos = vec2(0.0f);
 			new_point.index = -1;
 			new_point.face_i = -1;
-			tri_insert_points[index] = new_point;
+			refine_points[index] = new_point;
 		}
 		index += num_threads;
 	}
