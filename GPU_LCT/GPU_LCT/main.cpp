@@ -117,8 +117,8 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims)
 	// create GPU data
 	auto gpu_map = test_map.get_GPU_obstacles();
 	m.build_CDT(gpu_map.first, gpu_map.second);
-	m.refine_LCT();
-	//g_m.build_CDT(gpu_map.first, gpu_map.second);
+	//m.refine_LCT();
+	g_m.build_CDT(gpu_map.first, gpu_map.second);
 }
 
 int main()
