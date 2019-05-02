@@ -1,5 +1,5 @@
 #version 430
-#define EPSILON 0.00005f
+#define EPSILON 0.0001f
 layout(local_size_x = 1, local_size_y= 1) in;
 
 struct SymEdge{
@@ -94,39 +94,54 @@ void get_face(in int face_i, out vec2 face_v[3])
 }
 
 //-----------------------------------------------------------
+// Symedge functions
+//-----------------------------------------------------------
+int nxt(int edge)
+{
+	return sym_edges[edge].nxt;
+}
+
+int rot(int edge)
+{
+	return sym_edges[edge].rot;
+}
+
+int sym(int edge)
+{
+	return rot(nxt(edge));
+}
+
+//-----------------------------------------------------------
 // Intersection Functions
 //-----------------------------------------------------------
-bool point_line_test(in vec2 p, in vec2 s1, in vec2 s2)
+vec2 project_point_on_line(vec2 point, vec2 a, vec2 b)
 {
-	vec3 v1 = vec3(s1 - p, 0.0f);
-	vec3 v2 = vec3(s1 - s2, 0.0f);
-	if (abs(length(cross(v1, v2))) > EPSILON)
-	{
+	vec2 ab = normalize(b - a);
+	vec2 ap = point - a;
+	return a + dot(ap, ab) * ab;
+}
+
+bool point_ray_test(vec2 p1, vec2 r1, vec2 r2, float epsi = EPSILON)
+{
+	vec2 dist_vec = project_point_on_line(p1, r1, r2);
+	return abs(distance(dist_vec, p1)) < epsi ? true : false;
+}
+
+bool point_line_test(in vec2 p1, in vec2 s1, in vec2 s2, float epsi = EPSILON)
+{
+	vec2 dist_vec = project_point_on_line(p1, s1, s2);
+	if (!point_ray_test(p1, s1, s2, epsi))
 		return false;
-	}
+	vec2 v1 = s1 - p1;
+	vec2 v2 = s1 - s2;
 	float dot_p = dot(v1, v2);
-	if (dot_p < EPSILON)
-	{
+	if (dot_p < epsi * epsi)
 		return false;
-	}
-	if (dot_p > (dot(v2, v2) - EPSILON))
-	{
+	if (dot_p > (dot(v2, v2) - epsi * epsi))
 		return false;
-	}
+
 	return true;
 }
-
-// symedge movement functions
-void nxt(inout int sym_edge)
-{
-	sym_edge = sym_edges[sym_edge].nxt;
-}
-
-void rot(inout int sym_edge)
-{
-	sym_edge = sym_edges[sym_edge].rot;
-}
-
 // Each thread represents one triangle
 void main(void)
 {
@@ -137,9 +152,11 @@ void main(void)
 	{
 		// If triangle has a point assigned to it add the point to it
 		int point_index = tri_ins_point_index[index];
-		if(point_index > -1 )
+		if (point_index > -1 /*&& is_valid_face(index)*/)
 		{
 			status = 1;
+			//if (!is_valid_face(index))
+			//	break;
 
 			// Create array of the indices of the three new triangles
 			int tri_indices[3];
@@ -163,26 +180,26 @@ void main(void)
 			int orig_sym[3];
 			// save edges of original triangle
 			int curr_e = tri_symedges[index].x;
-			for(int i = 0; i < 3; i++)
+			for (int i = 0; i < 3; i++)
 			{
 				orig_face[i] = curr_e;
 				int sym = curr_e;
 				// sym operations
-				nxt(sym);
-				rot(sym);
+				sym = nxt(sym);
+				sym = rot(sym);
 				orig_sym[i] = sym;
 				// move curr_e to next edge of triangle
-				nxt(curr_e);
+				curr_e = nxt(curr_e);
 			}
 			int insert_point = tri_ins_point_index[index];
 			// Create symedge structure of the new triangles
-			for(int i = 0; i < 3; i++)
+			for (int i = 0; i < 3; i++)
 			{
-				ivec4 tri_syms;			
+				ivec4 tri_syms;
 				int next_id = (i + 1) % 3;
 				tri_syms.x = orig_face[i];
-				tri_syms.y = sym_edge_indices[2*i];
-				tri_syms.z = sym_edge_indices[2*i + 1];
+				tri_syms.y = sym_edge_indices[2 * i];
+				tri_syms.z = sym_edge_indices[2 * i + 1];
 				tri_syms.w = -1;
 				// fix the first symedge of the triangle
 				sym_edges[tri_syms.y].vertex = sym_edges[orig_face[next_id]].vertex;
@@ -202,45 +219,45 @@ void main(void)
 				tri_symedges[tri_indices[i]] = tri_syms;
 			}
 			// connect the new triangles together
-			for(int i = 0; i < 3; i++)
+			for (int i = 0; i < 3; i++)
 			{
 				curr_e = orig_face[i];
 				int next_id = (i + 1) % 3;
 				int new_edge = edge_indices[i];
 				// get both symedges of one new inner edge
 				int inner_edge = orig_face[i];
-				nxt(inner_edge);
+				inner_edge = nxt(inner_edge);
 				int inner_edge_sym = orig_face[next_id];
-				nxt(inner_edge_sym);
-				nxt(inner_edge_sym);
+				inner_edge_sym = nxt(inner_edge_sym);
+				inner_edge_sym = nxt(inner_edge_sym);
 				// set same edge index to both symedges
 				sym_edges[inner_edge].edge = new_edge;
 				sym_edges[inner_edge_sym].edge = new_edge;
 				// connect the edges syms together
 				int rot_connect_edge = inner_edge;
-				nxt(rot_connect_edge);
+				rot_connect_edge = nxt(rot_connect_edge);
 				sym_edges[rot_connect_edge].rot = inner_edge_sym;
 				int rot_connect_edge_sym = inner_edge_sym;
-				nxt(rot_connect_edge_sym);
+				rot_connect_edge_sym = nxt(rot_connect_edge_sym);
 				sym_edges[rot_connect_edge_sym].rot = inner_edge;
 				// connect original edge with its sym
 				sym_edges[inner_edge].rot = orig_sym[i];
 			}
 			// Mark original edges as potential not delaunay 
 			// or as point on edge if the point is on any of the edges 
-			for(int i = 0; i < 3; i++)
+			for (int i = 0; i < 3; i++)
 			{
-				if(edge_is_constrained[sym_edges[orig_face[i]].edge] > -1)
+				if (edge_is_constrained[sym_edges[orig_face[i]].edge] < 0)
 				{
 					// Check if the point is on the edge
 					vec2 s1 = point_positions[sym_edges[orig_face[i]].vertex];
 					vec2 s2 = point_positions[sym_edges[orig_face[(i + 1) % 3]].vertex];
-					vec2 p = point_positions[index];
-					if(point_line_test(p, s1, s2))
+					vec2 p = point_positions[point_index];
+					if (point_line_test(p, s1, s2))
 					{
 						edge_label[sym_edges[orig_face[i]].edge] = 3;
 					}
-					else if(edge_label[sym_edges[orig_face[i]].edge] < 1)
+					else if (edge_label[sym_edges[orig_face[i]].edge] < 1)
 					{
 						edge_label[sym_edges[orig_face[i]].edge] = 1; // candidate for not delaunay. 
 					}
@@ -248,7 +265,7 @@ void main(void)
 			}
 			// Set point as inserted
 			point_inserted[point_index] = 1;
-
+			tri_ins_point_index[index] = -1;
 		}
 		index += num_threads;
 	}
