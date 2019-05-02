@@ -1,5 +1,5 @@
 #version 430
-#define EPSILON 0.0005f
+#define EPSILON 0.0001f
 layout(local_size_x = 1, local_size_y= 1) in;
 
 struct SymEdge{
