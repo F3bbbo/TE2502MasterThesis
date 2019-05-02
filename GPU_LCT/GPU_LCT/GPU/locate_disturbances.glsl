@@ -1020,8 +1020,8 @@ void main(void)
 
 					}
 				}
-
-				// find disturbances
+//
+//				// find disturbances
 				for (int i = 0; i < num_constraints; i++)
 				{
 					if (c_edge_i[i] > -1)
