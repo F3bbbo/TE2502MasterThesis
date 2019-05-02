@@ -2012,14 +2012,15 @@ namespace GPU
 	}
 	void GCMesh::set_quad_edges_label(int label, SymEdge edge)
 	{
-		edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == -1 ? label : edge_label[nxt(edge).edge];
-		edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == -1 ? label : edge_label[prev(edge).edge];
+		edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == -1 ? max(label, edge_label[nxt(edge).edge]) : edge_label[nxt(edge).edge];
+		edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == -1 ? max(label, edge_label[prev(edge).edge]) : edge_label[prev(edge).edge];
 
 		edge = sym(edge);
 
-		edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == -1 ? label : edge_label[nxt(edge).edge];
-		edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == -1 ? label : edge_label[prev(edge).edge];
+		edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == -1 ? max(label, edge_label[nxt(edge).edge]) : edge_label[nxt(edge).edge];
+		edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == -1 ? max(label, edge_label[prev(edge).edge]) : edge_label[prev(edge).edge];
 	}
+
 	void GCMesh::flip_edge(SymEdge edge)
 	{
 		// flips clockwise according to figure 8 in the paper.
