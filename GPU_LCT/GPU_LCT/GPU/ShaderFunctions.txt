@@ -1,12 +1,12 @@
 //-----------------------------------------------------------
 // Access Functions
 //-----------------------------------------------------------
-	void get_face(int face_i, out vec2 face_v[3])
-	{
-		face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
-		face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
-		face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
-	}
+void get_face(int face_i, out vec2 face_v[3])
+{
+	face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
+	face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
+	face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
+}
 
 //-----------------------------------------------------------
 // Symedge functions
@@ -36,7 +36,7 @@ vec2 project_point_on_line(vec2 point, vec2 a, vec2 b)
 	return a + dot(ap, ab) * ab;
 }
 
-bool point_ray_test(vec2 p1, vec2 r1, vec2 r2, float epsi)
+bool point_ray_test(vec2 p1, vec2 r1, vec2 r2, float epsi = EPSILON)
 {
 	vec2 dist_vec = project_point_on_line(p1, r1, r2);
 	return abs(distance(dist_vec, p1)) < epsi ? true : false;
@@ -136,4 +136,29 @@ void oriented_walk(inout int curr_e, int point_i, out bool on_edge)
 			return;
 		}
 	}
+}
+
+bool valid_point_into_face(int face, vec2 p)
+{
+	int curr_e = tri_symedges[face].x;
+	for (int i = 0; i < 3; i++)
+	{
+		SymEdge curr_sym = sym_edges[curr_e];
+		vec2 s1 = point_positions[curr_sym.vertex];
+		vec2 s2 = point_positions[sym_edges[nxt(curr_e)].vertex];
+		if (point_line_test(p, s1, s2) && edge_label[curr_sym.edge] == 3)
+		{
+			int e_sym = sym(curr_e);
+			if (e_sym > -1)
+			{
+				vec2 tri_points[3];
+				get_face(sym_edges[e_sym].face, tri_points);
+				if (point_ray_test(tri_points[0], tri_points[1], tri_points[2]))
+				{
+					return false;
+				}
+			}
+		}
+	}
+	return true;
 }
