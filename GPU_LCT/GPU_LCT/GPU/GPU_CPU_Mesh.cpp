@@ -474,9 +474,13 @@ namespace GPU
 		return ret_val;
 	}
 
-	void GCMesh::save_to_file(std::string filename)
+	void GCMesh::save_to_file(std::string filename, bool upload)
 	{
-		filename = "Output files/" + filename;
+		if (upload)
+			filename = "Output files/performance_test_" + filename;
+		else
+			filename = "Output files/throw_performance_test_" + filename;
+
 		std::string str = "";
 		std::ofstream output (filename.c_str(), std::ofstream::out | std::ofstream::binary);
 		int size;
@@ -546,7 +550,7 @@ namespace GPU
 
 	void GCMesh::load_from_file(std::string filename)
 	{
-		filename = "Output files/" + filename;
+		filename = "Output files/performance_test_" + filename;
 		std::ifstream input (filename.c_str(), std::ifstream::in | std::ifstream::binary);
 		int value;
 		if (input.is_open())

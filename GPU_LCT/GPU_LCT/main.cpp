@@ -136,8 +136,6 @@ int main()
 
 	GPU::GCMesh gc_mesh({ 1600, 800 });
 	gc_mesh.initiate_buffers(map_scaling);
-	//gc_mesh.save_to_file("test.txt");
-	//gc_mesh.load_from_file("test.txt");
 
 	// testing function
 	//test_range({ 1600, 800 }, 2, { 2, 2 }, { 1, 1 }, { 2, 2 }, { 1, 1 }, false);
@@ -148,6 +146,9 @@ int main()
 	//lct_example(m, g_mesh);
 
 	test_test_map(gc_mesh, g_mesh, map_scaling);
+
+	//gc_mesh.save_to_file("test.txt", false);
+	//gc_mesh.load_from_file("test.txt");
 
 	//m.transform_into_LCT();
 
