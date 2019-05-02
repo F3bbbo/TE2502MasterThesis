@@ -213,6 +213,11 @@ bool point_triangle_test(vec2 p1, vec2 t1, vec2 t2, vec2 t3, float epsi = EPSILO
 	return !(has_neg && has_pos);
 }
 
+bool point_triangle_test(vec2 p1, in vec2 tri[3], float epsi = EPSILON)
+{
+	return point_triangle_test(p1, tri[0], tri[1], tri[2], epsi);
+}
+
 bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
 {
 	if (point_triangle_test(p1, t1, t2, t3) && point_triangle_test(p2, t1, t2, t3)) {
@@ -228,6 +233,42 @@ bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
 	// Otherwise segment is missing the triangle
 	return false;
 }
+
+vec2 line_line_intersection_point(vec2 a, vec2 b, vec2 c, vec2 d, float epsi = EPSILON)
+{
+	// Line AB represented as a1x + b1y = c1 
+	float a1 = b.y - a.y;
+	float b1 = a.x - b.x;
+	float c1 = a1 * a.x + b1 * a.y;
+
+	// Line CD represented as a2x + b2y = c2 
+	float a2 = d.y - c.y;
+	float b2 = c.x - d.x;
+	float c2 = a2 * (c.x) + b2 * (c.y);
+
+	float determinant = a1 * b2 - a2 * b1;
+
+	if (abs(determinant) < epsi)
+	{
+		// The lines are parallel. This is simplified 
+		// by returning a pair of FLT_MAX 
+		return vec2(FLT_MAX, FLT_MAX);
+	}
+
+	float x = (b2 * c1 - b1 * c2) / determinant;
+	float y = (a1 * c2 - a2 * c1) / determinant;
+	return vec2( x, y );
+
+}
+
+vec2 get_symmetrical_corner(vec2 a, vec2 b, vec2 c)
+{
+	vec2 ac = c - a;
+	vec2 half_ac = a + (ac / 2.f);
+	float len = length(half_ac - project_point_on_line(b, a, c));
+	return b + 2.f * len * normalize(ac);
+}
+
 
 //-----------------------------------------------------------
 // Functions
@@ -364,6 +405,29 @@ bool adjacent_tri_point_intersects_edge(in SymEdge curr_edge, inout int face_ind
 	}
 }
 
+bool check_for_sliver_tri(int sym_edge)
+{
+	// first find the longest edge
+	float best_dist = 0.0f;
+	int best_i = -1;
+	vec2 tri[3];
+	get_face(sym_edges[sym_edge].face, tri);
+	for (int i = 0; i < 3; i++)
+	{
+		float dist = distance(tri[i], tri[(i + 1) % 3]);
+		if (dist > best_dist)
+		{
+			best_i = i;
+			best_dist = dist;
+		}
+	}
+	// then check if the third point is on the ray of that line.
+	vec2 p1 = tri[(best_i + 2) % 3];
+	vec2 s1 = tri[best_i];
+	vec2 s2 = tri[(best_i + 1) % 3];
+	return point_ray_test(p1, s1, s2);
+}
+
 //-----------------------------------------------------------
 // Math Functions
 //-----------------------------------------------------------
@@ -377,3 +441,19 @@ vec2 get_face_center(int face_i)
 	return (face_v[0] + face_v[1] + face_v[2]) / 3.f;
 }
 
+vec2 circle_center_from_points(vec2 a, vec2 b, vec2 c)
+{
+	vec2 ab = b - a;
+	vec2 bc = c - b;
+
+	vec2 midpoints[2] = { a + ab / 2.f, b + bc / 2.f };
+	vec2 normals[2];
+	// rotate vectors 90 degrees
+	vec3 vec = cross(vec3(ab.x, ab.y, 0.f), vec3(0.f, 0.f, 1.f));
+	normals[0] = vec2(vec.x, vec.y);
+
+	vec = cross(vec3(bc.x, bc.y, 0.f), vec3(0.f, 0.f, 1.f));
+	normals[1] = vec2(vec.x, vec.y);
+
+	return line_line_intersection_point(midpoints[0], midpoints[0] + normals[0], midpoints[1], midpoints[1] + normals[1]);
+}

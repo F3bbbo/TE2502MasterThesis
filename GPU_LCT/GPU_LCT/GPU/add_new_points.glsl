@@ -87,7 +87,7 @@ layout(std430, binding = 13) buffer ref_buff
 {
 	NewPoint refine_points[];
 };
-layout(std430, binding = 13) buffer new_points_buff
+layout(std430, binding = 14) buffer new_points_buff
 {
 	vec2 new_points[];
 };
