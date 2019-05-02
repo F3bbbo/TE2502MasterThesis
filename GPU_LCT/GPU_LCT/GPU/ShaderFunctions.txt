@@ -331,6 +331,39 @@ bool is_flippable(int e)
 	return false;
 }
 
+
+bool adjacent_tri_point_intersects_edge(in SymEdge curr_edge, inout int face_index)
+{
+	// checks if the adjacent triangle wants to insert its point in the provided edge
+
+	// if there exists an adjacent triangle that wants to insert a point
+	if (nxt(curr_edge).rot != -1 && tri_ins_point_index[sym(curr_edge).face] != -1)
+	{
+		SymEdge other_insertion_symedge = sym(curr_edge);
+
+		vec2 other_point = get_vertex(tri_ins_point_index[other_insertion_symedge.face]);
+
+		// Check if the adjacent triangle wants to insert into same edge, if true: let the triangle with the lowest index do its insertion
+		if (point_line_test(other_point,
+			get_vertex(other_insertion_symedge.vertex),
+			get_vertex(nxt(other_insertion_symedge).vertex)))
+		{
+			face_index = other_insertion_symedge.face;
+			return true;
+		}
+		else
+		{
+			face_index = -1;
+			return false;
+		}
+	}
+	else
+	{
+		face_index = -1;
+		return false;
+	}
+}
+
 //-----------------------------------------------------------
 // Math Functions
 //-----------------------------------------------------------

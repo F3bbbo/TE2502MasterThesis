@@ -85,61 +85,104 @@ layout (std140, binding = 0) uniform symedge_size
 //-----------------------------------------------------------
 // Access Functions
 //-----------------------------------------------------------
-SymEdge get_symedge(int index)
-{
-	return sym_edges[index];
-}
 
-// symedge movement functions
-SymEdge nxt(SymEdge sym_edge)
-{
-	return get_symedge(sym_edge.nxt);
-}
 
-SymEdge rot(SymEdge sym_edge)
-{
-	return get_symedge(sym_edge.rot);
-}
-
-SymEdge prev(SymEdge s)
-{
-	return nxt(nxt(s));
-}
-SymEdge sym(SymEdge s)
-{
-	return rot(nxt(s));
-}
-
-int get_index(SymEdge s)
-{
-	return prev(s).nxt;
-}
+//-----------------------------------------------------------
+// SymEdge funcitons
+//-----------------------------------------------------------
 
 vec2 get_vertex(int index)
 {
 	return point_positions[index];
 }
 
+SymEdge get_symedge(int index)
+{
+	return sym_edges[index];
+}
+
+int nxt(int edge)
+{
+	return sym_edges[edge].nxt;
+}
+
+SymEdge nxt(SymEdge s)
+{
+	return get_symedge(s.nxt);
+}
+
+int rot(int edge)
+{
+	return sym_edges[edge].rot;
+}
+
+SymEdge rot(SymEdge s)
+{
+	return get_symedge(s.rot);
+}
+
+int sym(int edge)
+{
+	return rot(nxt(edge));
+}
+
+SymEdge sym(SymEdge s)
+{
+	return rot(nxt(s));
+}
+
+int prev(int edge)
+{
+	return nxt(nxt(edge));
+}
+
+SymEdge prev(SymEdge s)
+{
+	return nxt(nxt(s));
+}
+
+int crot(int edge)
+{
+	int sym_i = sym(edge);
+	return (sym_i != -1) ? nxt(sym_i) : -1;
+}
+
 //-----------------------------------------------------------
 // Math Functions
 //-----------------------------------------------------------
-
 vec2 project_point_on_line(vec2 point, vec2 a, vec2 b)
 {
-	vec2 ab = b - a;
+	vec2 ab = normalize(b - a);
 	vec2 ap = point - a;
-	return a + dot(ap, ab) / dot(ab, ab) * ab;
+	return a + dot(ap, ab) * ab;
 }
 
-bool point_intersects_line(vec2 p, vec2 a, vec2 b, float epsilon = EPSILON)
+bool point_ray_test(vec2 p1, vec2 r1, vec2 r2, float epsi = EPSILON)
 {
-	float hypotenuse = length(project_point_on_line(p, a, b) - a);
-	float adjacent = length(p - a);
-
-	return sqrt(hypotenuse * hypotenuse - adjacent * adjacent) < epsilon;
+	vec2 dist_vec = project_point_on_line(p1, r1, r2);
+	return abs(distance(dist_vec, p1)) < epsi ? true : false;
 }
 
-bool adjacent_tri_point_intersects_edge(in SymEdge curr_edge, out int face_index)
+bool point_line_test(in vec2 p1, in vec2 s1, in vec2 s2, float epsi = EPSILON)
+{
+	vec2 dist_vec = project_point_on_line(p1, s1, s2);
+	if (!point_ray_test(p1, s1, s2, epsi))
+		return false;
+	vec2 v1 = s1 - p1;
+	vec2 v2 = s1 - s2;
+	float dot_p = dot(v1, v2);
+	if (dot_p < epsi * epsi)
+		return false;
+	if (dot_p > (dot(v2, v2) - epsi * epsi))
+		return false;
+
+	return true;
+}
+
+//-----------------------------------------------------------
+// Functions
+//-----------------------------------------------------------
+bool adjacent_tri_point_intersects_edge(in SymEdge curr_edge, inout int face_index)
 {
 	// checks if the adjacent triangle wants to insert its point in the provided edge
 
@@ -151,7 +194,9 @@ bool adjacent_tri_point_intersects_edge(in SymEdge curr_edge, out int face_index
 		vec2 other_point = get_vertex(tri_ins_point_index[other_insertion_symedge.face]);
 
 		// Check if the adjacent triangle wants to insert into same edge, if true: let the triangle with the lowest index do its insertion
-		if (point_intersects_line(other_point, get_vertex(other_insertion_symedge.vertex), get_vertex(nxt(other_insertion_symedge).vertex)))
+		if (point_line_test(other_point,
+			get_vertex(other_insertion_symedge.vertex),
+			get_vertex(nxt(other_insertion_symedge).vertex)))
 		{
 			face_index = other_insertion_symedge.face;
 			return true;
@@ -169,10 +214,6 @@ bool adjacent_tri_point_intersects_edge(in SymEdge curr_edge, out int face_index
 	}
 }
 
-//-----------------------------------------------------------
-// Functions
-//-----------------------------------------------------------
-
 // Each thread represents one triangle
 
 void main(void)
@@ -183,39 +224,26 @@ void main(void)
 
 	while (index < tri_symedges.length())
 	{
-		if(tri_ins_point_index[index] != -1)
-		{
-			// find the symedge which the point should be inserted into
-
-			vec2 p = get_vertex(tri_ins_point_index[index]);
-			SymEdge curr_insertion_symedge = get_symedge(tri_symedges[index].x);
-
-			for (int i = 0; i < 3; i++)
+		if (tri_ins_point_index[index] != -1)
 			{
-				if (point_intersects_line(p, get_vertex(curr_insertion_symedge.vertex), get_vertex(nxt(curr_insertion_symedge).vertex)))
-					break;
-				curr_insertion_symedge = nxt(curr_insertion_symedge);
-			}
+				// find the symedge which the point should be inserted into
 
-			// Check adjacent triangles for if they want to insert their point into one of their edges
-			int adjacent_face_index = -1;
+				vec2 p = get_vertex(tri_ins_point_index[index]);
+				SymEdge curr_insertion_symedge = get_symedge(tri_symedges[index].x);
 
-			for (int adjacent_triangle = 0; adjacent_triangle < 3; adjacent_triangle++)
-			{
-				if (adjacent_tri_point_intersects_edge(curr_insertion_symedge, adjacent_face_index) && index > adjacent_face_index)
+				for (int i = 0; i < 3; i++)
 				{
-					tri_ins_point_index[index] = -1;
-					return;
+					if (point_line_test(p,
+						get_vertex(curr_insertion_symedge.vertex),
+						get_vertex(nxt(curr_insertion_symedge).vertex)))
+						break;
+					curr_insertion_symedge = nxt(curr_insertion_symedge);
 				}
-				curr_insertion_symedge = nxt(curr_insertion_symedge);
-			}
 
-			// check other side
-			if (nxt(curr_insertion_symedge).rot != -1)
-			{
-				curr_insertion_symedge = nxt(sym(curr_insertion_symedge));
+				// Check adjacent triangles for if they want to insert their point into one of their edges
+				int adjacent_face_index = -1;
 
-				for (int adjacent_triangle = 0; adjacent_triangle < 2; adjacent_triangle++)
+				for (int adjacent_triangle = 0; adjacent_triangle < 3; adjacent_triangle++)
 				{
 					if (adjacent_tri_point_intersects_edge(curr_insertion_symedge, adjacent_face_index) && index > adjacent_face_index)
 					{
@@ -224,8 +252,23 @@ void main(void)
 					}
 					curr_insertion_symedge = nxt(curr_insertion_symedge);
 				}
+
+				// check other side
+				if (nxt(curr_insertion_symedge).rot != -1)
+				{
+					curr_insertion_symedge = nxt(sym(curr_insertion_symedge));
+
+					for (int adjacent_triangle = 0; adjacent_triangle < 2; adjacent_triangle++)
+					{
+						if (adjacent_tri_point_intersects_edge(curr_insertion_symedge, adjacent_face_index) && index > adjacent_face_index)
+						{
+							tri_ins_point_index[index] = -1;
+							return;
+						}
+						curr_insertion_symedge = nxt(curr_insertion_symedge);
+					}
+				}
 			}
-		}
 		index += num_threads;
 	}
 }
