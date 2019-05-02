@@ -446,7 +446,7 @@ namespace GPU
 		compile_cs(m_flip_edges_part_three_program, "GPU/flipping_part_three.glsl");
 
 		// LCT
-		//compile_cs(m_locate_disturbances_program, "GPU/locate_disturbances.glsl");
+		compile_cs(m_locate_disturbances_program, "GPU/locate_disturbances.glsl");
 		compile_cs(m_add_new_points_program, "GPU/add_new_points.glsl");
 		compile_cs(m_locate_point_triangle_program, "GPU/locate_point_triangle.glsl");
 		compile_cs(m_validate_edges_program, "GPU/validate_edges.glsl");
