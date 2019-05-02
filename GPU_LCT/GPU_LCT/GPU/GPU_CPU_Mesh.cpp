@@ -473,208 +473,174 @@ namespace GPU
 
 		return ret_val;
 	}
-
-	void GCMesh::save_to_file(std::string filename, bool upload)
-	{
-		if (upload)
-			filename = "Output files/performance_test_" + filename;
-		else
+	void GCMesh::save_to_file(std::string filename, bool upload)
+	{
+		if (upload)
+			filename = "Output files/performance_test_" + filename;
+		else
 			filename = "Output files/throw_performance_test_" + filename;
-
-		std::string str = "";
-		std::ofstream output (filename.c_str(), std::ofstream::out | std::ofstream::binary);
-		int size;
-		if (output.is_open())
-		{
-			// save point data
-			size = (int)point_positions.size() * (int)sizeof(glm::vec2);
-			output.write((char*)&size, sizeof(int));
+		std::string str = "";
+		std::ofstream output (filename.c_str(), std::ofstream::out | std::ofstream::binary);
+		int size;
+		if (output.is_open())
+		{
+			// save point data
+			size = (int)point_positions.size() * (int)sizeof(glm::vec2);
+			output.write((char*)&size, sizeof(int));
 			output.write((char*)point_positions.data(), size);
-			
-			size = (int)point_inserted.size() * (int)sizeof(int);
-			output.write((char*)&size, sizeof(int));
+			size = (int)point_inserted.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
 			output.write((char*)point_inserted.data(), size);
-
-			size = (int)point_tri_index.size() * (int)sizeof(int);
-			output.write((char*)&size, sizeof(int));
+			size = (int)point_tri_index.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
 			output.write((char*)point_tri_index.data(), size);
-
-			// save edge data
-			size = (int)edge_label.size() * (int)sizeof(int);
-			output.write((char*)&size, sizeof(int));
+			// save edge data
+			size = (int)edge_label.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
 			output.write((char*)edge_label.data(), size);
-
-			size = (int)edge_is_constrained.size() * (int)sizeof(int);
-			output.write((char*)&size, sizeof(int));
+			size = (int)edge_is_constrained.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
 			output.write((char*)edge_is_constrained.data(), size);
-
-			// save segment data
-			size = (int)seg_endpoint_indices.size() * (int)sizeof(glm::ivec2);
-			output.write((char*)&size, sizeof(int));
+			// save segment data
+			size = (int)seg_endpoint_indices.size() * (int)sizeof(glm::ivec2);
+			output.write((char*)&size, sizeof(int));
 			output.write((char*)seg_endpoint_indices.data(), size);
-
-			size = (int)seg_inserted.size() * (int)sizeof(int);
-			output.write((char*)&size, sizeof(int));
+			size = (int)seg_inserted.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
 			output.write((char*)seg_inserted.data(), size);
-
 			// save triangle data
-
-			size = (int)tri_symedges.size() * (int)sizeof(glm::ivec4);
-			output.write((char*)&size, sizeof(int));
+			size = (int)tri_symedges.size() * (int)sizeof(glm::ivec4);
+			output.write((char*)&size, sizeof(int));
 			output.write((char*)tri_symedges.data(), size);
-
-			size = (int)tri_ins_point_index.size() * (int)sizeof(int);
-			output.write((char*)&size, sizeof(int));
+			size = (int)tri_ins_point_index.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
 			output.write((char*)tri_ins_point_index.data(), size);
-
-			size = (int)tri_seg_inters_index.size() * (int)sizeof(int);
-			output.write((char*)&size, sizeof(int));
+			size = (int)tri_seg_inters_index.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
 			output.write((char*)tri_seg_inters_index.data(), size);
-
-			size = (int)tri_edge_flip_index.size() * (int)sizeof(int);
-			output.write((char*)&size, sizeof(int));
+			size = (int)tri_edge_flip_index.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
 			output.write((char*)tri_edge_flip_index.data(), size);
-
-			size = (int)tri_insert_points.size() * (int)sizeof(NewPoint);
-			output.write((char*)&size, sizeof(int));
-			output.write((char*)tri_insert_points.data(), size);
-
-			// save symedge data
-			size = (int)sym_edges.size() * (int)sizeof(SymEdge);
-			output.write((char*)&size, sizeof(int));
+			size = (int)refine_points.size() * (int)sizeof(NewPoint);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)refine_points.data(), size);
+			// save symedge data
+			size = (int)sym_edges.size() * (int)sizeof(SymEdge);
+			output.write((char*)&size, sizeof(int));
 			output.write((char*)sym_edges.data(), size);
-
-			output.close();
-		}
+			output.close();
+		}
 	}
-
-	void GCMesh::load_from_file(std::string filename)
-	{
-		filename = "Output files/performance_test_" + filename;
-		std::ifstream input (filename.c_str(), std::ifstream::in | std::ifstream::binary);
-		int value;
-		if (input.is_open())
-		{
-			point_positions.clear();
-			point_inserted.clear();
+	void GCMesh::load_from_file(std::string filename)
+	{
+		filename = "Output files/performance_test_" + filename;
+		std::ifstream input (filename.c_str(), std::ifstream::in | std::ifstream::binary);
+		int value;
+		if (input.is_open())
+		{
+			point_positions.clear();
+			point_inserted.clear();
 			point_tri_index.clear();
-
-			edge_label.clear();
+			edge_label.clear();
 			edge_is_constrained.clear();
-
-			seg_endpoint_indices.clear();
-			seg_inserted.clear();
-
-			tri_symedges.clear();
-			tri_ins_point_index.clear();
-			tri_seg_inters_index.clear();
-			tri_edge_flip_index.clear();
-			tri_insert_points.clear();
-
+			seg_endpoint_indices.clear();
+			seg_inserted.clear();
+
+			tri_symedges.clear();
+			tri_ins_point_index.clear();
+			tri_seg_inters_index.clear();
+			tri_edge_flip_index.clear();
+			refine_points.clear();
+
 			sym_edges.clear();
-
-			// read points data
-			input.read((char*)&value, sizeof(int));
-			float* buff = new float[value];
-			input.read((char*)buff, value);
-			for (int i = 0; i < value / sizeof(float); i += 2)
-				point_positions.push_back({ buff[i], buff[i + 1] });
+			// read points dat
+			input.read((char*)&value, sizeof(int));
+			float* buff = new float[value];
+			input.read((char*)buff, value);
+			for (int i = 0; i < value / sizeof(float); i += 2)
+				point_positions.push_back({ buff[i], buff[i + 1] });
 			delete[] buff;
-
-			input.read((char*)&value, sizeof(int));
-			int* ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				point_inserted.push_back(ibuff[i]);
+			input.read((char*)&value, sizeof(int));
+			int* ibuff = new int[value];
+			input.read((char*)ibuff, value);
+			for (int i = 0; i < value / sizeof(int); i++)
+				point_inserted.push_back(ibuff[i]);
 			delete[] ibuff;
-
-			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				point_tri_index.push_back(ibuff[i]);
+			input.read((char*)&value, sizeof(int));
+			ibuff = new int[value];
+			input.read((char*)ibuff, value);
+			for (int i = 0; i < value / sizeof(int); i++)
+				point_tri_index.push_back(ibuff[i]);
 			delete[] ibuff;
-
-			// read edge data
-			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				edge_label.push_back(ibuff[i]);
+			// read edge data
+			input.read((char*)&value, sizeof(int));
+			ibuff = new int[value];
+			input.read((char*)ibuff, value);
+			for (int i = 0; i < value / sizeof(int); i++)
+				edge_label.push_back(ibuff[i]);
 			delete[] ibuff;
-
-			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				edge_is_constrained.push_back(ibuff[i]);
+			input.read((char*)&value, sizeof(int));
+			ibuff = new int[value];
+			input.read((char*)ibuff, value);
+			for (int i = 0; i < value / sizeof(int); i++)
+				edge_is_constrained.push_back(ibuff[i]);
 			delete[] ibuff;
-
-			// read segment data
-			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i += 2)
-				seg_endpoint_indices.push_back({ ibuff[i], ibuff[i + 1] });
+			// read segment data
+			input.read((char*)&value, sizeof(int));
+			ibuff = new int[value];
+			input.read((char*)ibuff, value);
+			for (int i = 0; i < value / sizeof(int); i += 2)
+				seg_endpoint_indices.push_back({ ibuff[i], ibuff[i + 1] });
 			delete[] ibuff;
-
-			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				seg_inserted.push_back(ibuff[i]);
+			input.read((char*)&value, sizeof(int));
+			ibuff = new int[value];
+			input.read((char*)ibuff, value);
+			for (int i = 0; i < value / sizeof(int); i++)
+				seg_inserted.push_back(ibuff[i]);
 			delete[] ibuff;
-
-			// read triangle data
-			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i += 4)
-				tri_symedges.push_back({ ibuff[i], ibuff[i + 1], ibuff[i + 2], ibuff[i + 3]});
+			// read triangle data
+			input.read((char*)&value, sizeof(int));
+			ibuff = new int[value];
+			input.read((char*)ibuff, value);
+			for (int i = 0; i < value / sizeof(int); i += 4)
+				tri_symedges.push_back({ ibuff[i], ibuff[i + 1], ibuff[i + 2], ibuff[i + 3]});
 			delete[] ibuff;
-
-			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				tri_ins_point_index.push_back(ibuff[i]);
+			input.read((char*)&value, sizeof(int));
+			ibuff = new int[value];
+			input.read((char*)ibuff, value);
+			for (int i = 0; i < value / sizeof(int); i++)
+				tri_ins_point_index.push_back(ibuff[i]);
 			delete[] ibuff;
-
-			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				tri_seg_inters_index.push_back(ibuff[i]);
+			input.read((char*)&value, sizeof(int));
+			ibuff = new int[value];
+			input.read((char*)ibuff, value);
+			for (int i = 0; i < value / sizeof(int); i++)
+				tri_seg_inters_index.push_back(ibuff[i]);
 			delete[] ibuff;
-
-			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				tri_edge_flip_index.push_back(ibuff[i]);
+			input.read((char*)&value, sizeof(int));
+			ibuff = new int[value];
+			input.read((char*)ibuff, value);
+			for (int i = 0; i < value / sizeof(int); i++)
+				tri_edge_flip_index.push_back(ibuff[i]);
 			delete[] ibuff;
-
-			input.read((char*)&value, sizeof(int));
-			NewPoint* NPbuff = new NewPoint[value / sizeof(NewPoint)];
-			input.read((char*)NPbuff, value);
-			for (int i = 0; i < value / sizeof(NewPoint); i++)
-				tri_insert_points.push_back(NPbuff[i]);
+			input.read((char*)&value, sizeof(int));
+			NewPoint* NPbuff = new NewPoint[value / sizeof(NewPoint)];
+			input.read((char*)NPbuff, value);
+			for (int i = 0; i < value / sizeof(NewPoint); i++)
+				refine_points.push_back(NPbuff[i]);
 			delete[] NPbuff;
-
-			input.read((char*)&value, sizeof(int));
-			SymEdge* Sbuff = new SymEdge[value / sizeof(SymEdge)];
-			input.read((char*)Sbuff, value);
-			for (int i = 0; i < value / sizeof(SymEdge); i++)
-				sym_edges.push_back(Sbuff[i]);
+			input.read((char*)&value, sizeof(int));
+			SymEdge* Sbuff = new SymEdge[value / sizeof(SymEdge)];
+			input.read((char*)Sbuff, value);
+			for (int i = 0; i < value / sizeof(SymEdge); i++)
+				sym_edges.push_back(Sbuff[i]);
 			delete[] Sbuff;
-
-			symedge_buffer_size = value / sizeof(SymEdge);
+			symedge_buffer_size = value / sizeof(SymEdge);
 			status = 0;
-
-			input.close();
-		}
-		else
-			LOG_T(WARNING, "can not open file:" + filename);
+			input.close();
+		}
+		else
+			LOG_T(WARNING, "can not open file:" + filename);
 	}
 
 	void GCMesh::setup_compute_shaders()
