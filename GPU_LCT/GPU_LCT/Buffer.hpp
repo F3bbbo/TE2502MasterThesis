@@ -125,6 +125,32 @@ public:
 		return data;
 	}
 
+	template <typename Type>
+	void set_used_element_count(int number)
+	{
+		if (number > m_num_elements)
+		{
+			// Get the current data from the buffer
+			void* ptr = malloc(m_used_buffer_size);
+			void* mapped_data = glMapNamedBufferRange(m_buf, 0, m_used_buffer_size, GL_MAP_READ_BIT);
+			memcpy(ptr, mapped_data, m_used_buffer_size);
+			glUnmapNamedBuffer(m_buf);
+
+			// Create a bigger buffer
+			m_buffer_size = number * sizeof(Type);
+			m_used_buffer_size = m_buffer_size;
+			m_num_elements = number;
+			glNamedBufferData(m_buf, m_buffer_size, NULL, m_usage);
+			glNamedBufferSubData(m_buf, 0, m_used_buffer_size, ptr);
+			free(ptr);
+		}
+		else
+		{
+			m_used_buffer_size = number * sizeof(Type);
+			m_num_elements = number;
+		}
+	}
+
 	void set_vertex_attribute(GLuint location, GLuint size, GLuint type, GLuint stride, GLuint offset, GLboolean normalized = false);
 	void bind_buffer();
 	void unbind_buffer();
