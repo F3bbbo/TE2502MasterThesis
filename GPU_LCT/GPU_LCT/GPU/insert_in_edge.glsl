@@ -86,56 +86,105 @@ layout (std140, binding = 0) uniform symedge_size
 // Access Functions
 //-----------------------------------------------------------
 
-SymEdge get_symedge(int index)
-{
-	return sym_edges[index];
-}
 
-// symedge movement functions
-int nxt(int sym_edge)
-{
-	return get_symedge(sym_edge).nxt;
-}
-
-int rot(int sym_edge)
-{
-	return get_symedge(sym_edge).rot;
-}
-
-int prev(int s)
-{
-	return nxt(nxt(s));
-}
-int sym(int s)
-{
-	return rot(nxt(s));
-}
+//-----------------------------------------------------------
+// SymEdge funcitons
+//-----------------------------------------------------------
 
 vec2 get_vertex(int index)
 {
 	return point_positions[index];
 }
 
+SymEdge get_symedge(int index)
+{
+	return sym_edges[index];
+}
+
+int nxt(int edge)
+{
+	return sym_edges[edge].nxt;
+}
+
+SymEdge nxt(SymEdge s)
+{
+	return get_symedge(s.nxt);
+}
+
+int rot(int edge)
+{
+	return sym_edges[edge].rot;
+}
+
+SymEdge rot(SymEdge s)
+{
+	return get_symedge(s.rot);
+}
+
+int sym(int edge)
+{
+	return rot(nxt(edge));
+}
+
+SymEdge sym(SymEdge s)
+{
+	return rot(nxt(s));
+}
+
+int prev(int edge)
+{
+	return nxt(nxt(edge));
+}
+
+SymEdge prev(SymEdge s)
+{
+	return nxt(nxt(s));
+}
+
+int crot(int edge)
+{
+	int sym_i = sym(edge);
+	return (sym_i != -1) ? nxt(sym_i) : -1;
+}
+
 //-----------------------------------------------------------
 // Math Functions
 //-----------------------------------------------------------
 
-vec2 project_point_on_line(vec2 point, vec2 a, vec2 b)
-{
-	vec2 ab = b - a;
-	vec2 ap = point - a;
-	return a + dot(ap, ab) / dot(ab, ab) * ab;
-}
 
 //-----------------------------------------------------------
 // Intersection Functions
 //-----------------------------------------------------------
-
-bool point_intersects_line(vec2 p, vec2 a, vec2 b, float epsilon = EPSILON)
+vec2 project_point_on_line(vec2 point, vec2 a, vec2 b)
 {
-	float dist = length(project_point_on_line(p, a, b) - p);
-	return abs(dist) < epsilon;
+	vec2 ab = normalize(b - a);
+	vec2 ap = point - a;
+	return a + dot(ap, ab) * ab;
 }
+
+bool point_ray_test(vec2 p1, vec2 r1, vec2 r2, float epsi = EPSILON)
+{
+	vec2 dist_vec = project_point_on_line(p1, r1, r2);
+	return abs(distance(dist_vec, p1)) < epsi ? true : false;
+}
+
+
+bool point_line_test(in vec2 p1, in vec2 s1, in vec2 s2, float epsi = EPSILON)
+{
+	vec2 dist_vec = project_point_on_line(p1, s1, s2);
+	if (!point_ray_test(p1, s1, s2, epsi))
+		return false;
+	vec2 v1 = s1 - p1;
+	vec2 v2 = s1 - s2;
+	float dot_p = dot(v1, v2);
+	if (dot_p < epsi * epsi)
+		return false;
+	if (dot_p > (dot(v2, v2) - epsi * epsi))
+		return false;
+
+	return true;
+}
+
 
 //-----------------------------------------------------------
 // Functions
@@ -162,7 +211,9 @@ void main(void)
 
 			for (int i = 0; i < 2; i++)
 			{
-				if (point_intersects_line(get_vertex(point_index), get_vertex(get_symedge(segment).vertex), get_vertex(get_symedge(nxt(segment)).vertex)))
+				if (point_line_test(get_vertex(point_index),
+					get_vertex(get_symedge(segment).vertex),
+					get_vertex(get_symedge(nxt(segment)).vertex)))
 					break;
 				segment = nxt(segment);
 			}
@@ -172,7 +223,7 @@ void main(void)
 
 			int e1_sym = sym(e1);
 			int e2_sym = sym(e2);
-		
+
 			ivec2 segment_symedges = ivec2(segment, rot(nxt(segment)));
 			int new_symedges[6];
 
@@ -232,13 +283,13 @@ void main(void)
 			sym_edges[segment_symedges[0]].vertex = point_index;
 
 			tri_symedges[t0] = ivec4(segment_symedges[0], e1, new_symedges[2], -1);
-			tri_symedges[t1] = ivec4(new_symedges[1], e2, new_symedges[0],-1);
+			tri_symedges[t1] = ivec4(new_symedges[1], e2, new_symedges[0], -1);
 
 			int new_segment_index = seg_inserted.length() - (seg_inserted.length() - point_index);
 
 			seg_endpoint_indices[edge_is_constrained[get_symedge(segment).edge]] = ivec2(point_index, get_symedge(e1).vertex);	// reused segment
 			seg_endpoint_indices[new_segment_index] = ivec2(get_symedge(new_symedges[0]).vertex, point_index);		// new segment
-		
+
 			edge_is_constrained[edge1] = new_segment_index;
 
 			// mark as maybe non delauney
@@ -299,7 +350,7 @@ void main(void)
 				// mark as maybe non delauney
 				edge_label[get_symedge(e3).edge] = edge_is_constrained[get_symedge(e3).edge] == -1 ? 1 : edge_label[get_symedge(e3).edge];
 				edge_label[get_symedge(e4).edge] = edge_is_constrained[get_symedge(e4).edge] == -1 ? 1 : edge_label[get_symedge(e4).edge];
-			}			
+			}
 		}
 		index += num_threads;
 	}
