@@ -8,6 +8,10 @@ void get_face(int face_i, out vec2 face_v[3])
 	face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
 }
 
+//-----------------------------------------------------------
+// SymEdge funcitons
+//-----------------------------------------------------------
+
 vec2 get_vertex(int index)
 {
 	return point_positions[index];
@@ -17,10 +21,6 @@ SymEdge get_symedge(int index)
 {
 	return sym_edges[index];
 }
-
-//-----------------------------------------------------------
-// SymEdge funcitons
-//-----------------------------------------------------------
 
 int nxt(int edge)
 {
