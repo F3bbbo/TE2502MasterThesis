@@ -1,5 +1,5 @@
 #version 430
-
+#define EPSILON 0.0001f
 layout(local_size_x = 1, local_size_y = 1) in;
 
 struct SymEdge{
@@ -88,38 +88,57 @@ layout(std430, binding = 13) buffer Tri_buff_4
 // Access funcitons
 //-----------------------------------------------------------
 
+//-----------------------------------------------------------
+// SymEdge funcitons
+//-----------------------------------------------------------
+vec2 get_vertex(int index)
+{
+	return point_positions[index];
+}
+
 SymEdge get_symedge(int index)
 {
 	return sym_edges[index];
 }
 
-SymEdge prev_symedge(SymEdge s)
+int nxt(int edge)
 {
-	return get_symedge(get_symedge(s.nxt).nxt);
+	return sym_edges[edge].nxt;
 }
 
-SymEdge sym_symedge(SymEdge s)
+SymEdge nxt(SymEdge s)
 {
-	return get_symedge(get_symedge(s.nxt).rot);
+	return get_symedge(s.nxt);
 }
 
-int nxt(in int index)
+int rot(int edge)
 {
-	return sym_edges[index].nxt;
+	return sym_edges[edge].rot;
 }
 
-int prev(in int index)
+SymEdge rot(SymEdge s)
 {
-	return nxt(nxt(index));
-}
-int rot(in int index)
-{
-	return sym_edges[index].rot;
+	return get_symedge(s.rot);
 }
 
-vec2 get_vertex(int index)
+int sym(int edge)
 {
-	return point_positions[index];
+	return rot(nxt(edge));
+}
+
+SymEdge sym(SymEdge s)
+{
+	return rot(nxt(s));
+}
+
+int prev(int edge)
+{
+	return nxt(nxt(edge));
+}
+
+SymEdge prev(SymEdge s)
+{
+	return nxt(nxt(s));
 }
 
 void get_face(in int face_i, out vec2 face_v[3])
@@ -137,13 +156,62 @@ void get_face(in int face_i, out vec2 face_v[3])
 // Math Functions
 //-----------------------------------------------------------
 
+
+//-----------------------------------------------------------
+// Intersection Functions
+//-----------------------------------------------------------
+float vec2_cross(in vec2 v, in vec2 w)
+{
+	return v.x*w.y - v.y*w.x;
+}
+bool line_line_test(vec2 p1, vec2 p2, vec2 q1, vec2 q2, float epsi = EPSILON)
+{
+	// solution found:
+	//https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
+	vec2 s = p2 - p1;
+	vec2 r = q2 - q1;
+	float rs = vec2_cross(s, r);
+	vec2 qp = (q1 - p1);
+	float qpr = vec2_cross(qp, r);
+	if (abs(rs) < epsi && abs(qpr) < epsi) // case 1
+	{
+		float r2 = dot(r, r);
+		float t0 = dot((q1 - p1), r) / r2;
+		float sr = dot(s, r);
+		float t1 = t0 + (sr / r2);
+		if (sr < 0.0f)
+		{
+			float tmp = t0;
+			t0 = t1;
+			t1 = tmp;
+		}
+		if ((t0 < 0.0f && t1 < 0.0f) || t0 > 1.0f && t1 > 1.0f)
+			return false;
+		else
+			return true;
+	}
+	else if (abs(rs) < epsi && !(abs(qpr) < epsi)) // case 2
+	{
+		return false;
+	}
+	else // case 3
+	{
+		float u = qpr / rs;
+		float t = vec2_cross(qp, s) / rs;
+		if ((0.0f - epsi) < u && u < (1.0f + epsi) && (0.0f - epsi) < t && t < (1.0f + epsi))
+			return true;
+	}
+	return false;
+}
+
 float sign(vec2 p1, vec2 p2, vec2 p3)
 {
 	return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
 }
 
-bool point_triangle_test(vec2 p1, vec2 t1, vec2 t2, vec2 t3)
+bool point_triangle_test(vec2 p1, vec2 t1, vec2 t2, vec2 t3, float epsi = EPSILON)
 {
+
 	float d1, d2, d3;
 	bool has_neg, has_pos;
 
@@ -157,17 +225,12 @@ bool point_triangle_test(vec2 p1, vec2 t1, vec2 t2, vec2 t3)
 	return !(has_neg && has_pos);
 }
 
-#define COLINEAR 0
-#define CLOCKWISE 1
-#define COUNTER_CLOCKWISE 2
-
 int orientation(vec2 p1, vec2 p2, vec2 p3)
 {
 	float val = (p2.y - p1.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p3.y - p2.y);
 
-	int ret_val = val == 0.f ? COLINEAR : -1;
-	ret_val = val > 0.f ? CLOCKWISE : COUNTER_CLOCKWISE;
-	return ret_val;
+	if (val == 0.0f) return 0;
+	return (val > 0.0f) ? 1 : 2; // Clockwise : Counter Clockwise
 }
 
 bool line_seg_intersection_ccw(vec2 p1, vec2 q1, vec2 p2, vec2 q2)
@@ -177,44 +240,66 @@ bool line_seg_intersection_ccw(vec2 p1, vec2 q1, vec2 p2, vec2 q2)
 	int o3 = orientation(p2, q2, p1);
 	int o4 = orientation(p2, q2, q1);
 
-	return o1 != o2 && o3 != o4 ? true : false;
-}
+	if (o1 != o2 && o3 != o4)
+		return true;
 
-//-----------------------------------------------------------
-// Intersection Functions
-//-----------------------------------------------------------
+	return false;
+}
 
 bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
 {
-	bool test_one, test_two = false;
-
-	test_one = point_triangle_test(p1, t1, t2, t3) && point_triangle_test(p2, t1, t2, t3);
-		
-	test_two = line_seg_intersection_ccw(p1, p2, t1, t2) ||
+	if (point_triangle_test(p1, t1, t2, t3) && point_triangle_test(p2, t1, t2, t3)) {
+		// If triangle contains both points of segment return true
+		return true;
+	}
+	if (line_seg_intersection_ccw(p1, p2, t1, t2) ||
 		line_seg_intersection_ccw(p1, p2, t2, t3) ||
-		line_seg_intersection_ccw(p1, p2, t3, t1);
-
-	return test_one || test_two;
+		line_seg_intersection_ccw(p1, p2, t3, t1)) {
+		// If segment intersects any of the edges of the triangle return true
+		return true;
+	}
+	// Otherwise segment is missing the triangle
+	return false;
 }
 
 //-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------
-uint gid;
+
+vec2 project_point_on_line(vec2 point, vec2 a, vec2 b)
+{
+	vec2 ab = normalize(b - a);
+	vec2 ap = point - a;
+	return a + dot(ap, ab) * ab;
+}
+
+bool point_ray_test(vec2 p1, vec2 r1, vec2 r2, float epsi = EPSILON)
+{
+	vec2 dist_vec = project_point_on_line(p1, r1, r2);
+	return abs(distance(dist_vec, p1)) < epsi ? true : false;
+}
+
+bool is_flippable(int e)
+{
+	int e_sym = sym(e);
+	if (e_sym > -1)
+	{
+		vec2 a = point_positions[sym_edges[e_sym].vertex];
+		vec2 d = point_positions[sym_edges[prev(e_sym)].vertex];
+
+		vec2 c = point_positions[sym_edges[e].vertex];
+		vec2 b = point_positions[sym_edges[prev(e)].vertex];
+		// first check so the new triangles will not be degenerate
+		if (point_ray_test(a, d, b) || point_ray_test(c, d, b))
+			return false;
+		// then check so they will not overlap other triangles
+		return line_line_test(a, c, b, d);
+	}
+	return false;
+}
+
 bool is_delaunay(int sym)
 {
-//	int index = get_symedge(sym.nxt).rot;
-//	if (index != -1)
-//	{
-//		vec2 point1 = get_vertex(prev_symedge(sym).vertex);
-//		vec2 point2 = get_vertex(prev_symedge(sym_symedge(sym)).vertex);
-//		vec2 center = (get_vertex(sym.vertex) + get_vertex(sym_symedge(sym).vertex)) / 2.f;
-//
-//		float len = length(get_vertex(sym.vertex) - center);
-//		if (length(center - point1) < len || length(center - point2) < len)
-//			return false;
-//	}
-//	return true;
 	int index = rot(nxt(sym));
 
 	if (index != -1)
@@ -226,7 +311,7 @@ bool is_delaunay(int sym)
 		face_vertices[0] = get_vertex(get_symedge(nxt(sym)).vertex);
 		face_vertices[1] = get_vertex(get_symedge(prev(sym)).vertex);
 		//get_face(sym.face, face_vertices);
-		
+
 		for (int i = 0; i < 3; i++)
 		{
 			mat[0][i] = face_vertices[i].x;
@@ -236,7 +321,7 @@ bool is_delaunay(int sym)
 		}
 
 		vec2 other = get_vertex(get_symedge(prev(index)).vertex);
-		
+
 		mat[0][3] = other.x;
 		mat[1][3] = other.y;
 		mat[2][3] = mat[0][3] * mat[0][3] + mat[1][3] * mat[1][3];
@@ -248,49 +333,66 @@ bool is_delaunay(int sym)
 	return true;
 }
 
+
 void main(void)
 {
 	// Each thread is responsible for a triangle
 
-	gid = gl_GlobalInvocationID.x;
+	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
 	
 	while (index < tri_seg_inters_index.length())
 	{
 		int tri_sym = tri_symedges[index].x;
-		bool no_point_in_edges = edge_label[get_symedge(tri_sym).edge] != 3 &&
-									edge_label[get_symedge(nxt(tri_sym)).edge] != 3 &&
-									edge_label[get_symedge(prev(tri_sym)).edge] != 3;
-		if (no_point_in_edges)
+		if (tri_sym > -1)
 		{
-			if (tri_seg_inters_index[index] == -1)
+			bool no_point_in_edges = edge_label[get_symedge(tri_sym).edge] != 3 &&
+				edge_label[get_symedge(nxt(tri_sym)).edge] != 3 &&
+				edge_label[get_symedge(prev(tri_sym)).edge] != 3;
+			// go through edges checking so edges can be flipped
+			// TODO: move this to be done only if there is no edge with label 2 in the triangle
+			// Problem: A problem would occur with the flipping when a triangle with a label 2 
+			// would discard that label and then would not process the label 1 appropriately, 
+			// so now label ones are processed all the time.
+			for (int i = 0; i < 3; i++)
 			{
-				for (int i = 0; i < 3; i++)
-				{
-					if (edge_label[get_symedge(tri_sym).edge] == 1 && (is_delaunay(tri_sym) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
-						edge_label[get_symedge(tri_sym).edge] = 0;
-					tri_sym = nxt(tri_sym);
-				}
+				if (edge_label[get_symedge(tri_sym).edge] == 1 && ((!is_flippable(tri_sym) || is_delaunay(tri_sym)) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
+					edge_label[get_symedge(tri_sym).edge] = 0;
+
+				tri_sym = nxt(tri_sym);
 			}
-			else
+			if (no_point_in_edges)
 			{
-				for (int i = 0; i < 3; i++)
+				if (tri_seg_inters_index[index] == -1)
 				{
-					int adjacent_triangle = get_symedge(nxt(tri_sym)).rot;
-					if (adjacent_triangle != -1 && edge_label[get_symedge(tri_sym).edge] == 2)
+					for (int i = 0; i < 3; i++)
 					{
-						vec2 segment_vertices[2];
-						segment_vertices[0] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].x);
-						segment_vertices[1] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].y);
-
-						vec2 face_vertices[3];
-						get_face(get_symedge(rot(nxt(tri_sym))).face, face_vertices);
-
-						if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]))
+						if (edge_label[get_symedge(tri_sym).edge] == 1 && ((!is_flippable(tri_sym) || is_delaunay(tri_sym)) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
 							edge_label[get_symedge(tri_sym).edge] = 0;
+
+						tri_sym = nxt(tri_sym);
 					}
-					tri_sym = nxt(tri_sym);
+				}
+				else
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						int adjacent_triangle = get_symedge(nxt(tri_sym)).rot;
+						if (adjacent_triangle != -1 && edge_label[get_symedge(tri_sym).edge] == 2)
+						{
+							vec2 segment_vertices[2];
+							segment_vertices[0] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].x);
+							segment_vertices[1] = get_vertex(seg_endpoint_indices[tri_seg_inters_index[index]].y);
+
+							vec2 face_vertices[3];
+							get_face(get_symedge(rot(nxt(tri_sym))).face, face_vertices);
+
+							if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]))
+								edge_label[get_symedge(tri_sym).edge] = 0;
+						}
+						tri_sym = nxt(tri_sym);
+					}
 				}
 			}
 		}
