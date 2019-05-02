@@ -19,7 +19,6 @@ struct NewPoint
 	int face_i;
 };
 
-uint gid;
 //-----------------------------------------------------------
 // Inputs
 //-----------------------------------------------------------
@@ -973,7 +972,7 @@ vec2 calculate_refinement(int c, int v_sym, out bool success)
 // Each thread represents one triangle
 void main(void)
 {
-	gid = gl_GlobalInvocationID.x;
+	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
 	while(index < tri_seg_inters_index.length())
