@@ -1356,10 +1356,7 @@ namespace GPU
 			NewPoint new_point = refine_points[index];
 			if (new_point.index >= 0)
 			{
-				//int point_index = point_positions.size() - new_point.index - 1;
 				new_points[new_point.index] = new_point.pos;
-				//point_inserted[point_index] = 0;
-				//point_tri_index[point_index] = new_point.face_i;
 				// reset the insert point data structure
 				new_point.pos = vec2(0.0f);
 				new_point.index = -1;
