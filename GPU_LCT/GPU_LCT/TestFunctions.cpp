@@ -1,5 +1,17 @@
 #include "TestFunctions.hpp"
 
+// Test: 1
+// Record building of empty map with static objects only, save:
+// Filename:[Algorithm]-[obstacle_amount]
+// [1-10],[number of total vertices],[number of static obstacles],[time taken to build CDT],[time taken to build LCT]
+
+// Test: 2
+// Record performance of each shader stage
+
+// Test: 3
+// Filename:[Algorithm]-[static_obstacle_amount]
+// [1-10],[number of starting vertices],[number of added vertices],[number of static obstacles],[number of dynamic obstacles],[time taken to build CDT],[time taken to build LCT]
+
 void test_range(glm::ivec2 start_resolution, int iterations, glm::ivec2 start_dims, glm::ivec2 dim_increase, glm::ivec2 start_obstacles, glm::ivec2 obstacle_increase, bool build_lct)
 {
 	std::vector<long long> build_times;
