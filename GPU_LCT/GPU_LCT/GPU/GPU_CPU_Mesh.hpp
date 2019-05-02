@@ -115,7 +115,7 @@ namespace GPU
 		void validate_edges_program();
 
 		// shader functions 
-		void oriented_walk(int &curr_e, int point_i, bool &on_edge, vec2 &tri_cent);
+		void oriented_walk(int &curr_e, int point_i, bool &on_edge);
 		// insertion step
 		bool is_valid_face(int face_i);
 		// insertion_tri step

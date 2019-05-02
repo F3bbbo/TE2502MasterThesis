@@ -869,14 +869,12 @@ namespace GPU
 			if (point_inserted[index] == 0)
 			{
 				bool on_edge;
-				vec2 tri_cent;
 				// find out which triangle the point is now
 				int curr_e = tri_symedges[point_tri_index[index]].x;;
 				oriented_walk(
 					curr_e,
 					index,
-					on_edge,
-					tri_cent);
+					on_edge);
 				if (on_edge)
 				{
 					int sym_e = sym(curr_e);
@@ -1568,8 +1566,7 @@ namespace GPU
 			{
 				int curr_e = point_tri_index[index];
 				bool on_edge = false;
-				vec2 tri_center;
-				oriented_walk(curr_e, index, on_edge, tri_center);
+				oriented_walk(curr_e, index, on_edge);
 				point_tri_index[index] = curr_e;
 				tri_ins_point_index[sym_edges[curr_e].face] = index;
 			}
@@ -1632,7 +1629,7 @@ namespace GPU
 	//-----------------------------------------------------------
 	// Shader functions
 	//-----------------------------------------------------------
-	void GCMesh::oriented_walk(int & curr_e, int point_i, bool & on_edge, vec2 & tri_cent)
+	void GCMesh::oriented_walk(int & curr_e, int point_i, bool & on_edge)
 	{
 		bool done = false;
 		vec2 goal = point_positions[point_i];
@@ -1657,7 +1654,7 @@ namespace GPU
 			// calculate triangle centroid
 			std::array<vec2, 3> tri_points;
 			get_face(sym_edges[curr_e].face, tri_points);
-			tri_cent = (tri_points[0] + tri_points[1] + tri_points[2]) / 3.0f;
+			vec2 tri_cent = (tri_points[0] + tri_points[1] + tri_points[2]) / 3.0f;
 			// Loop through edges to see if we should continue through the edge
 			// to the neighbouring triangle 
 			bool line_line_hit = false;
