@@ -113,13 +113,13 @@ SymEdge sym(SymEdge s)
 
 void set_quad_edges_label(int label, SymEdge edge)
 {
-	edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == -1 ? label : edge_label[nxt(edge).edge];
-	edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == -1 ? label : edge_label[prev(edge).edge];
+	edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == -1 ? max(label, edge_label[nxt(edge).edge]) : edge_label[nxt(edge).edge];
+	edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == -1 ? max(label, edge_label[prev(edge).edge]) : edge_label[prev(edge).edge];
 
 	edge = sym(edge);
 
-	edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == -1 ? label : edge_label[nxt(edge).edge];
-	edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == -1 ? label : edge_label[prev(edge).edge];
+	edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == -1 ? max(label, edge_label[nxt(edge).edge]) : edge_label[nxt(edge).edge];
+	edge_label[prev(edge).edge] = edge_is_constrained[prev(edge).edge] == -1 ? max(label, edge_label[prev(edge).edge]) : edge_label[prev(edge).edge];
 }
 
 // Each thread represents one triangle
@@ -129,22 +129,25 @@ void main(void)
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
 	while (index < tri_seg_inters_index.length())
 	{	
-		if(tri_edge_flip_index[index] == -1)
-		{
-			SymEdge edge_sym = get_symedge(tri_symedges[index].x);
-			for (int i = 0; i < 3; i++)
+		if (tri_symedges[index].x > -1)
 			{
-				int sym = nxt(edge_sym).rot;
-				if (sym != -1 && tri_edge_flip_index[get_symedge(sym).face] == edge_sym.edge)
+				if (tri_edge_flip_index[index] == -1)
 				{
-					// This feels like bullshit
-					// tri_edge_flip_index[index] = edge_label[edge_sym.edge];
-					set_quad_edges_label(1, edge_sym);
-					break;
+					SymEdge edge_sym = get_symedge(tri_symedges[index].x);
+					for (int i = 0; i < 3; i++)
+					{
+						int sym = nxt(edge_sym).rot;
+						if (sym != -1 && tri_edge_flip_index[get_symedge(sym).face] == edge_sym.edge)
+						{
+							// This feels like bullshit
+							// tri_edge_flip_index[index] = edge_label[edge_sym.edge];
+							set_quad_edges_label(1, edge_sym);
+							break;
+						}
+						edge_sym = nxt(edge_sym);
+					}
 				}
-				edge_sym = nxt(edge_sym);
 			}
-		}
 		index += num_threads;
 	}
 }
