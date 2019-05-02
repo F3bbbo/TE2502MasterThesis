@@ -340,6 +340,9 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
+# Performance test files
+throw_performance_test_*
+
 # gspaces licenced files
 gspaces
 tpapi.h
