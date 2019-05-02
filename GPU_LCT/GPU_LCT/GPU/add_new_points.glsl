@@ -1,6 +1,6 @@
 #version 430
 #define FLT_MAX 3.402823466e+38
-#define EPSILON 0.00005f
+#define EPSILON 0.0001f
 layout(local_size_x = 1, local_size_y= 1) in;
 
 struct SymEdge{
