@@ -120,73 +120,72 @@ int get_vertex(int sym_edge_i)
 //-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------
-
 void flip_edge(SymEdge edge)
-{
-	// flips clockwise according to figure 8 in the paper.
+	{
+		// flips clockwise according to figure 8 in the paper.
 
-	int t_prim = edge.face;
-	int t = sym(edge).face;
+		int t_prim = edge.face;
+		int t = sym(edge).face;
 
-	int curr = get_index(edge);
-	int curr_sym = get_index(sym(edge));
+		int curr = get_index(edge);
+		int curr_sym = get_index(sym(edge));
 
-	int e1 = edge.nxt;
-	int e2 = nxt(edge).nxt;
-	int e3 = sym(edge).nxt;
-	int e4 = nxt(sym(edge)).nxt;
+		int e1 = edge.nxt;
+		int e2 = nxt(edge).nxt;
+		int e3 = sym(edge).nxt;
+		int e4 = nxt(sym(edge)).nxt;
 
-	int e1_sym = nxt(get_symedge(e1)).rot;
-	int e2_sym = nxt(get_symedge(e2)).rot;
-	int e3_sym = nxt(get_symedge(e3)).rot;
-	int e4_sym = nxt(get_symedge(e4)).rot;
+		int e1_sym = nxt(get_symedge(e1)).rot;
+		int e2_sym = nxt(get_symedge(e2)).rot;
+		int e3_sym = nxt(get_symedge(e3)).rot;
+		int e4_sym = nxt(get_symedge(e4)).rot;
 
-	//e1
-	sym_edges[e1].nxt = curr;
-	sym_edges[e1].rot = e4_sym;
+		//e1
+		sym_edges[e1].nxt = curr;
+		sym_edges[e1].rot = e4_sym;
 
-	sym_edges[e1].face = t_prim;
+		sym_edges[e1].face = t_prim;
 
-	//e2
-	sym_edges[e2].nxt = e3;
-	sym_edges[e2].rot = curr;
+		//e2
+		sym_edges[e2].nxt = e3;
+		sym_edges[e2].rot = curr;
 
-	sym_edges[e2].face = t;
-	
-	//e3
-	sym_edges[e3].nxt = curr_sym;
-	sym_edges[e3].rot = e2_sym;
+		sym_edges[e2].face = t;
 
-	sym_edges[e3].face = t;
-	
-	//e4
-	sym_edges[e4].nxt = e1;
-	sym_edges[e4].rot = curr_sym;
+		//e3
+		sym_edges[e3].nxt = curr_sym;
+		sym_edges[e3].rot = e2_sym;
 
-	sym_edges[e4].face = t_prim;
+		sym_edges[e3].face = t;
 
-	// curr
-	sym_edges[curr].nxt = e4;
-	sym_edges[curr].rot = e1_sym;
+		//e4
+		sym_edges[e4].nxt = e1;
+		sym_edges[e4].rot = curr_sym;
 
-	sym_edges[curr].vertex = get_symedge(e2).vertex;
-	sym_edges[curr].face = t_prim;
+		sym_edges[e4].face = t_prim;
 
-	// curr_sym
-	sym_edges[curr_sym].nxt = e2;
-	sym_edges[curr_sym].rot = e3_sym;
+		// curr
+		sym_edges[curr].nxt = e4;
+		sym_edges[curr].rot = e1_sym;
 
-	sym_edges[curr_sym].vertex = get_symedge(e4).vertex;
-	sym_edges[curr_sym].face = t;
+		sym_edges[curr].vertex = get_symedge(e2).vertex;
+		sym_edges[curr].face = t_prim;
 
-	// update face symedges
-	tri_symedges[t_prim] = ivec4(curr, e4, e1, -1);
-	tri_symedges[t] = ivec4(curr_sym, e2, e3, -1);
+		// curr_sym
+		sym_edges[curr_sym].nxt = e2;
+		sym_edges[curr_sym].rot = e3_sym;
 
-	// reset
-	tri_seg_inters_index[t_prim] = -1;
-	tri_seg_inters_index[t] = -1;
-}
+		sym_edges[curr_sym].vertex = get_symedge(e4).vertex;
+		sym_edges[curr_sym].face = t;
+
+		// update face symedges
+		tri_symedges[t_prim] = ivec4(curr, e4, e1, -1);
+		tri_symedges[t] = ivec4(curr_sym, e2, e3, -1);
+
+		// reset
+		tri_seg_inters_index[t_prim] = -1;
+		tri_seg_inters_index[t] = -1;
+	}
 
 // Each thread represents one triangle
 void main(void)
@@ -195,7 +194,7 @@ void main(void)
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
 	while (index < tri_seg_inters_index.length())
 	{
-		if(tri_edge_flip_index[index] != -1 && edge_label[tri_edge_flip_index[index]] != -1)
+		if (tri_edge_flip_index[index] != -1 && edge_label[tri_edge_flip_index[index]] != -1)
 		{
 			status = 1;
 
