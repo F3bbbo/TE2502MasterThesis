@@ -119,14 +119,14 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims)
 	//m.build_CDT(gpu_map.first, gpu_map.second);
 	//m.refine_LCT();
 	g_m.build_CDT(gpu_map.first, gpu_map.second);
-	g_m.refine_LCT();
+	//g_m.refine_LCT();
 }
 
 int main()
 {
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
-	float scale = 30.0f;
+	float scale = 101.0f;
 	glm::vec2 map_scaling = { scale, scale };
 
 	GPU::GPUMesh g_mesh({ 1600, 800 });

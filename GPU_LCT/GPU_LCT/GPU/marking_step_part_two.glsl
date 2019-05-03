@@ -1,5 +1,7 @@
 #version 430
+#define FLT_MAX 3.402823466e+38
 #define EPSILON 0.0001f
+precision highp float;
 layout(local_size_x = 1, local_size_y = 1) in;
 
 struct SymEdge{
@@ -262,6 +264,33 @@ bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
 	return false;
 }
 
+vec2 line_line_intersection_point(vec2 a, vec2 b, vec2 c, vec2 d, out bool degenerate_triangle)
+{
+	// Line AB represented as a1x + b1y = c1 
+	float a1 = b.y - a.y;
+	float b1 = a.x - b.x;
+	float c1 = a1 * a.x + b1 * a.y;
+
+	// Line CD represented as a2x + b2y = c2 
+	float a2 = d.y - c.y;
+	float b2 = c.x - d.x;
+	float c2 = a2 * (c.x) + b2 * (c.y);
+
+	float det = a1 * b2 - a2 * b1;
+
+	if (abs(det) < EPSILON)
+	{
+		// The lines are parallel
+		degenerate_triangle = true;
+		return vec2(FLT_MAX);
+	}
+	else
+	{
+		degenerate_triangle = false;
+		return vec2((b2 * c1 - b1 * c2) / det, (a1 * c2 - a2 * c1) / det);
+	}
+}
+
 //-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------
@@ -304,33 +333,57 @@ bool is_delaunay(int sym)
 
 	if (index != -1)
 	{
-		mat4x4 mat;
-
 		vec2 face_vertices[3];
-		face_vertices[2] = get_vertex(get_symedge(sym).vertex);
-		face_vertices[0] = get_vertex(get_symedge(nxt(sym)).vertex);
-		face_vertices[1] = get_vertex(get_symedge(prev(sym)).vertex);
-		//get_face(sym.face, face_vertices);
+		face_vertices[0] = get_vertex(get_symedge(sym).vertex);
+		face_vertices[1] = get_vertex(get_symedge(nxt(sym)).vertex);
+		face_vertices[2] = get_vertex(get_symedge(prev(sym)).vertex);
 
-		for (int i = 0; i < 3; i++)
-		{
-			mat[0][i] = face_vertices[i].x;
-			mat[1][i] = face_vertices[i].y;
-			mat[2][i] = mat[0][i] * mat[0][i] + mat[1][i] * mat[1][i];
-			mat[3][i] = 1.f;
-		}
+		vec2 ab = face_vertices[1] - face_vertices[0];
+		vec2 bc = face_vertices[2] - face_vertices[1];
+
+		vec2 mid_point1 = face_vertices[0] + ab / 2.f;
+		vec2 mid_point2 = face_vertices[1] + bc / 2.f;
+
+		// rotate vectors 90 degrees
+		vec2 normal1 = vec2(-ab.y, ab.x);
+		vec2 normal2 = vec2(-bc.y, bc.x);
+
+		bool degenerate_triangle;
+		vec2 circle_center = line_line_intersection_point(mid_point1, mid_point1 + normal1, mid_point2, mid_point2 + normal2, degenerate_triangle);
+		if (degenerate_triangle == true)
+			return false;
 
 		vec2 other = get_vertex(get_symedge(prev(index)).vertex);
-
-		mat[0][3] = other.x;
-		mat[1][3] = other.y;
-		mat[2][3] = mat[0][3] * mat[0][3] + mat[1][3] * mat[1][3];
-		mat[3][3] = 1.f;
-
-		if (determinant(mat) > 0)
+		if (length(circle_center - other) < length(face_vertices[0] - circle_center) - EPSILON)
 			return false;
+
+		//mat4x4 mat;
+
+		//vec2 face_vertices[3];
+		//face_vertices[2] = get_vertex(get_symedge(sym).vertex);
+		//face_vertices[0] = get_vertex(get_symedge(nxt(sym)).vertex);
+		//face_vertices[1] = get_vertex(get_symedge(prev(sym)).vertex);
+
+		//for (int i = 0; i < 3; i++)
+		//{
+		//	mat[0][i] = face_vertices[i].x;
+		//	mat[1][i] = face_vertices[i].y;
+		//	mat[2][i] = mat[0][i] * mat[0][i] + mat[1][i] * mat[1][i];
+		//	mat[3][i] = 1.f;
+		//}
+
+		//vec2 other = get_vertex(get_symedge(prev(index)).vertex);
+
+		//mat[0][3] = other.x;
+		//mat[1][3] = other.y;
+		//mat[2][3] = mat[0][3] * mat[0][3] + mat[1][3] * mat[1][3];
+		//mat[3][3] = 1.f;
+
+		//if (determinant(mat) > 0)
+		//	return false;
 	}
 	return true;
+
 }
 
 
