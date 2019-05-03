@@ -93,7 +93,13 @@ layout(std430, binding = 14) buffer new_points_buff
 };
 
 
-
+//-----------------------------------------------------------
+// Uniforms
+//-----------------------------------------------------------
+layout (std140, binding = 0) uniform symedge_size
+{
+	int symedge_buffer_size;
+};
 
 
 // Each thread represents one triangle
@@ -102,7 +108,7 @@ void main(void)
 	gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
-	while(index < tri_seg_inters_index.length())
+	while(index < symedge_buffer_size)
 	{
 		NewPoint new_point = refine_points[index];
 		if (new_point.index >= 0)

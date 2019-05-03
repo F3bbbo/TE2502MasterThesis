@@ -298,26 +298,17 @@ namespace GPU
 				m_sym_edges.bind_buffer();
 				m_nr_of_symedges.bind_buffer();
 
-				auto new_points = m_new_points.get_buffer_data<vec2>();
-				auto refine_points = m_refine_points.get_buffer_data<NewPoint>();
-				std::vector<NewPoint> valid_points;
-				for (int i = 0; i < refine_points.size(); i++)
-				{
-					if (refine_points[i].index > -1)
-					{
-						valid_points.push_back(refine_points[i]);
-					}
-				}
+
 				// add new points to the point buffers
 				glUseProgram(m_add_new_points_program);
 				glDispatchCompute((GLuint)256, 1, 1);
 				glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 				// get new points from GPU and remove duplicates
-				new_points = m_new_points.get_buffer_data<vec2>();
+				auto new_points = m_new_points.get_buffer_data<vec2>();
 				//remove_duplicate_points(new_points);
 				// add the the points without duplicates to the point buffers
-				m_point_bufs.positions.append_to_buffer(std::vector<glm::vec2>(new_points.size()));
+				m_point_bufs.positions.append_to_buffer(new_points);
 				m_point_bufs.inserted.append_to_buffer(std::vector<int>(new_points.size(), 0));
 				m_point_bufs.tri_index.append_to_buffer(std::vector<int>(new_points.size(), 0));
 
