@@ -47,7 +47,7 @@ public:
 		glBindBuffer(m_type, 0);
 
 		// If we forget to call glBindBuffer the data transfer will not happen and we will not even get an error, debug mode sure is convenient!
-		glNamedBufferData(m_buf, m_buffer_size, NULL, usage); 
+		glNamedBufferData(m_buf, m_buffer_size, NULL, usage);
 		glNamedBufferSubData(m_buf, 0, m_used_buffer_size, data.data());
 
 		m_valid = true;
@@ -128,7 +128,8 @@ public:
 	template <typename Type>
 	void set_used_element_count(int number)
 	{
-		if (number > m_num_elements)
+		GLuint new_size = number * sizeof(Type);
+		if (new_size > m_buffer_size)
 		{
 			// Get the current data from the buffer
 			void* ptr = malloc(m_used_buffer_size);
@@ -137,7 +138,7 @@ public:
 			glUnmapNamedBuffer(m_buf);
 
 			// Create a bigger buffer
-			m_buffer_size = number * sizeof(Type);
+			m_buffer_size = new_size;
 			m_used_buffer_size = m_buffer_size;
 			m_num_elements = number;
 			glNamedBufferData(m_buf, m_buffer_size, NULL, m_usage);
