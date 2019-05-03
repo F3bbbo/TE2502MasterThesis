@@ -388,7 +388,7 @@ void main(void)
 							vec2 face_vertices[3];
 							get_face(get_symedge(rot(nxt(tri_sym))).face, face_vertices);
 
-							if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]))
+							if (!segment_triangle_test(segment_vertices[0], segment_vertices[1], face_vertices[0], face_vertices[1], face_vertices[2]) || !is_flippable(tri_sym))
 								edge_label[get_symedge(tri_sym).edge] = 0;
 						}
 						tri_sym = nxt(tri_sym);
