@@ -27,12 +27,14 @@ namespace GPU
 	private:
 		void setup_compute_shaders();
 		void compile_cs(GLuint& program, const char* path, int work_group_size = 64);
-
+		void remove_duplicate_points(std::vector<vec2> &list);
 		PointBuffers m_point_bufs;
 		EdgeBuffers m_edge_bufs;
 		SegmentBuffers m_segment_bufs;
 		TriangleBuffers m_triangle_bufs;
 		Buffer m_sym_edges;
+		Buffer m_new_points;
+		Buffer m_refine_points;
 		Buffer m_nr_of_symedges;
 		Buffer m_status;
 

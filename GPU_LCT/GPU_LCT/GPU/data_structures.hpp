@@ -82,7 +82,6 @@ namespace GPU
 		Buffer ins_point_index;
 		Buffer seg_inters_index;
 		Buffer edge_flip_index;
-		Buffer new_points;
 	};
 
 	struct TriangleBuffersCPU

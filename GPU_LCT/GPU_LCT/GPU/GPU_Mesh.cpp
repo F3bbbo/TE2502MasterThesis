@@ -53,7 +53,7 @@ namespace GPU
 		m_triangle_bufs.ins_point_index.create_buffer(type, std::vector<int>(2, -1), usage, 8, n);
 		m_triangle_bufs.seg_inters_index.create_buffer(type, std::vector<int>(2, -1), usage, 9, n);
 		m_triangle_bufs.edge_flip_index.create_buffer(type, std::vector<int>(2, -1), usage, 10, n);
-		m_triangle_bufs.new_points.create_buffer(type, std::vector<NewPoint>(2), usage, 13, n);
+
 
 		// Separate sym edge list
 		std::vector<SymEdge> sym_edges;
@@ -67,6 +67,11 @@ namespace GPU
 		sym_edges.push_back({ 4, -1, 3, 4, 1 });
 		sym_edges.push_back({ 5,  1, 1, 1, 1 });
 		sym_edges.push_back({ 3, -1, 2, 2, 1 });
+
+		m_refine_points.create_buffer(type, std::vector<NewPoint>(sym_edges.size()), usage, 13, n);
+
+		m_new_points.create_buffer(type, std::vector<glm::vec2>(0), usage, 14, 100);
+
 
 		m_sym_edges.create_buffer(type, sym_edges, usage, 11, n);
 
@@ -95,7 +100,7 @@ namespace GPU
 		m_triangle_bufs.ins_point_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
 		m_triangle_bufs.edge_flip_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
 		m_triangle_bufs.seg_inters_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
-		m_triangle_bufs.new_points.append_to_buffer(std::vector<NewPoint>(num_new_tri));
+
 
 		// fix new sizes of edge buffers 
 		// TODO: fix so it can handle repeated insertions
@@ -106,6 +111,7 @@ namespace GPU
 		// TODO: fix so it can handle repeated insertions
 		int num_new_sym_edges = points.size() * 6;
 		m_sym_edges.append_to_buffer(std::vector<SymEdge>(num_new_sym_edges));
+		m_refine_points.append_to_buffer(std::vector<NewPoint>(num_new_sym_edges));
 		// TODO, maybe need to check if triangle buffers needs to grow
 
 		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
@@ -125,7 +131,7 @@ namespace GPU
 		m_triangle_bufs.ins_point_index.bind_buffer();
 		m_triangle_bufs.seg_inters_index.bind_buffer();
 		m_triangle_bufs.edge_flip_index.bind_buffer();
-		m_triangle_bufs.new_points.bind_buffer();
+		m_refine_points.bind_buffer();
 
 		m_sym_edges.bind_buffer();
 		m_nr_of_symedges.bind_buffer();
@@ -217,7 +223,7 @@ namespace GPU
 		auto triangle_data_insert_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
 		auto triangle_data_edge_flip_index = m_triangle_bufs.edge_flip_index.get_buffer_data<int>();
 		auto triangle_data_intersecting_segment = m_triangle_bufs.seg_inters_index.get_buffer_data<int>();
-		auto triangle_data_new_points = m_triangle_bufs.new_points.get_buffer_data<NewPoint>();
+		auto triangle_data_new_points = m_refine_points.get_buffer_data<NewPoint>();
 
 		auto status_data = m_status.get_buffer_data<int>();
 	}
@@ -251,7 +257,7 @@ namespace GPU
 				m_triangle_bufs.ins_point_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
 				m_triangle_bufs.edge_flip_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
 				m_triangle_bufs.seg_inters_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
-				m_triangle_bufs.new_points.append_to_buffer(std::vector<NewPoint>(num_new_tri));
+
 
 				// fix new size of segment buffers
 				m_segment_bufs.endpoint_indices.append_to_buffer(std::vector<glm::vec2>(num_new_segs));
@@ -265,8 +271,10 @@ namespace GPU
 				// TODO: fix so it can handle repeated insertions
 				int num_new_sym_edges = num_new_points * 6;
 				m_sym_edges.append_to_buffer(std::vector<SymEdge>(num_new_sym_edges));
+				m_refine_points.append_to_buffer(std::vector<NewPoint>(num_new_sym_edges));
 				// TODO, maybe need to check if triangle buffers needs to grow
-
+				// resize new points array
+				m_new_points.set_used_element_count<glm::vec2>(num_new_points);
 				m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
 
 				// then rebind the buffers that has been changed
@@ -284,15 +292,35 @@ namespace GPU
 				m_triangle_bufs.ins_point_index.bind_buffer();
 				m_triangle_bufs.seg_inters_index.bind_buffer();
 				m_triangle_bufs.edge_flip_index.bind_buffer();
-				m_triangle_bufs.new_points.bind_buffer();
+				m_refine_points.bind_buffer();
+				m_new_points.bind_buffer();
 
 				m_sym_edges.bind_buffer();
 				m_nr_of_symedges.bind_buffer();
 
+				auto new_points = m_new_points.get_buffer_data<vec2>();
+				auto refine_points = m_refine_points.get_buffer_data<NewPoint>();
+				std::vector<NewPoint> valid_points;
+				for (int i = 0; i < refine_points.size(); i++)
+				{
+					if (refine_points[i].index > -1)
+					{
+						valid_points.push_back(refine_points[i]);
+					}
+				}
 				// add new points to the point buffers
 				glUseProgram(m_add_new_points_program);
 				glDispatchCompute((GLuint)256, 1, 1);
 				glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+				// get new points from GPU and remove duplicates
+				new_points = m_new_points.get_buffer_data<vec2>();
+				//remove_duplicate_points(new_points);
+				// add the the points without duplicates to the point buffers
+				m_point_bufs.positions.append_to_buffer(std::vector<glm::vec2>(new_points.size()));
+				m_point_bufs.inserted.append_to_buffer(std::vector<int>(new_points.size(), 0));
+				m_point_bufs.tri_index.append_to_buffer(std::vector<int>(new_points.size(), 0));
+
 				// Perform insertion of points untill all has been inserted 
 				// and triangulation is CDT
 				int counter = 0;
@@ -501,5 +529,29 @@ namespace GPU
 			glGetProgramInfoLog(program, 512, NULL, infoLog);
 			std::cout << "CS program linking failed\n" << infoLog << '\n';
 		}
+	}
+	void GPUMesh::remove_duplicate_points(std::vector<vec2>& list)
+	{
+		// loops backwards to remove as far back as possible
+		int i = 0;
+		int num_valid_points = list.size();
+		while (i < num_valid_points)
+		{
+			int j = i + 1;
+			while (j < num_valid_points)
+			{
+				if (point_equal(list[i], list[j]))
+				{
+					// swap away point behind the valid pointsto be removed later.
+					vec2 tmp = list[j];
+					list[j] = list[--num_valid_points];
+					list[num_valid_points] = tmp;
+				}
+				j++;
+			}
+			i++;
+		}
+		// removed the last points
+		list.erase(list.begin() + num_valid_points, list.end());
 	}
 }
