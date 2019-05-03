@@ -203,29 +203,29 @@ namespace GPU
 		glDispatchCompute((GLuint)256, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);*/
 
-		auto point_data_pos = m_point_bufs.positions.get_buffer_data<glm::vec2>();
-		auto point_data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
-		auto point_data_triangle_index = m_point_bufs.tri_index.get_buffer_data<int>();
+		//auto point_data_pos = m_point_bufs.positions.get_buffer_data<glm::vec2>();
+		//auto point_data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
+		//auto point_data_triangle_index = m_point_bufs.tri_index.get_buffer_data<int>();
 
-		// symedges
-		auto symedges = m_sym_edges.get_buffer_data<SymEdge>();
+		//// symedges
+		//auto symedges = m_sym_edges.get_buffer_data<SymEdge>();
 
-		// edges
-		auto edge_data_labels = m_edge_bufs.label.get_buffer_data<int>();
-		auto edge_data_is_constrained = m_edge_bufs.is_constrained.get_buffer_data<int>();
+		//// edges
+		//auto edge_data_labels = m_edge_bufs.label.get_buffer_data<int>();
+		//auto edge_data_is_constrained = m_edge_bufs.is_constrained.get_buffer_data<int>();
 
-		// segments
-		auto segment_data_inserted = m_segment_bufs.inserted.get_buffer_data<int>();
-		auto segment_data_endpoint_indices = m_segment_bufs.endpoint_indices.get_buffer_data<glm::ivec2>();
+		//// segments
+		//auto segment_data_inserted = m_segment_bufs.inserted.get_buffer_data<int>();
+		//auto segment_data_endpoint_indices = m_segment_bufs.endpoint_indices.get_buffer_data<glm::ivec2>();
 
-		// triangles
-		auto triangle_data_symedge_indices = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
-		auto triangle_data_insert_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
-		auto triangle_data_edge_flip_index = m_triangle_bufs.edge_flip_index.get_buffer_data<int>();
-		auto triangle_data_intersecting_segment = m_triangle_bufs.seg_inters_index.get_buffer_data<int>();
-		auto triangle_data_new_points = m_refine_points.get_buffer_data<NewPoint>();
+		//// triangles
+		//auto triangle_data_symedge_indices = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
+		//auto triangle_data_insert_point_index = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
+		//auto triangle_data_edge_flip_index = m_triangle_bufs.edge_flip_index.get_buffer_data<int>();
+		//auto triangle_data_intersecting_segment = m_triangle_bufs.seg_inters_index.get_buffer_data<int>();
+		//auto triangle_data_new_points = m_refine_points.get_buffer_data<NewPoint>();
 
-		auto status_data = m_status.get_buffer_data<int>();
+		//auto status_data = m_status.get_buffer_data<int>();
 	}
 
 	void GPUMesh::refine_LCT()
@@ -243,11 +243,25 @@ namespace GPU
 			num_new_points = status.front();
 			if (num_new_points > 0)
 			{
+				m_new_points.set_used_element_count<glm::vec2>(num_new_points);
+				m_new_points.bind_buffer();
+				// add new points to the point buffers
+				glUseProgram(m_add_new_points_program);
+				glDispatchCompute((GLuint)256, 1, 1);
+				glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+				// get new points from GPU and remove duplicates
+				auto new_points = m_new_points.get_buffer_data<vec2>();
+				remove_duplicate_points(new_points);
+				// add the the points without duplicates to the point buffers
+				m_point_bufs.positions.append_to_buffer(new_points);
+				num_new_points = new_points.size();
+				m_point_bufs.inserted.append_to_buffer(std::vector<int>(num_new_points, 0));
+				m_point_bufs.tri_index.append_to_buffer(std::vector<int>(num_new_points, 0));
+
+
 				// increase sizes of arrays, 
 				// based on how many new points are inserted
-				m_point_bufs.positions.append_to_buffer(std::vector<glm::vec2>(num_new_points));
-				m_point_bufs.inserted.append_to_buffer(std::vector<int>(num_new_points));
-				m_point_bufs.tri_index.append_to_buffer(std::vector<int>(num_new_points));
 				// segments
 				int num_new_tri = num_new_points * 2;
 				int num_new_segs = num_new_points;
@@ -274,7 +288,7 @@ namespace GPU
 				m_refine_points.append_to_buffer(std::vector<NewPoint>(num_new_sym_edges));
 				// TODO, maybe need to check if triangle buffers needs to grow
 				// resize new points array
-				m_new_points.set_used_element_count<glm::vec2>(num_new_points);
+
 				m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
 
 				// then rebind the buffers that has been changed
@@ -293,24 +307,11 @@ namespace GPU
 				m_triangle_bufs.seg_inters_index.bind_buffer();
 				m_triangle_bufs.edge_flip_index.bind_buffer();
 				m_refine_points.bind_buffer();
-				m_new_points.bind_buffer();
+
 
 				m_sym_edges.bind_buffer();
 				m_nr_of_symedges.bind_buffer();
 
-
-				// add new points to the point buffers
-				glUseProgram(m_add_new_points_program);
-				glDispatchCompute((GLuint)256, 1, 1);
-				glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-				// get new points from GPU and remove duplicates
-				auto new_points = m_new_points.get_buffer_data<vec2>();
-				//remove_duplicate_points(new_points);
-				// add the the points without duplicates to the point buffers
-				m_point_bufs.positions.append_to_buffer(new_points);
-				m_point_bufs.inserted.append_to_buffer(std::vector<int>(new_points.size(), 0));
-				m_point_bufs.tri_index.append_to_buffer(std::vector<int>(new_points.size(), 0));
 
 				// Perform insertion of points untill all has been inserted 
 				// and triangulation is CDT
@@ -339,7 +340,7 @@ namespace GPU
 					glDispatchCompute((GLuint)256, 1, 1);
 					glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-					// Perform flipping to ensure that mesh is CDT
+					//Perform flipping to ensure that mesh is CDT
 					glUseProgram(m_flip_edges_part_one_program);
 					glDispatchCompute((GLuint)256, 1, 1);
 					glMemoryBarrier(GL_ALL_BARRIER_BITS);

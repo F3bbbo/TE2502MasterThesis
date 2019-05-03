@@ -277,5 +277,6 @@ void main(void)
 			point_tri_index[index] = curr_e;
 			tri_ins_point_index[sym_edges[curr_e].face] = index;
 		}
+		index += num_threads;
 	}
 }
