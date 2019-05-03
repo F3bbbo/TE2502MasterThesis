@@ -88,7 +88,7 @@ public:
 			glUnmapNamedBuffer(m_buf);
 
 			// Create a bigger buffer
-			GLuint buffer_increase = BUFFER_APPEND_BYTE_AMMOUNT + (sizeof(Data) - BUFFER_APPEND_BYTE_AMMOUNT % sizeof(Data));
+			GLuint buffer_increase = BUFFER_APPEND_BYTE_AMMOUNT + (m_used_buffer_size + append_byte_length - m_buffer_size - (BUFFER_APPEND_BYTE_AMMOUNT % (m_used_buffer_size + append_byte_length - m_buffer_size)));
 			glNamedBufferData(m_buf, m_buffer_size + buffer_increase, NULL, m_usage);
 			glNamedBufferSubData(m_buf, 0, m_used_buffer_size, ptr);
 			glNamedBufferSubData(m_buf, m_used_buffer_size, append_byte_length, data.data());
