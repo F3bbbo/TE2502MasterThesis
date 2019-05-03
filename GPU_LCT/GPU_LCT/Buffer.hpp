@@ -139,11 +139,11 @@ public:
 
 			// Create a bigger buffer
 			m_buffer_size = new_size;
-			m_used_buffer_size = m_buffer_size;
-			m_num_elements = number;
 			glNamedBufferData(m_buf, m_buffer_size, NULL, m_usage);
 			glNamedBufferSubData(m_buf, 0, m_used_buffer_size, ptr);
 			free(ptr);
+			m_used_buffer_size = m_buffer_size;
+			m_num_elements = number;
 		}
 		else
 		{
