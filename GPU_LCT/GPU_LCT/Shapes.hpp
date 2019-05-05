@@ -8,6 +8,7 @@ class Shape {
 public:
 	Shape();
 	Shape(std::initializer_list<glm::vec2> l);
+	Shape(std::vector<glm::vec2> &vec);
 	virtual ~Shape();
 	virtual std::vector<glm::vec2> get_segments();
 	void set_scale(float s);

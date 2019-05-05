@@ -13,6 +13,14 @@ Shape::Shape()
 Shape::Shape(std::initializer_list<glm::vec2> l)
 	:m_points(l)
 {
+	m_scale = glm::vec2(1.0f);
+	m_location = { 0.0f, 0.0f };
+}
+
+Shape::Shape(std::vector<glm::vec2> &vec)
+	: Shape()
+{
+	m_points = std::move(vec);
 }
 
 Shape::~Shape()
