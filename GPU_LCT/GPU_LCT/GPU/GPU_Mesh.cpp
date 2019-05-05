@@ -210,9 +210,29 @@ namespace GPU
 		//// symedges
 		//auto symedges = m_sym_edges.get_buffer_data<SymEdge>();
 
-		//// edges
+		////// edges
 		//auto edge_data_labels = m_edge_bufs.label.get_buffer_data<int>();
 		//auto edge_data_is_constrained = m_edge_bufs.is_constrained.get_buffer_data<int>();
+
+		//auto labels_3 = find_equal(edge_data_labels, 3);
+		//LOG("Label_3: " + std::to_string(labels_3.size()));
+		//auto labels_2 = find_equal(edge_data_labels, 2);
+		//LOG("Label_2: " + std::to_string(labels_2.size()));
+		//auto labels_1 = find_equal(edge_data_labels, 1);
+		//LOG("Label_1: " + std::to_string(labels_1.size()));
+		//for (int i = 0; i < labels_1.size(); i++)
+		//{
+		//	LOG("Label_1_" + std::to_string(i) + ": " + std::to_string(labels_1[i]));
+		//	int sym_edge_i = -1;
+		//	for (int j = 0; j < symedges.size(); j++)
+		//	{
+		//		if (symedges[j].edge == labels_1[i])
+		//		{
+		//			LOG("Symedge_" + std::to_string(i) + ": " + std::to_string(j));
+		//			break;
+		//		}
+		//	}
+		//}
 
 		//// segments
 		//auto segment_data_inserted = m_segment_bufs.inserted.get_buffer_data<int>();
@@ -502,7 +522,7 @@ namespace GPU
 		glShaderSource(shader, 1, &c, NULL);
 		glCompileShader(shader);
 		// check for compilation errors as per normal here
-		int success;
+		GLint success;
 		char infoLog[512];
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 

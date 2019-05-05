@@ -54,6 +54,21 @@ namespace GPU
 		GLuint m_locate_point_triangle_program;
 		GLuint m_validate_edges_program;
 		GLuint m_insert_in_edge_program;
+
+		template<typename T>
+		std::vector<int> find_equal(std::vector<T> arr, T e)
+		{
+			std::vector<int> ret;
+			for (int i = 0; i < arr.size(); i++)
+			{
+				if (arr[i] == e)
+				{
+					ret.push_back(i);
+				}
+			}
+			return ret;
+		};
+
 	};
 }
 #endif
