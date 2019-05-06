@@ -123,9 +123,9 @@ void first_test(glm::vec2 static_obstacle_amount, int iterations)
 	test_map.set_num_obsticles(static_obstacle_amount);
 	std::pair<std::vector<glm::vec2>,std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
 
+	// test CPUGPU solution
 	for (int i = 0; i < iterations; i++)
 	{
-
 		GPU::GCMesh gc_mesh({ 1600, 900 });
 		gc_mesh.initiate_buffers({ 10, 10 });
 		
@@ -134,7 +134,30 @@ void first_test(glm::vec2 static_obstacle_amount, int iterations)
 	}
 
 	std::string filename = "Output files/CPUGPU-" + std::to_string(static_obstacle_amount.x * static_obstacle_amount.y) + '-' + std::to_string(data.first.size() + 4);
-	std::ofstream output (filename.c_str(), std::ofstream::out);
+	std::ofstream output(filename.c_str(), std::ofstream::out);
+
+	if (output.is_open())
+	{
+		for (int i = 0; i < iterations; i++)
+		{
+			std::string output_string = std::to_string(i) + ',' + std::to_string(build_times[i * 2]) + ',' + std::to_string(build_times[i * 2 + 1]) + '\n';
+			output << output_string;
+		}
+	}
+	output.close();
+
+	// test GPU solution
+	for (int i = 0; i < iterations; i++)
+	{
+		GPU::GPUMesh gc_mesh({ 1600, 900 });
+		gc_mesh.initiate_buffers({ 10, 10 });
+		
+		build_times.push_back(gc_mesh.build_CDT(data.first, data.second));
+		build_times.push_back(gc_mesh.refine_LCT());
+	}
+
+	filename = "Output files/GPU-" + std::to_string(static_obstacle_amount.x * static_obstacle_amount.y) + '-' + std::to_string(data.first.size() + 4);
+	output.open(filename.c_str(), std::ofstream::out);
 
 	if (output.is_open())
 	{
