@@ -10,7 +10,10 @@ public:
 	TestMap();
 	virtual ~TestMap();
 	void generate_map();
-	std::vector<std::vector<glm::vec2>> get_CPU_obsticles();
+	std::vector<std::vector<glm::vec2>> get_CPU_obstacles();
+	std::vector<std::vector<glm::vec2>> get_CPU_static_obstacles();
+	std::vector<std::vector<glm::vec2>> get_CPU_dynamic_obstacles();
+	std::vector<std::vector<glm::vec2>> get_CPU_frame();
 	std::pair < std::vector<glm::vec2>, std::vector<glm::ivec2>> get_GPU_obstacles();
 	std::pair < std::vector<glm::vec2>, std::vector<glm::ivec2>> get_GPU_static_obstacles();
 	std::pair < std::vector<glm::vec2>, std::vector<glm::ivec2>> get_GPU_dynamic_obstacles();
@@ -21,6 +24,7 @@ public:
 	void set_map_size(glm::vec2 start, glm::vec2 end);
 private:
 	std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> generate_GPU_segments(std::vector<Shape*> &shapes);
+	std::vector<std::vector<glm::vec2>> generate_CPU_segments(std::vector<Shape*> &shapes);
 	std::vector<Shape*> get_static_shapes();
 	std::vector<Shape*> get_dynamic_shapes();
 	void clear_shapes();

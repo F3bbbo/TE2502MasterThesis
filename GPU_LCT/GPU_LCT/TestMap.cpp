@@ -98,16 +98,31 @@ void TestMap::generate_map()
 	}
 }
 
-std::vector<std::vector<glm::vec2>> TestMap::get_CPU_obsticles()
+std::vector<std::vector<glm::vec2>> TestMap::get_CPU_obstacles()
 {
 	generate_map();
-	std::vector<std::vector<glm::vec2>> ret_list;
-	ret_list.reserve(m_shapes.size());
-	for (auto shape : m_shapes)
-	{
-		ret_list.push_back(shape->get_segments());
-	}
-	return ret_list;
+	return generate_CPU_segments(m_shapes);
+}
+
+std::vector<std::vector<glm::vec2>> TestMap::get_CPU_static_obstacles()
+{
+	generate_map();
+	auto shapes = get_static_shapes();
+	return generate_CPU_segments(shapes);
+}
+
+std::vector<std::vector<glm::vec2>> TestMap::get_CPU_dynamic_obstacles()
+{
+	generate_map();
+	auto shapes = get_dynamic_shapes();
+	return generate_CPU_segments(shapes);
+}
+
+std::vector<std::vector<glm::vec2>> TestMap::get_CPU_frame()
+{
+	generate_map();
+	std::vector<Shape*> wall({ m_wall });
+	return generate_CPU_segments(wall);
 }
 
 std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> TestMap::get_GPU_obstacles()
@@ -118,12 +133,14 @@ std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> TestMap::get_GPU_obst
 
 std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> TestMap::get_GPU_static_obstacles()
 {
+	generate_map();
 	auto statics = get_static_shapes();
 	return generate_GPU_segments(statics);
 }
 
 std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> TestMap::get_GPU_dynamic_obstacles()
 {
+	generate_map();
 	auto dynamics = get_dynamic_shapes();
 	return generate_GPU_segments(dynamics);
 }
@@ -191,6 +208,17 @@ std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> TestMap::generate_GPU
 		last_shape_stop = ret_obs.first.size();
 	}
 	return ret_obs;
+}
+
+std::vector<std::vector<glm::vec2>> TestMap::generate_CPU_segments(std::vector<Shape*>& shapes)
+{
+	std::vector<std::vector<glm::vec2>> ret_list;
+	ret_list.reserve(m_shapes.size());
+	for (auto shape : m_shapes)
+	{
+		ret_list.push_back(shape->get_segments());
+	}
+	return ret_list;
 }
 
 std::vector<Shape*> TestMap::get_static_shapes()
