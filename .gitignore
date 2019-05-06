@@ -341,7 +341,7 @@ ASALocalRun/
 healthchecksdb
 
 # Performance test files
-throw_performance_test_*
+throw*
 
 # gspaces licenced files
 gspaces

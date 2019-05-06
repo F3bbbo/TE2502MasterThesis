@@ -473,12 +473,16 @@ namespace GPU
 
 		return ret_val;
 	}
-	void GCMesh::save_to_file(std::string filename, bool upload)
+	std::string GCMesh::save_to_file(bool upload, int inserted_objects)
 	{
+		std::string filename;
+
 		if (upload)
-			filename = "Output files/performance_test_" + filename;
+			filename = "Output files/GC";
 		else
-			filename = "Output files/throw_performance_test_" + filename;
+			filename = "Output files/throwGC";
+		filename += '_' + std::to_string(inserted_objects) + '_' + std::to_string(get_num_vertices());
+
 		std::string str = "";
 		std::ofstream output (filename.c_str(), std::ofstream::out | std::ofstream::binary);
 		int size;
@@ -530,6 +534,8 @@ namespace GPU
 			output.write((char*)sym_edges.data(), size);
 			output.close();
 		}
+
+		return filename;
 	}
 	void GCMesh::load_from_file(std::string filename)
 	{
