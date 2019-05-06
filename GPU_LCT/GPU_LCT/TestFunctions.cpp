@@ -63,3 +63,41 @@ void test_range(glm::ivec2 start_resolution, int iterations, glm::ivec2 start_di
 		// TODO: write output_string to file and add those files to .gitignore, add a flag to be able to push results to git anyways
 	}
 }
+
+void first_test(glm::vec2 static_obstacle_amount, int iterations)
+{
+	// Record building of empty map with static objects only, save:
+	// Filename:[Algorithm]-[obstacle_amount]-[vertice-amount]
+	// [1-10],[time taken to build CDT],[time taken to build LCT]
+
+	std::vector<long long> build_times;
+
+	TestMap test_map;
+	test_map.set_map_size({ 10, 10 }, {-10, -10});
+	test_map.set_num_obsticles(static_obstacle_amount);
+	std::pair<std::vector<glm::vec2>,std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
+
+	for (int i = 0; i < iterations; i++)
+	{
+
+		GPU::GCMesh gc_mesh({ 1600, 900 });
+		gc_mesh.initiate_buffers({ 10, 10 });
+		
+		build_times.push_back(gc_mesh.build_CDT(data.first, data.second));
+		build_times.push_back(gc_mesh.refine_LCT());
+	}
+
+	std::string filename = "Output files/CPUGPU-" + std::to_string(static_obstacle_amount.x * static_obstacle_amount.y) + '-' + std::to_string(data.first.size() + 4);
+	std::ofstream output (filename.c_str(), std::ofstream::out);
+
+	if (output.is_open())
+	{
+		for (int i = 0; i < iterations; i++)
+		{
+			std::string output_string = std::to_string(i) + ',' + std::to_string(build_times[i * 2]) + ',' + std::to_string(build_times[i * 2 + 1]) + '\n';
+			output << output_string;
+		}
+	}
+	output.close();
+}
+
