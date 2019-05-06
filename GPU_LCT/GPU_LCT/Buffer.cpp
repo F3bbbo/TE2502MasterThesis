@@ -6,6 +6,8 @@ Buffer::Buffer()
 
 Buffer::~Buffer()
 {
+	glDeleteBuffers(1, &m_buf);
+	glDeleteBuffers(1, &m_vao);
 }
 
 void Buffer::set_unitform_buffer_block(GLuint program, const char * buffer_name)
