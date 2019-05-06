@@ -82,7 +82,7 @@ namespace GPU
 		m_status.create_buffer(type, std::vector<int>(1, 1), GL_DYNAMIC_DRAW, 12, 1);
 	}
 
-	void GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
+	long long GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
 	{
 		m_point_bufs.positions.append_to_buffer(points);
 		m_point_bufs.inserted.append_to_buffer(std::vector<int>(points.size(), 0));
@@ -202,6 +202,7 @@ namespace GPU
 		LOG(std::string("Number of iterations: ") + std::to_string(counter));
 		LOG(std::string("Elapsed time in ms: ") + std::to_string(timer.elapsed_time()));
 
+		return timer.elapsed_time();
 		/*glUseProgram(m_insert_in_edge_program);
 		glDispatchCompute((GLuint)256, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);*/
@@ -251,7 +252,7 @@ namespace GPU
 		//auto status_data = m_status.get_buffer_data<int>();
 	}
 
-	void GPUMesh::refine_LCT()
+	long long GPUMesh::refine_LCT()
 	{
 		int i = 0;
 		int num_new_points;
@@ -277,6 +278,9 @@ namespace GPU
 		m_epsilon_buff.bind_buffer();
 
 		m_status.bind_buffer();
+
+		Timer timer;
+		timer.start();
 
 		do
 		{
@@ -407,6 +411,8 @@ namespace GPU
 				break;
 			}
 		} while (false);
+		timer.stop();
+		return timer.elapsed_time();
 	}
 
 	std::vector<glm::vec2> GPUMesh::get_vertices()
