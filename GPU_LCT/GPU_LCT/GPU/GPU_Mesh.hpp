@@ -24,6 +24,7 @@ namespace GPU
 		std::vector<std::pair<glm::ivec2, bool>> get_edges();
 		std::vector<glm::ivec3> get_faces();
 		int locate_face(glm::vec2 p);
+		void set_epsilon(float epsi);
 	private:
 		void setup_compute_shaders();
 		void compile_cs(GLuint& program, const char* path, int work_group_size = 64);
@@ -37,6 +38,8 @@ namespace GPU
 		Buffer m_refine_points;
 		Buffer m_nr_of_symedges;
 		Buffer m_status;
+		Buffer m_epsilon_buff;
+		float m_epsilon = 0.001f;
 
 		// CDT shaders
 		GLuint m_location_program;

@@ -1,5 +1,4 @@
 ﻿#version 430
-#define EPSILON 0.0001f
 layout(local_size_x = 1, local_size_y = 1) in;
 
 struct SymEdge{
@@ -74,6 +73,16 @@ layout(std430, binding = 12) buffer status_buff
 {
 	int status;
 };
+
+
+//-----------------------------------------------------------
+// Uniforms
+//-----------------------------------------------------------
+layout (std140, binding = 1) uniform epsilon_buff
+{
+	float EPSILON;
+};
+
 //-----------------------------------------------------------
 // Access funcitons
 //-----------------------------------------------------------
@@ -178,9 +187,7 @@ int get_label(int index)
 {
 	return edge_label[index];
 }
-//-----------------------------------------------------------
-// Uniforms
-//-----------------------------------------------------------
+
 void get_face(int face_i, out vec2 face_v[3])
 {
 	face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
@@ -193,6 +200,11 @@ bool face_contains_vertex(int vert, SymEdge s_triangle)
 	ivec3 tri = ivec3(s_triangle.vertex, get_symedge(s_triangle.nxt).vertex, prev_symedge(s_triangle).vertex);
 	return vert == tri.x || vert == tri.y || vert == tri.z;
 }
+
+
+
+
+
 //-----------------------------------------------------------
 // Math Functions
 //-----------------------------------------------------------

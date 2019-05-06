@@ -77,6 +77,8 @@ namespace GPU
 
 		m_nr_of_symedges.create_uniform_buffer<int>({ m_sym_edges.element_count() }, usage);
 
+		m_epsilon_buff.create_uniform_buffer<float>({ m_epsilon }, usage, 1);
+
 		m_status.create_buffer(type, std::vector<int>(1, 1), GL_DYNAMIC_DRAW, 12, 1);
 	}
 
@@ -135,6 +137,7 @@ namespace GPU
 
 		m_sym_edges.bind_buffer();
 		m_nr_of_symedges.bind_buffer();
+		m_epsilon_buff.bind_buffer();
 
 		m_status.bind_buffer();
 
@@ -252,6 +255,29 @@ namespace GPU
 	{
 		int i = 0;
 		int num_new_points;
+		// bind all buffers
+		m_point_bufs.positions.bind_buffer();
+		m_point_bufs.inserted.bind_buffer();
+		m_point_bufs.tri_index.bind_buffer();
+
+		m_edge_bufs.label.bind_buffer();
+		m_edge_bufs.is_constrained.bind_buffer();
+
+		m_segment_bufs.endpoint_indices.bind_buffer();
+		m_segment_bufs.inserted.bind_buffer();
+
+		m_triangle_bufs.symedge_indices.bind_buffer();
+		m_triangle_bufs.ins_point_index.bind_buffer();
+		m_triangle_bufs.seg_inters_index.bind_buffer();
+		m_triangle_bufs.edge_flip_index.bind_buffer();
+		m_refine_points.bind_buffer();
+
+		m_sym_edges.bind_buffer();
+		m_nr_of_symedges.bind_buffer();
+		m_epsilon_buff.bind_buffer();
+
+		m_status.bind_buffer();
+
 		do
 		{
 			// Locate disturbances
@@ -471,6 +497,12 @@ namespace GPU
 		}
 
 		return ret_val;
+	}
+
+	void GPUMesh::set_epsilon(float epsi)
+	{
+		m_epsilon = epsi;
+		m_epsilon_buff.update_buffer<float>({ m_epsilon });
 	}
 
 	void GPUMesh::setup_compute_shaders()

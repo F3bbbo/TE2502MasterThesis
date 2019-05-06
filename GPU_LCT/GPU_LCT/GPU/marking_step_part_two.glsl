@@ -1,6 +1,5 @@
 #version 430
 #define FLT_MAX 3.402823466e+38
-#define EPSILON 0.0001f
 precision highp float;
 layout(local_size_x = 1, local_size_y = 1) in;
 
@@ -86,6 +85,15 @@ layout(std430, binding = 13) buffer Tri_buff_4
 	NewPoint tri_insert_points[];
 };
 
+
+//-----------------------------------------------------------
+// Uniforms
+//-----------------------------------------------------------
+layout (std140, binding = 1) uniform epsilon_buff
+{
+	float EPSILON;
+};
+
 //-----------------------------------------------------------
 // Access funcitons
 //-----------------------------------------------------------
@@ -149,10 +157,6 @@ void get_face(in int face_i, out vec2 face_v[3])
 	face_v[1] = point_positions[sym_edges[tri_symedges[face_i].y].vertex];
 	face_v[2] = point_positions[sym_edges[tri_symedges[face_i].z].vertex];
 }
-
-//-----------------------------------------------------------
-// Uniforms
-//-----------------------------------------------------------
 
 //-----------------------------------------------------------
 // Math Functions

@@ -1,6 +1,5 @@
 #version 430
 #define FLT_MAX 3.402823466e+38
-#define EPSILON 0.0001f
 layout(local_size_x = 1, local_size_y= 1) in;
 
 struct SymEdge{
@@ -78,6 +77,11 @@ layout(std430, binding = 12) buffer status_buff
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
+
+layout (std140, binding = 1) uniform epsilon_buff
+{
+	float EPSILON;
+};
 
 //-----------------------------------------------------------
 // Access Functions
