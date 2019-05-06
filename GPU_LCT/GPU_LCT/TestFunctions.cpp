@@ -11,6 +11,63 @@
 // Test: 3
 // Filename:[Algorithm]-[static_obstacle_amount]
 // [1-10],[number of starting vertices],[number of added vertices],[number of static obstacles],[number of dynamic obstacles],[time taken to build CDT],[time taken to build LCT]
+void generate_third_test_input(std::string filename_end, std::vector<glm::vec2> static_obstacles_list, std::vector<glm::vec2> dynamic_obstacle_list)
+{
+	if (static_obstacles_list.size() != dynamic_obstacle_list.size())
+	{
+		LOG(WARNING, "The static and dynamic obstacle list must match in size.");
+		return;
+	}
+
+	std::string filename = "third_test_input-" + filename_end;
+
+	std::ofstream output (filename.c_str(), std::ofstream::out | std::ofstream::binary);
+	if (output.is_open())
+	{
+		int num = static_obstacles_list.size();
+		output.write((char*)&num, sizeof(int));
+		for (int i = 0; i < static_obstacles_list.size(); i++)
+		{
+			TestMap test_map;
+			test_map.set_num_obsticles(static_obstacles_list[i]);
+			test_map.set_map_size({ 45, 45 }, { -45, -45 });
+			//test_map.set_num_dynamic_obstacles(dynamic_obstacle_list[i]);
+
+			GPU::GCMesh gc_mesh({ 1600, 800 });
+			auto static_obstacle_data = test_map.get_GPU_obstacles();
+			gc_mesh.build_CDT(static_obstacle_data.first, static_obstacle_data.second);
+			gc_mesh.refine_LCT();
+
+			std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> d_data; // test_map.get_dynamic_obstacle_data();
+			std::string mesh_filename = gc_mesh.save_to_file(false, static_obstacles_list[i].x * static_obstacles_list[i].y);
+			
+			// save filename of mesh
+			num = sizeof(char) * mesh_filename.size();
+			output.write((char*)&num, sizeof(int));
+			output.write(mesh_filename.c_str(), num);
+			
+			// save number of static obstacles
+			num = static_obstacles_list[i].x * static_obstacles_list[i].y;
+			output.write((char*)&num, sizeof(int));
+			num = gc_mesh.get_num_vertices();
+			output.write((char*)&num, sizeof(int));
+
+			// save number of dynamic obstacles
+			num = dynamic_obstacle_list[i].x * dynamic_obstacle_list[i].y;
+			output.write((char*)&num, sizeof(int));
+
+			// save dynamic vertices 
+			num = sizeof(glm::vec2) * d_data.first.size();
+			output.write((char*)&num, sizeof(int));
+			output.write((char*)d_data.first.data(), num);
+
+			num = sizeof(glm::ivec2) * d_data.second.size();
+			output.write((char*)&num, sizeof(int));
+			output.write((char*)d_data.second.data(), num);
+		}
+		output.close();
+	}
+}
 
 void test_range(glm::ivec2 start_resolution, int iterations, glm::ivec2 start_dims, glm::ivec2 dim_increase, glm::ivec2 start_obstacles, glm::ivec2 obstacle_increase, bool build_lct)
 {
