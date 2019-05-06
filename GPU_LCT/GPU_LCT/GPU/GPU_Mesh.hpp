@@ -39,7 +39,7 @@ namespace GPU
 		Buffer m_nr_of_symedges;
 		Buffer m_status;
 		Buffer m_epsilon_buff;
-		float m_epsilon = 0.001f;
+		float m_epsilon = 0.0001f;
 
 		// CDT shaders
 		GLuint m_location_program;
