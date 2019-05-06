@@ -155,6 +155,8 @@ int main()
 
 	test_test_map(gc_mesh, g_mesh, map_scaling, num_objects);
 
+	//generate_third_test_input("test2", { {{300, 300}, 0.25f} });
+	//third_test("test2");
 	//gc_mesh.save_to_file("test.txt", false);
 	//gc_mesh.load_from_file("test.txt");
 

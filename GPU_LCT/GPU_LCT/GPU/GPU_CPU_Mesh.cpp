@@ -539,7 +539,6 @@ namespace GPU
 	}
 	void GCMesh::load_from_file(std::string filename)
 	{
-		filename = "Output files/performance_test_" + filename;
 		std::ifstream input (filename.c_str(), std::ifstream::in | std::ifstream::binary);
 		int value;
 		if (input.is_open())

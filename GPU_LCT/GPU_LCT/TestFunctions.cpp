@@ -11,59 +11,48 @@
 // Test: 3
 // Filename:[Algorithm]-[static_obstacle_amount]
 // [1-10],[number of starting vertices],[number of added vertices],[number of static obstacles],[number of dynamic obstacles],[time taken to build CDT],[time taken to build LCT]
-void generate_third_test_input(std::string filename_end, std::vector<glm::vec2> static_obstacles_list, std::vector<glm::vec2> dynamic_obstacle_list)
+void generate_third_test_input(std::string filename_end, std::vector<std::pair<glm::vec2, float>> total_obstacle_amount)
 {
-	if (static_obstacles_list.size() != dynamic_obstacle_list.size())
-	{
-		LOG_T(WARNING, "The static and dynamic obstacle list must match in size.");
-		return;
-	}
-
-	std::string filename = "third_test_input-" + filename_end;
+	std::string filename = "Output files/third_test_input-" + filename_end;
 
 	std::ofstream output (filename.c_str(), std::ofstream::out | std::ofstream::binary);
 	if (output.is_open())
 	{
-		int num = static_obstacles_list.size();
+		int num = total_obstacle_amount.size();
 		output.write((char*)&num, sizeof(int));
-		for (int i = 0; i < static_obstacles_list.size(); i++)
+		for (int i = 0; i < total_obstacle_amount.size(); i++)
 		{
 			TestMap test_map;
-			test_map.set_num_obsticles(static_obstacles_list[i]);
+			test_map.set_num_obsticles(total_obstacle_amount[i].first);
+			test_map.set_static_quota(total_obstacle_amount[i].second);
+			test_map.set_dynamic_quota(1.f); // We want all of the dynamic objects
 			test_map.set_map_size({ 45, 45 }, { -45, -45 });
-			//test_map.set_num_dynamic_obstacles(dynamic_obstacle_list[i]);
 
 			GPU::GCMesh gc_mesh({ 1600, 800 });
-			auto static_obstacle_data = test_map.get_GPU_obstacles();
+			auto static_obstacle_data = test_map.get_GPU_static_obstacles();
 			gc_mesh.build_CDT(static_obstacle_data.first, static_obstacle_data.second);
 			gc_mesh.refine_LCT();
 
-			std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> d_data; // test_map.get_dynamic_obstacle_data();
-			std::string mesh_filename = gc_mesh.save_to_file(false, static_obstacles_list[i].x * static_obstacles_list[i].y);
+			auto dynamic_obstacle_data = test_map.get_GPU_dynamic_obstacles();
+			std::string mesh_filename = gc_mesh.save_to_file(false, static_obstacle_data.first.size());
 			
 			// save filename of mesh
 			num = sizeof(char) * mesh_filename.size();
 			output.write((char*)&num, sizeof(int));
 			output.write(mesh_filename.c_str(), num);
 			
-			// save number of static obstacles
-			num = static_obstacles_list[i].x * static_obstacles_list[i].y;
-			output.write((char*)&num, sizeof(int));
+			// save number of static obstacle vertices
 			num = gc_mesh.get_num_vertices();
 			output.write((char*)&num, sizeof(int));
 
-			// save number of dynamic obstacles
-			num = dynamic_obstacle_list[i].x * dynamic_obstacle_list[i].y;
-			output.write((char*)&num, sizeof(int));
-
 			// save dynamic vertices 
-			num = sizeof(glm::vec2) * d_data.first.size();
+			num = (int)dynamic_obstacle_data.first.size() * (int)sizeof(glm::vec2);
 			output.write((char*)&num, sizeof(int));
-			output.write((char*)d_data.first.data(), num);
-
-			num = sizeof(glm::ivec2) * d_data.second.size();
+			output.write((char*)dynamic_obstacle_data.first.data(), num);
+			
+			num = sizeof(glm::ivec2) * dynamic_obstacle_data.second.size();
 			output.write((char*)&num, sizeof(int));
-			output.write((char*)d_data.second.data(), num);
+			output.write((char*)dynamic_obstacle_data.second.data(), num);
 		}
 		output.close();
 	}
@@ -161,10 +150,10 @@ void first_test(glm::vec2 static_obstacle_amount, int iterations)
 void third_test(std::string input_file)
 {
 	// Test: 3
-	// Filename:[Algorithm]-[static_obstacle_amount]-[number of starting vertices]-[number of dynamic obstacles]-[number of dynamic obstacle vertices]
+	// Filename:[Algorithm]-[number of static vertices]-[number of dynamic obstacle vertices]
 	// [1-10],[time taken to build CDT],[time taken to build LCT]-[number of added refinement vertices]
-	std::string input_filename = "Output files/" + input_file;
-	std::ifstream input (input_filename.c_str(), std::ifstream::in | std::ifstream::binary);
+	std::string input_filename = "Output files/third_test_input-" + input_file;
+	std::ifstream input(input_filename.c_str(), std::ios::in | std::ios::binary);
 	int maps;
 	if (!input.is_open())
 	{
@@ -178,37 +167,30 @@ void third_test(std::string input_file)
 	for (int i = 0; i < maps; i++)
 	{
 		input.read((char*)&size, sizeof(int));
-		char* mesh_name = new char[size];
-		input.read(mesh_name, size);
-			
+		char* mesh_name_c = new char[size];
+		input.read(mesh_name_c, size);
+		std::string mesh_name(mesh_name_c, size);
+
 		GPU::GCMesh gc_mesh({ 1600, 800 });
 		gc_mesh.load_from_file(mesh_name);
 		GPU::GCMesh gc_mesh_copy = gc_mesh;
-
-		std::array<int, 2> obstacle_amount;
+		
 		int num_static_vertices;
-		input.read((char*)obstacle_amount[0], sizeof(int)); // get number of static objects
-		input.read((char*)num_static_vertices, sizeof(int)); // get number of static object vertices
-		input.read((char*)obstacle_amount[1], sizeof(int)); // get number of dynamic objects
+		input.read((char*)&num_static_vertices, sizeof(int)); // get number of static object vertices
 
 		input.read((char*)&size, sizeof(int)); // get size of vertive data in bytes
-		glm::vec2* vertice_data = new glm::vec2[size / sizeof(glm::vec2)];
-		input.read((char*)vertice_data, sizeof(size)); // get vertice data
 		std::vector<glm::vec2> dynamic_vertices;
-		dynamic_vertices.assign(vertice_data, vertice_data + size / sizeof(glm::vec2));
-		delete[] vertice_data;
+		dynamic_vertices.resize(size / sizeof(glm::vec2));
+		input.read((char*)dynamic_vertices.data(), size); // get vertice data
 
 		input.read((char*)&size, sizeof(int)); // get size of vertice indices size
-		glm::ivec2* index_data = new glm::ivec2[size / sizeof(glm::ivec2)];
-		input.read((char*)index_data, sizeof(size)); // get indices data
 		std::vector<glm::ivec2> dynamic_vertex_indices;
-		dynamic_vertex_indices.assign(index_data, index_data + size / sizeof(glm::ivec2));
-		delete[] index_data;
+		dynamic_vertex_indices.resize(size / sizeof(glm::ivec2));
+		input.read((char*)dynamic_vertex_indices.data(), size); // get indices data
 
 		// All input data has been loaded
 
-		std::string output_filename = "Output files/result_of_" + input_file + "CPUGPU-" + std::to_string(obstacle_amount[0]) + '-' + std::to_string(num_static_vertices)
-			+ '-' + std::to_string(obstacle_amount[1]) + '-' + std::to_string(dynamic_vertices.size());
+		std::string output_filename = "Output files/result_of_" + input_file + "_CPUGPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size());
 		std::ofstream output (output_filename.c_str(), std::ifstream::out);
 
 		if (!output.is_open())
@@ -222,9 +204,9 @@ void third_test(std::string input_file)
 		{
 			build_times.push_back(gc_mesh.build_CDT(dynamic_vertices, dynamic_vertex_indices));
 			build_times.push_back(gc_mesh.refine_LCT());
-			gc_mesh = gc_mesh_copy;
 
-			output << std::to_string(j) + ',' + std::to_string(build_times[j * 2]) + ',' + std::to_string(build_times[j * 2 + 1]) + ',' + std::to_string((int)gc_mesh.get_num_vertices() - num_static_vertices);
+			output << std::to_string(j) + ',' + std::to_string(build_times[j * 2]) + ',' + std::to_string(build_times[j * 2 + 1]) + ',' + std::to_string((int)gc_mesh.get_num_vertices() - num_static_vertices - (int)dynamic_vertices.size()) + '\n';
+			gc_mesh = gc_mesh_copy;
 		}
 		output.close();
 	}
