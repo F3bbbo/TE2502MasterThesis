@@ -4,7 +4,8 @@
 
 TestMap::TestMap()
 {
-
+	m_static_quota = 1.0f;
+	m_dynamic_quota = 1.0f;
 }
 
 TestMap::~TestMap()
@@ -112,23 +113,19 @@ std::vector<std::vector<glm::vec2>> TestMap::get_CPU_obsticles()
 std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> TestMap::get_GPU_obstacles()
 {
 	generate_map();
-	std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> ret_obs;
-	int last_shape_stop = 0;
-	for (auto shape : m_shapes)
-	{
-		auto new_points = shape->get_segments();
-		ret_obs.first.insert(ret_obs.first.end(), new_points.begin(), std::prev(new_points.end()));
-		// add the segment indices
-		unsigned int curr_i;
-		for (unsigned int i = 0; i < new_points.size() - 2; i++)
-		{
-			curr_i = last_shape_stop + i;
-			ret_obs.second.push_back(glm::ivec2(curr_i, curr_i + 1));
-		}
-		ret_obs.second.push_back(glm::ivec2(curr_i + 1, last_shape_stop));
-		last_shape_stop = ret_obs.first.size();
-	}
-	return ret_obs;
+	return generate_GPU_segments(m_shapes);
+}
+
+std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> TestMap::get_GPU_static_obstacles()
+{
+	auto statics = get_static_shapes();
+	return generate_GPU_segments(statics);
+}
+
+std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> TestMap::get_GPU_dynamic_obstacles()
+{
+	auto dynamics = get_dynamic_shapes();
+	return generate_GPU_segments(dynamics);
 }
 
 std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> TestMap::get_GPU_frame()
@@ -157,6 +154,16 @@ void TestMap::set_num_obsticles(glm::ivec2 num)
 	m_dirty = true;
 }
 
+void TestMap::set_static_quota(float quota)
+{
+	m_static_quota = quota;
+}
+
+void TestMap::set_dynamic_quota(float quota)
+{
+	m_dynamic_quota = quota;
+}
+
 void TestMap::set_map_size(glm::vec2 start, glm::vec2 end)
 {
 	m_start = start;
@@ -164,6 +171,73 @@ void TestMap::set_map_size(glm::vec2 start, glm::vec2 end)
 	m_dirty = true;
 }
 
+
+std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> TestMap::generate_GPU_segments(std::vector<Shape*>& shapes)
+{
+	std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> ret_obs;
+	int last_shape_stop = 0;
+	for (auto shape : shapes)
+	{
+		auto new_points = shape->get_segments();
+		ret_obs.first.insert(ret_obs.first.end(), new_points.begin(), std::prev(new_points.end()));
+		// add the segment indices
+		unsigned int curr_i;
+		for (unsigned int i = 0; i < new_points.size() - 2; i++)
+		{
+			curr_i = last_shape_stop + i;
+			ret_obs.second.push_back(glm::ivec2(curr_i, curr_i + 1));
+		}
+		ret_obs.second.push_back(glm::ivec2(curr_i + 1, last_shape_stop));
+		last_shape_stop = ret_obs.first.size();
+	}
+	return ret_obs;
+}
+
+std::vector<Shape*> TestMap::get_static_shapes()
+{
+	std::vector<Shape*> statics;
+	int last_full_num = 0;
+	float counter = 0.0f;
+	for (int i = 0; i < m_shapes.size(); i++)
+	{
+		counter += m_static_quota;
+		if (last_full_num < int(counter))
+		{
+			statics.push_back(m_shapes[i]);
+			last_full_num = int(counter);
+		}
+	}
+	return statics;
+}
+
+std::vector<Shape*> TestMap::get_dynamic_shapes()
+{
+	std::vector<Shape*> dynamics;
+	int static_last_full_num = 0;
+	float static_counter = 0.0f;
+	int dyna_last_full_num = 0;
+	float dyna_counter = 0.0f;
+	for (int i = 0; i < m_shapes.size(); i++)
+	{
+		// ignore statics objects
+		static_counter += m_static_quota;
+		if (static_last_full_num < int(static_counter))
+		{
+			static_last_full_num = int(static_counter);
+		}
+		else
+		{
+			dyna_counter += m_dynamic_quota;
+			if (dyna_last_full_num < int(dyna_counter))
+			{
+				dynamics.push_back(m_shapes[i]);
+				dyna_last_full_num = int(dyna_counter);
+			}
+		}
+
+	}
+	return dynamics;
+}
 
 void TestMap::clear_shapes()
 {

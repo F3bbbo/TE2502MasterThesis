@@ -107,6 +107,8 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	TestMap test_map;
 	test_map.set_map_size(dims, -dims);
 	test_map.set_num_obsticles(num_objects);
+	test_map.set_static_quota(0.25f);
+	test_map.set_dynamic_quota(0.5f);
 
 	//auto obsticles = test_map.get_CPU_obsticles();
 	//for (unsigned int i = 0; i < obsticles.size(); i++)
@@ -116,12 +118,14 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 
 	// create GPU data
 	auto gpu_frame = test_map.get_GPU_frame();
-	auto gpu_map = test_map.get_GPU_obstacles();
+	auto gpu_map = test_map.get_GPU_static_obstacles();
+	auto dynamic_obj = test_map.get_GPU_dynamic_obstacles();
 	//m.build_CDT(gpu_map.first, gpu_map.second);
 	//m.refine_LCT();
 	g_m.build_CDT(gpu_frame.first, gpu_frame.second);
 	g_m.build_CDT(gpu_map.first, gpu_map.second);
-	g_m.refine_LCT();
+	g_m.build_CDT(dynamic_obj.first, dynamic_obj.second);
+	//g_m.refine_LCT();
 }
 
 int main()
@@ -129,7 +133,7 @@ int main()
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
 	float scale = 45.0f;
-	int num_object_multi = 122;
+	int num_object_multi = 50;
 	glm::vec2 map_scaling = { scale, scale };
 	glm::ivec2 num_objects = { num_object_multi, num_object_multi };
 	GPU::GPUMesh g_mesh({ 1600, 800 });
