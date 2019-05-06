@@ -420,6 +420,11 @@ namespace GPU
 		return m_point_bufs.positions.get_buffer_data<glm::vec2>();
 	}
 
+	int GPUMesh::get_num_vertices()
+	{
+		return m_point_bufs.positions.element_count();
+	}
+
 	glm::vec2 GPUMesh::get_vertex(int index)
 	{
 		std::vector<glm::vec2> vertices = m_point_bufs.positions.get_buffer_data<glm::vec2>(index, 1);
