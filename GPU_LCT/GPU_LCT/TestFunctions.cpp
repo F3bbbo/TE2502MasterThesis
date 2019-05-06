@@ -15,7 +15,7 @@ void generate_third_test_input(std::string filename_end, std::vector<glm::vec2> 
 {
 	if (static_obstacles_list.size() != dynamic_obstacle_list.size())
 	{
-		LOG(WARNING, "The static and dynamic obstacle list must match in size.");
+		LOG_T(WARNING, "The static and dynamic obstacle list must match in size.");
 		return;
 	}
 
