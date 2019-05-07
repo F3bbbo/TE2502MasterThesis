@@ -529,7 +529,7 @@ void process_triangle(int segment_index, SymEdge triangle)
 
 bool check_side(vec2 direction, vec2 other)
 {
-	return dot(direction, other) > 0.f ? true : false;
+	return dot(direction, other) >= 0.f ? true : false;
 }
 
 bool polygonal_is_strictly_convex(int num, vec2 p1, vec2 p2, vec2 p3, vec2 p4, vec2 p5 = vec2(0.f, 0.f))
