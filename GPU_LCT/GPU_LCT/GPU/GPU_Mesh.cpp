@@ -283,12 +283,16 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-
+			//if (counter >= 9 && number_iter == 1)
+			//	break;
 
 			// Marking Step
 			glUseProgram(m_marking_part_one_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+			if (counter >= 31)
+				break;
 
 			glUseProgram(m_marking_part_two_program);
 			glDispatchCompute((GLuint)256, 1, 1);
@@ -325,22 +329,22 @@ namespace GPU
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);*/
 
 		//auto point_data_pos = m_point_bufs.positions.get_buffer_data<glm::vec2>();
-		//auto point_data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
+		auto point_data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
 		//auto point_data_triangle_index = m_point_bufs.tri_index.get_buffer_data<int>();
 
-		//// symedges
-		//auto symedges = m_sym_edges.get_buffer_data<SymEdge>();
+		// symedges
+		auto symedges = m_sym_edges.get_buffer_data<SymEdge>();
 
-		////// edges
-		//auto edge_data_labels = m_edge_bufs.label.get_buffer_data<int>();
-		//auto edge_data_is_constrained = m_edge_bufs.is_constrained.get_buffer_data<int>();
+		//// edges
+		auto edge_data_labels = m_edge_bufs.label.get_buffer_data<int>();
+		auto edge_data_is_constrained = m_edge_bufs.is_constrained.get_buffer_data<int>();
 
-		//auto labels_3 = find_equal(edge_data_labels, 3);
-		//LOG("Label_3: " + std::to_string(labels_3.size()));
-		//auto labels_2 = find_equal(edge_data_labels, 2);
-		//LOG("Label_2: " + std::to_string(labels_2.size()));
-		//auto labels_1 = find_equal(edge_data_labels, 1);
-		//LOG("Label_1: " + std::to_string(labels_1.size()));
+		auto labels_3 = find_equal(edge_data_labels, 3);
+		LOG("Label_3: " + std::to_string(labels_3.size()));
+		auto labels_2 = find_equal(edge_data_labels, 2);
+		LOG("Label_2: " + std::to_string(labels_2.size()));
+		auto labels_1 = find_equal(edge_data_labels, 1);
+		LOG("Label_1: " + std::to_string(labels_1.size()));
 		//for (int i = 0; i < labels_1.size(); i++)
 		//{
 		//	LOG("Label_1_" + std::to_string(i) + ": " + std::to_string(labels_1[i]));
