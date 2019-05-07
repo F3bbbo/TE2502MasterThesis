@@ -160,6 +160,8 @@ public:
 	int element_count();
 	GLuint buffer_size();
 
+	void clear();
+
 	template <typename Data>
 	void update_buffer(std::vector<Data> data)
 	{
