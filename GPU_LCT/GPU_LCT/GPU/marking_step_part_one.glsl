@@ -386,12 +386,6 @@ int oriented_walk_point(int start_e, int goal_point_i)
 	int counter = 0;
 	while (true)
 	{
-//		if(counter++> 1001)
-//		{
-//			edge_label[sym_edges[curr_e].edge] = -2;
-//			point_inserted[goal_point_i] = sym_edges[curr_e].edge;
-//			return -1;
-//		}
 		if (face_contains_vertice(sym_edges[curr_e].face, goal_point_i))
 			return get_face_vertex_symedge(sym_edges[curr_e].face, goal_point_i);
 
@@ -472,7 +466,6 @@ int oriented_walk_point(int start_e, int goal_point_i)
 			}
 			curr_e = sym_edges[curr_e].nxt;
 		}
-		epsi *= 2.0f;
 
 	}
 	return -1;
@@ -744,27 +737,30 @@ void main(void)
 	{
 		if (seg_inserted[index] == 0)
 		{
-			int endpoints_inserted = point_inserted[seg_endpoint_indices[index].x] * point_inserted[seg_endpoint_indices[index].y];
-			if (endpoints_inserted == 1)
+			if (seg_endpoint_indices[index].x > -1)
 			{
-				int start_index = tri_symedges[point_tri_index[seg_endpoint_indices[index].x]].x;
-				int starting_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].x);
-				int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y);
-				// update the points triangle indexes
-				point_tri_index[sym_edges[starting_symedge].vertex] = sym_edges[starting_symedge].face;
-				point_tri_index[sym_edges[ending_symedge].vertex] = sym_edges[ending_symedge].face;
-				int connecting_edge = points_connected(starting_symedge, ending_symedge);
-				if (connecting_edge != -1)
+				int endpoints_inserted = point_inserted[seg_endpoint_indices[index].x] * point_inserted[seg_endpoint_indices[index].y];
+				if (endpoints_inserted == 1)
 				{
-					edge_is_constrained[connecting_edge] = index;
-					edge_label[connecting_edge] = 0;
-					seg_inserted[index] = 1;
-					status = 1;
-				}
-				else
-				{
-					straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
-					straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
+					int start_index = tri_symedges[point_tri_index[seg_endpoint_indices[index].x]].x;
+					int starting_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].x);
+					int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y);
+					// update the points triangle indexes
+					point_tri_index[sym_edges[starting_symedge].vertex] = sym_edges[starting_symedge].face;
+					point_tri_index[sym_edges[ending_symedge].vertex] = sym_edges[ending_symedge].face;
+					int connecting_edge = points_connected(starting_symedge, ending_symedge);
+					if (connecting_edge != -1)
+					{
+						edge_is_constrained[connecting_edge] = index;
+						edge_label[connecting_edge] = 0;
+						seg_inserted[index] = 1;
+						status = 1;
+					}
+					else
+					{
+						straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
+						straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
+					}
 				}
 			}
 		}

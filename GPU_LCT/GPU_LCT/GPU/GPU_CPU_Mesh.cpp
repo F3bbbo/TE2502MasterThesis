@@ -181,12 +181,13 @@ namespace GPU
 
 	long long GCMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
 	{
+		int num_old_points = point_positions.size();
 		append_vec(point_positions, points);
 		append_vec(point_inserted, std::vector<int>(points.size(), 0));
 		append_vec(point_tri_index, std::vector<int>(points.size(), 0));
 
 		for (auto& segment : segments)
-			segment = segment + glm::ivec2(seg_endpoint_indices.size());
+			segment = segment + glm::ivec2(num_old_points);
 		append_vec(seg_endpoint_indices, segments);
 		append_vec(seg_inserted, std::vector<int>(segments.size(), 0));
 		// uppdating ubo containing sizes
@@ -222,7 +223,7 @@ namespace GPU
 		Timer timer;
 		timer.start();
 
-		int cont = status;
+		int cont = 1;
 		while (cont)
 		{
 			counter++;
@@ -248,6 +249,7 @@ namespace GPU
 			//if (counter == 10)
 			//	break;
 			//// Marking Step
+
 			marking_part_one_program();
 			//glUseProgram(m_marking_part_one_program);
 			//glDispatchCompute((GLuint)256, 1, 1);
@@ -1159,27 +1161,30 @@ namespace GPU
 		{
 			if (seg_inserted[index] == 0)
 			{
-				int endpoints_inserted = point_inserted[seg_endpoint_indices[index].x] * point_inserted[seg_endpoint_indices[index].y];
-				if (endpoints_inserted == 1)
+				if (seg_endpoint_indices[index].x > -1)
 				{
-					int start_index = tri_symedges[point_tri_index[seg_endpoint_indices[index].x]].x;
-					int starting_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].x);
-					int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y);
-					// update the points triangle indexes
-					point_tri_index[sym_edges[starting_symedge].vertex] = sym_edges[starting_symedge].face;
-					point_tri_index[sym_edges[ending_symedge].vertex] = sym_edges[ending_symedge].face;
-					int connecting_edge = points_connected(starting_symedge, ending_symedge);
-					if (connecting_edge != -1)
+					int endpoints_inserted = point_inserted[seg_endpoint_indices[index].x] * point_inserted[seg_endpoint_indices[index].y];
+					if (endpoints_inserted == 1)
 					{
-						edge_is_constrained[connecting_edge] = index;
-						edge_label[connecting_edge] = 0;
-						seg_inserted[index] = 1;
-						status = 1;
-					}
-					else
-					{
-						straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
-						straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
+						int start_index = tri_symedges[point_tri_index[seg_endpoint_indices[index].x]].x;
+						int starting_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].x);
+						int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y);
+						// update the points triangle indexes
+						point_tri_index[sym_edges[starting_symedge].vertex] = sym_edges[starting_symedge].face;
+						point_tri_index[sym_edges[ending_symedge].vertex] = sym_edges[ending_symedge].face;
+						int connecting_edge = points_connected(starting_symedge, ending_symedge);
+						if (connecting_edge != -1)
+						{
+							edge_is_constrained[connecting_edge] = index;
+							edge_label[connecting_edge] = 0;
+							seg_inserted[index] = 1;
+							status = 1;
+						}
+						else
+						{
+							straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
+							straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
+						}
 					}
 				}
 			}
@@ -1585,6 +1590,7 @@ namespace GPU
 				edge_is_constrained[edge1] = new_segment_index;
 
 				// mark as maybe non delauney
+				seg_inserted[new_segment_index] = 1;
 
 				edge_label[get_symedge(e1).edge] = edge_is_constrained[get_symedge(e1).edge] == -1 ? 1 : edge_label[get_symedge(e1).edge];
 				edge_label[get_symedge(e2).edge] = edge_is_constrained[get_symedge(e2).edge] == -1 ? 1 : edge_label[get_symedge(e2).edge];
@@ -1638,7 +1644,7 @@ namespace GPU
 					tri_symedges[t2] = ivec4(new_symedges[5], e3, new_symedges[4], -1);
 					tri_symedges[t3] = ivec4(new_symedges[3], e4, segment_symedges[1], -1);
 
-					seg_inserted[new_segment_index] = 1;
+
 
 					// mark as maybe non delauney
 					edge_label[get_symedge(e3).edge] = edge_is_constrained[get_symedge(e3).edge] == -1 ? 1 : edge_label[get_symedge(e3).edge];
@@ -1813,15 +1819,17 @@ namespace GPU
 		}
 		return true;
 	}
-	int GCMesh::oriented_walk_point(int curr_e, int goal_point_i)
+	int GCMesh::oriented_walk_point(int start_e, int goal_point_i)
 	{
+		int curr_e = start_e;
 		vec2 tri_cent;
 		vec2 goal_point = get_vertex(goal_point_i);
 		float epsi = EPSILON;
+		int counter = 0;
 		while (true)
 		{
-			if (face_contains_vertice(get_symedge(curr_e).face, goal_point_i))
-				return get_face_vertex_symedge(get_symedge(curr_e).face, goal_point_i);
+			if (face_contains_vertice(sym_edges[curr_e].face, goal_point_i))
+				return get_face_vertex_symedge(sym_edges[curr_e].face, goal_point_i);
 
 			tri_cent = get_face_center(sym_edges[curr_e].face);
 
@@ -1836,27 +1844,27 @@ namespace GPU
 					continue;
 				}
 
-
+				vec2 s1 = point_positions[sym_edges[curr_e].vertex];
+				vec2 s2 = point_positions[sym_edges[sym_edges[curr_e].nxt].vertex];
 
 				// No degenerate triangles detected
-				line_line_hit = line_line_test(
+				line_line_hit = point_line_test(goal_point, s1, s2) || line_line_test(
 					tri_cent,
 					goal_point,
-					point_positions[sym_edges[curr_e].vertex],
-					point_positions[sym_edges[sym_edges[curr_e].nxt].vertex],
-					epsi);
+					s1,
+					s2);
 
 				if (line_line_hit)
 				{
-					epsi = EPSILON;
+
 					// handle degenerate triangles
 					bool not_valid_edge = false;
-					SymEdge other_e = prev(sym(sym_edges[curr_e]));
+					int other_e = prev(sym(curr_e));
 
-					vec2 p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
+					vec2 p1 = point_positions[sym_edges[sym_edges[curr_e].nxt].vertex];
 					vec2 p2 = point_positions[sym_edges[curr_e].vertex];
 					//not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
-					not_valid_edge = check_for_sliver_tri(other_e.nxt);
+					not_valid_edge = check_for_sliver_tri(other_e);
 					if (not_valid_edge == true)
 					{
 						//magic = 1;
@@ -1875,16 +1883,16 @@ namespace GPU
 								// direction by doing the dot product between the last edge and next edge, when the dot is 
 								// negative it implies that the next edge is facing another direction than the previous ones.
 								curr_e = nxt(curr_e);
-								vec2 ab = point_positions[sym_edges[prev(curr_e)].vertex] - point_positions[sym_edges[curr_e].vertex];
-								vec2 bc = point_positions[sym_edges[curr_e].vertex] - point_positions[sym_edges[nxt(curr_e)].vertex];
+								vec2 ab = point_positions[sym_edges[curr_e].vertex] - point_positions[sym_edges[prev(curr_e)].vertex];
+								vec2 bc = point_positions[sym_edges[nxt(curr_e)].vertex] - point_positions[sym_edges[curr_e].vertex];
 								dir = dot(ab, bc);
 							} while (dir > 0.0f);
 							// check if we are out of the degenerate triangulation
-							other_e = prev_symedge(sym(sym_edges[curr_e]));
+							other_e = prev(sym(curr_e));
 							//p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
 							//p2 = point_positions[sym_edges[curr_e].vertex];
 							//not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
-							not_valid_edge = check_for_sliver_tri(other_e.nxt);
+							not_valid_edge = check_for_sliver_tri(other_e);
 							curr_e = sym(curr_e);
 						}
 						// move to other triangle
@@ -1892,14 +1900,14 @@ namespace GPU
 						break;
 					}
 					else {
-						curr_e = sym_edges[sym_edges[sym_edges[curr_e].nxt].rot].nxt;
+						curr_e = sym(curr_e);
+						curr_e = nxt(curr_e);
 						//curr_e = nxt(sym_edges[sym_edges[curr_e].nxt].rot);
 						break;
 					}
 				}
 				curr_e = sym_edges[curr_e].nxt;
 			}
-			epsi *= 2.0f;
 
 		}
 		return -1;
@@ -2087,8 +2095,17 @@ namespace GPU
 		// Furthermore, C is strictly convex if every point on the line segment connecting x and y other than the endpoints is inside the interior of C.
 
 		// My made up solution
+		// Definition of a stricly convex set from wikipedia
+		// https://en.wikipedia.org/wiki/Convex_set
+
+		// Let S be a vector space over the real numbers, or, more generally, over some ordered field. This includes Euclidean spaces. 
+		// A set C in S is said to be convex if, for all x and y in C and all t in the interval (0, 1), the point (1 − t)x + ty also belongs to C.
+		// In other words, every point on the line segment connecting x and y is in C
+		// This implies that a convex set in a real or complex topological vector space is path-connected, thus connected.
+		// Furthermore, C is strictly convex if every point on the line segment connecting x and y other than the endpoints is inside the interior of C.
+
+		// My made up solution
 		const vec2 point_array[5] = { p1, p2, p3, p4, p5 };
-		bool return_value = true;
 
 		for (int i = 0; i < num; i++)
 		{
@@ -2097,19 +2114,22 @@ namespace GPU
 			// rotate vector by 90 degrees
 			{
 				float tmp = line.x;
-				line.x = -line.y;
-				line.y = tmp;
+				line.x = line.y;
+				line.y = -tmp;
 			}
 
 			for (int j = 0; j < num - 2; j++)
-				return_value = !return_value || check_side(line, point_array[(i + 2 + j) % num] - point_array[(i + 1) % num]);
+			{
+				if (!check_side(line, point_array[(i + 2 + j) % num] - point_array[(i + 1) % num]))
+					return false;
+			}
 		}
-		return return_value;
+		return true;
 	}
 
 	bool GCMesh::check_side(vec2 direction, vec2 other)
 	{
-		return dot(direction, other) > 0.f ? true : false;
+		return dot(direction, other) >= 0.f ? true : false;
 	}
 
 	bool GCMesh::Qi_check(int segment_index, SymEdge ei1, SymEdge ei)
