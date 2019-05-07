@@ -241,7 +241,7 @@ void main(void)
 			int t0 = get_symedge(segment_symedges[0]).face;
 			int t1 = tri_seg_inters_index.length() - 2 * (point_positions.length() - point_index);
 			int t2 = tri_seg_inters_index.length() - 2 * (point_positions.length() - point_index) + 1;
-			int t3 = get_symedge(segment_symedges[1]).face;
+			
 
 			int edge1 = edge_label.length() - 3 * (point_positions.length() - point_index);
 			int edge2 = edge_label.length() - 3 * (point_positions.length() - point_index) + 1;
@@ -303,6 +303,7 @@ void main(void)
 
 			if (rot(nxt(segment)) != -1)
 			{
+				int t3 = get_symedge(segment_symedges[1]).face;
 				int e3 = nxt(sym(segment));
 				int e4 = nxt(nxt(sym(segment)));
 
