@@ -1,4 +1,4 @@
-﻿#version 430
+#version 430
 layout(local_size_x = 1, local_size_y = 1) in;
 
 struct SymEdge{
@@ -158,8 +158,8 @@ SymEdge prev_symedge(in SymEdge s)
 
 bool face_contains_vertice(int face, int vertex)
 {
-	SymEdge s = sym_edges[tri_symedges[face].x];
-	return s.vertex == vertex || get_symedge(s.nxt).vertex == vertex || prev_symedge(s).vertex == vertex;
+	int sym_x = tri_symedges[face].x;
+	return sym_edges[sym_x].vertex == vertex || sym_edges[nxt(sym_x)].vertex == vertex || sym_edges[prev(sym_x)].vertex == vertex;
 }
 int get_index(SymEdge s)
 {
@@ -231,12 +231,28 @@ bool point_ray_test(vec2 p1, vec2 r1, vec2 r2, float epsi = EPSILON)
 	return abs(distance(dist_vec, p1)) < epsi ? true : false;
 }
 
+bool point_line_test(in vec2 p1, in vec2 s1, in vec2 s2, float epsi = EPSILON)
+{
+	vec2 dist_vec = project_point_on_line(p1, s1, s2);
+	if (!point_ray_test(p1, s1, s2, epsi))
+		return false;
+	vec2 v1 = s1 - p1;
+	vec2 v2 = s1 - s2;
+	float dot_p = dot(v1, v2);
+	if (dot_p < -epsi * epsi)
+		return false;
+	if (dot_p > (dot(v2, v2) + epsi * epsi))
+		return false;
+
+	return true;
+}
+
 float vec2_cross(in vec2 v, in vec2 w)
 {
 	return v.x*w.y - v.y*w.x;
 }
 
-bool check_for_sliver_tri(int sym_edge)
+bool check_for_sliver_tri(int sym_edge, float epsi = EPSILON)
 {
 	// first find the longest edge
 	float best_dist = 0.0f;
@@ -256,7 +272,8 @@ bool check_for_sliver_tri(int sym_edge)
 	vec2 p1 = tri[(best_i + 2) % 3];
 	vec2 s1 = tri[best_i];
 	vec2 s2 = tri[(best_i + 1) % 3];
-	return point_ray_test(p1, s1, s2);
+
+	return point_ray_test(p1, s1, s2, epsi);
 }
 
 bool line_line_test(vec2 p1, vec2 p2, vec2 q1, vec2 q2, float epsi = EPSILON)
@@ -360,15 +377,23 @@ bool segment_triangle_test(vec2 p1, vec2 p2, vec2 t1, vec2 t2, vec2 t3)
 //-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------
-int oriented_walk_point(int curr_e, int goal_point_i)
+int oriented_walk_point(int start_e, int goal_point_i)
 {
+	int curr_e = start_e;
 	vec2 tri_cent;
 	vec2 goal_point = get_vertex(goal_point_i);
 	float epsi = EPSILON;
+	int counter = 0;
 	while (true)
 	{
-		if (face_contains_vertice(get_symedge(curr_e).face, goal_point_i))
-			return get_face_vertex_symedge(get_symedge(curr_e).face, goal_point_i);
+//		if(counter++> 1001)
+//		{
+//			edge_label[sym_edges[curr_e].edge] = -2;
+//			point_inserted[goal_point_i] = sym_edges[curr_e].edge;
+//			return -1;
+//		}
+		if (face_contains_vertice(sym_edges[curr_e].face, goal_point_i))
+			return get_face_vertex_symedge(sym_edges[curr_e].face, goal_point_i);
 
 		tri_cent = get_face_center(sym_edges[curr_e].face);
 
@@ -383,27 +408,27 @@ int oriented_walk_point(int curr_e, int goal_point_i)
 				continue;
 			}
 
-
+			vec2 s1 = point_positions[sym_edges[curr_e].vertex];
+			vec2 s2 = point_positions[sym_edges[sym_edges[curr_e].nxt].vertex];
 
 			// No degenerate triangles detected
-			line_line_hit = line_line_test(
+			line_line_hit = point_line_test(goal_point, s1, s2) || line_line_test(
 				tri_cent,
 				goal_point,
-				point_positions[sym_edges[curr_e].vertex],
-				point_positions[sym_edges[sym_edges[curr_e].nxt].vertex],
-				epsi);
+				s1,
+				s2);
 
 			if (line_line_hit)
 			{
-				epsi = EPSILON;
+				
 				// handle degenerate triangles
 				bool not_valid_edge = false;
-				SymEdge other_e = prev(sym(sym_edges[curr_e]));
+				int other_e = prev(sym(curr_e));
 
-				vec2 p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
+				vec2 p1 = point_positions[sym_edges[sym_edges[curr_e].nxt].vertex];
 				vec2 p2 = point_positions[sym_edges[curr_e].vertex];
 				//not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
-				not_valid_edge = check_for_sliver_tri(other_e.nxt);
+				not_valid_edge = check_for_sliver_tri(other_e);
 				if (not_valid_edge == true)
 				{
 					//magic = 1;
@@ -422,16 +447,16 @@ int oriented_walk_point(int curr_e, int goal_point_i)
 							// direction by doing the dot product between the last edge and next edge, when the dot is 
 							// negative it implies that the next edge is facing another direction than the previous ones.
 							curr_e = nxt(curr_e);
-							vec2 ab = point_positions[sym_edges[prev(curr_e)].vertex] - point_positions[sym_edges[curr_e].vertex];
-							vec2 bc = point_positions[sym_edges[curr_e].vertex] - point_positions[sym_edges[nxt(curr_e)].vertex];
+							vec2 ab = point_positions[sym_edges[curr_e].vertex] - point_positions[sym_edges[prev(curr_e)].vertex];
+							vec2 bc = point_positions[sym_edges[nxt(curr_e)].vertex] - point_positions[sym_edges[curr_e].vertex];
 							dir = dot(ab, bc);
 						} while (dir > 0.0f);
 						// check if we are out of the degenerate triangulation
-						other_e = prev_symedge(sym(sym_edges[curr_e]));
+						other_e = prev(sym(curr_e));
 						//p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
 						//p2 = point_positions[sym_edges[curr_e].vertex];
 						//not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
-						not_valid_edge = check_for_sliver_tri(other_e.nxt);
+						not_valid_edge = check_for_sliver_tri(other_e);
 						curr_e = sym(curr_e);
 					}
 					// move to other triangle
@@ -439,7 +464,8 @@ int oriented_walk_point(int curr_e, int goal_point_i)
 					break;
 				}
 				else {
-					curr_e = sym_edges[sym_edges[sym_edges[curr_e].nxt].rot].nxt;
+					curr_e = sym(curr_e);
+					curr_e = nxt(curr_e);
 					//curr_e = nxt(sym_edges[sym_edges[curr_e].nxt].rot);
 					break;
 				}
