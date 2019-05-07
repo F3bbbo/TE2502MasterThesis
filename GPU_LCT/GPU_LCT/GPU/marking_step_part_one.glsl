@@ -545,8 +545,7 @@ bool polygonal_is_strictly_convex(int num, vec2 p1, vec2 p2, vec2 p3, vec2 p4, v
 
 	// My made up solution
 	const vec2 point_array[5] = { p1, p2, p3, p4, p5 };
-	bool return_value = true;
-
+	
 	for (int i = 0; i < num; i++)
 	{
 		vec2 line = point_array[(i + 1) % num] - point_array[i];
@@ -554,33 +553,17 @@ bool polygonal_is_strictly_convex(int num, vec2 p1, vec2 p2, vec2 p3, vec2 p4, v
 		// rotate vector by 90 degrees
 		{
 			float tmp = line.x;
-			line.x = -line.y;
-			line.y = tmp;
+			line.x = line.y;
+			line.y = -tmp;
 		}
 
 		for (int j = 0; j < num - 2; j++)
-			return_value = !return_value || check_side(line, point_array[(i + 2 + j) % num] - point_array[(i + 1) % num]);
+		{
+			if (!check_side(line, point_array[(i + 2 + j) % num] - point_array[(i + 1) % num]))
+				return false;
+		}
 	}
-	return return_value;
-}
-
-bool is_flippable(int e)
-{
-	int e_sym = sym(e);
-	if (e_sym > -1)
-	{
-		vec2 a = point_positions[sym_edges[e_sym].vertex];
-		vec2 d = point_positions[sym_edges[prev(e_sym)].vertex];
-
-		vec2 c = point_positions[sym_edges[e].vertex];
-		vec2 b = point_positions[sym_edges[prev(e)].vertex];
-		// first check so the new triangles will not be degenerate
-		if (point_ray_test(a, d, b) || point_ray_test(c, d, b))
-			return false;
-		// then check so they will not overlap other triangles
-		return line_line_test(a, c, b, d);
-	}
-	return false;
+	return true;
 }
 
 bool pre_candidate_check(SymEdge s)
@@ -593,7 +576,7 @@ bool pre_candidate_check(SymEdge s)
 }
 bool will_be_flipped(int segment_index, SymEdge triangle)
 {
-	if (tri_seg_inters_index[triangle.face] == segment_index && tri_seg_inters_index[sym_symedge(triangle).face] == segment_index && edge_label[triangle.edge] < 3 && is_flippable(get_index(triangle)))
+	if (tri_seg_inters_index[triangle.face] == segment_index && tri_seg_inters_index[sym_symedge(triangle).face] == segment_index && edge_label[triangle.edge] < 3)
 	{
 		edge_label[triangle.edge] = 2;
 		return true;
