@@ -198,7 +198,6 @@ namespace GPU
 		LOG(std::string("Frame insertion number of iterations: ") + std::to_string(counter));
 	}
 
-	void GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
 	long long GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
 	{
 		m_point_bufs.positions.append_to_buffer(points);
