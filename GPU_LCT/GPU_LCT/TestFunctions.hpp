@@ -8,6 +8,8 @@ void generate_third_test_input(std::string filename_end, std::vector<std::pair<g
 
 void test_range(glm::ivec2 start_resolution, int iterations, glm::ivec2 start_dims, glm::ivec2 dim_increase, glm::ivec2 start_obstacles, glm::ivec2 obstacle_increase, bool build_lct);
 
-void first_test(glm::ivec2 obstacle_amount, float static_percentage, int iterations);
+void first_test(glm::ivec2 obstacle_amount, int iterations);
+
+void second_test(glm::ivec2 obstacle_amount, int iterations);
 
 void third_test(std::string input_file);

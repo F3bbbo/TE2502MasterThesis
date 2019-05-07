@@ -186,10 +186,10 @@ int main()
 	//lct_example(m, g_mesh);
 
 	test_test_map(gc_mesh, g_mesh, map_scaling, num_objects);
-	//auto points = g_mesh.get_vertices();
-	//LOG(std::to_string(check_for_sliver_tri({points[118], points[124], points[121] }, 0.001f)));
-	//
-	//generate_third_test_input("test2", { {{300, 300}, 0.25f} });
+
+	//first_test({ 5, 5 }, 10);
+	//second_test({ 50, 50}, 10);
+	//generate_third_test_input("test2", { {{50, 50}, 0.25f} });
 	//third_test("test2");
 	//gc_mesh.save_to_file("test.txt", false);
 	//gc_mesh.load_from_file("test.txt");

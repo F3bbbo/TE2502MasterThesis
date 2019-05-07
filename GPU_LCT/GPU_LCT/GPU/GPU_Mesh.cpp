@@ -541,6 +541,317 @@ namespace GPU
 		return timer.elapsed_time();
 	}
 
+	std::vector<long long> GPUMesh::measure_shaders(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
+	{
+		// CDT
+		m_point_bufs.positions.append_to_buffer(points);
+		m_point_bufs.inserted.append_to_buffer(std::vector<int>(points.size(), 0));
+		m_point_bufs.tri_index.append_to_buffer(std::vector<int>(points.size(), 0));
+
+		for (auto& segment : segments)
+			segment = segment + glm::ivec2(m_segment_bufs.endpoint_indices.element_count());
+		m_segment_bufs.endpoint_indices.append_to_buffer(segments);
+		m_segment_bufs.inserted.append_to_buffer(std::vector<int>(segments.size(), 0));
+		// uppdating ubo containing sizes
+
+		int num_new_tri = points.size() * 2;
+		int num_new_segs = segments.size();
+
+		// fix new sizes of triangle buffers
+		m_triangle_bufs.symedge_indices.append_to_buffer(std::vector<glm::ivec4>(num_new_tri, { -1, -1, -1, -1 }));
+		m_triangle_bufs.ins_point_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
+		m_triangle_bufs.edge_flip_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
+		m_triangle_bufs.seg_inters_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
+
+		// fix new sizes of edge buffers 
+		int num_new_edges = points.size() * 3;
+		m_edge_bufs.is_constrained.append_to_buffer(std::vector<int>(num_new_edges, -1));
+		m_edge_bufs.label.append_to_buffer(std::vector<int>(num_new_edges, -1));
+		// fix new size of symedges buffer
+		int num_new_sym_edges = points.size() * 6;
+		m_sym_edges.append_to_buffer(std::vector<SymEdge>(num_new_sym_edges));
+		m_refine_points.append_to_buffer(std::vector<NewPoint>(num_new_sym_edges));
+
+		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
+
+		// Bind all ssbo's
+		m_point_bufs.positions.bind_buffer();
+		m_point_bufs.inserted.bind_buffer();
+		m_point_bufs.tri_index.bind_buffer();
+
+		m_edge_bufs.label.bind_buffer();
+		m_edge_bufs.is_constrained.bind_buffer();
+
+		m_segment_bufs.endpoint_indices.bind_buffer();
+		m_segment_bufs.inserted.bind_buffer();
+
+		m_triangle_bufs.symedge_indices.bind_buffer();
+		m_triangle_bufs.ins_point_index.bind_buffer();
+		m_triangle_bufs.seg_inters_index.bind_buffer();
+		m_triangle_bufs.edge_flip_index.bind_buffer();
+		m_refine_points.bind_buffer();
+
+		m_sym_edges.bind_buffer();
+		m_nr_of_symedges.bind_buffer();
+		m_epsilon_buff.bind_buffer();
+
+		m_status.bind_buffer();
+
+		int counter = 0;
+
+		Timer timer;
+
+		std::vector<long long> build_times;
+		build_times.resize(17, 0);
+
+		int cont = 1;
+		while (cont)
+		{
+			counter++;
+			m_status.update_buffer<int>({ 0 });
+			// Locate Step
+			glUseProgram(m_location_program);
+			timer.start();
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			timer.stop();
+			build_times[0] += timer.elapsed_time();
+
+			glUseProgram(m_location_tri_program);
+			timer.start();
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			timer.stop();
+			build_times[1] += timer.elapsed_time();
+
+			// Insert Step
+			glUseProgram(m_insertion_program);
+			timer.start();
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			timer.stop();
+			build_times[2] += timer.elapsed_time();
+
+			// Marking Step
+			glUseProgram(m_marking_part_one_program);
+			timer.start();
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			timer.stop();
+			build_times[3] += timer.elapsed_time();
+
+			glUseProgram(m_marking_part_two_program);
+			timer.start();
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			timer.stop();
+			build_times[4] += timer.elapsed_time();
+
+			// Flipping Step
+			glUseProgram(m_flip_edges_part_one_program);
+			timer.start();
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			timer.stop();
+			build_times[5] += timer.elapsed_time();
+
+			glUseProgram(m_flip_edges_part_two_program);
+			timer.start();
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			timer.stop();
+			build_times[6] += timer.elapsed_time();
+
+			glUseProgram(m_flip_edges_part_three_program);
+			timer.start();
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			timer.stop();
+			build_times[7] += timer.elapsed_time();
+
+			cont = m_status.get_buffer_data<int>()[0];
+		}
+
+		//------------------------------------
+		// LCT
+
+		int num_new_points;
+		// bind all buffers
+		m_point_bufs.positions.bind_buffer();
+		m_point_bufs.inserted.bind_buffer();
+		m_point_bufs.tri_index.bind_buffer();
+
+		m_edge_bufs.label.bind_buffer();
+		m_edge_bufs.is_constrained.bind_buffer();
+
+		m_segment_bufs.endpoint_indices.bind_buffer();
+		m_segment_bufs.inserted.bind_buffer();
+
+		m_triangle_bufs.symedge_indices.bind_buffer();
+		m_triangle_bufs.ins_point_index.bind_buffer();
+		m_triangle_bufs.seg_inters_index.bind_buffer();
+		m_triangle_bufs.edge_flip_index.bind_buffer();
+		m_refine_points.bind_buffer();
+
+		m_sym_edges.bind_buffer();
+		m_nr_of_symedges.bind_buffer();
+		m_epsilon_buff.bind_buffer();
+
+		m_status.bind_buffer();
+		
+		do
+		{
+			// Locate disturbances
+			glUseProgram(m_locate_disturbances_program);
+			timer.start();
+			glDispatchCompute((GLuint)256, 1, 1);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			timer.stop();
+			build_times[8] += timer.elapsed_time();
+			// Check how many new points are going to get inserted
+			auto status = m_status.get_buffer_data<int>();
+			num_new_points = status.front();
+			if (num_new_points > 0)
+			{
+				m_new_points.set_used_element_count<glm::vec2>(num_new_points);
+				m_new_points.bind_buffer();
+				// add new points to the point buffers
+				glUseProgram(m_add_new_points_program);
+				timer.start();
+				glDispatchCompute((GLuint)256, 1, 1);
+				glMemoryBarrier(GL_ALL_BARRIER_BITS);
+				timer.stop();
+				build_times[9] += timer.elapsed_time();
+
+				// get new points from GPU and remove duplicates
+				auto new_points = m_new_points.get_buffer_data<vec2>();
+				remove_duplicate_points(new_points);
+				// add the the points without duplicates to the point buffers
+				m_point_bufs.positions.append_to_buffer(new_points);
+				num_new_points = new_points.size();
+				m_point_bufs.inserted.append_to_buffer(std::vector<int>(num_new_points, 0));
+				m_point_bufs.tri_index.append_to_buffer(std::vector<int>(num_new_points, 0));
+
+
+				// increase sizes of arrays, based on how many new points are inserted
+				// segments
+				int num_new_tri = num_new_points * 2;
+				int num_new_segs = num_new_points;
+
+				// fix new sizes of triangle buffers
+				m_triangle_bufs.symedge_indices.append_to_buffer(std::vector<glm::ivec4>(num_new_tri, { -1, -1, -1, -1 }));
+				m_triangle_bufs.ins_point_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
+				m_triangle_bufs.edge_flip_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
+				m_triangle_bufs.seg_inters_index.append_to_buffer(std::vector<int>(num_new_tri, -1));
+
+				// fix new size of segment buffers
+				m_segment_bufs.endpoint_indices.append_to_buffer(std::vector<glm::vec2>(num_new_segs));
+				m_segment_bufs.inserted.append_to_buffer(std::vector<int>(num_new_segs));
+				// fix new sizes of edge buffers 
+				int num_new_edges = num_new_points * 3;
+				m_edge_bufs.is_constrained.append_to_buffer(std::vector<int>(num_new_edges, -1));
+				m_edge_bufs.label.append_to_buffer(std::vector<int>(num_new_edges, -1));
+				// fix new size of symedges buffer
+				int num_new_sym_edges = num_new_points * 6;
+				m_sym_edges.append_to_buffer(std::vector<SymEdge>(num_new_sym_edges));
+				m_refine_points.append_to_buffer(std::vector<NewPoint>(num_new_sym_edges));
+				// resize new points array
+				m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
+
+				// then rebind the buffers that has been changed
+				m_point_bufs.positions.bind_buffer();
+				m_point_bufs.inserted.bind_buffer();
+				m_point_bufs.tri_index.bind_buffer();
+
+				m_edge_bufs.label.bind_buffer();
+				m_edge_bufs.is_constrained.bind_buffer();
+
+				m_segment_bufs.endpoint_indices.bind_buffer();
+				m_segment_bufs.inserted.bind_buffer();
+
+				m_triangle_bufs.symedge_indices.bind_buffer();
+				m_triangle_bufs.ins_point_index.bind_buffer();
+				m_triangle_bufs.seg_inters_index.bind_buffer();
+				m_triangle_bufs.edge_flip_index.bind_buffer();
+				m_refine_points.bind_buffer();
+
+				m_sym_edges.bind_buffer();
+				m_nr_of_symedges.bind_buffer();
+
+				int counter = 0;
+				int cont = 1;
+				do
+				{
+					int shader_id = 0;
+					m_status.update_buffer<int>({ 0 });
+					counter++;
+					Timer timer;
+					
+					timer.start();
+					// Find out which triangle the point is on the edge of
+					glUseProgram(m_locate_point_triangle_program);
+					timer.start();
+					glDispatchCompute((GLuint)256, 1, 1);
+					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					timer.stop();
+					build_times[10] += timer.elapsed_time();
+
+					glUseProgram(m_validate_edges_program);
+					timer.start();
+					glDispatchCompute((GLuint)256, 1, 1);
+					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					timer.stop();
+					build_times[11] += timer.elapsed_time();
+
+					// Insert point into the edge
+					glUseProgram(m_insert_in_edge_program);
+					timer.start();
+					glDispatchCompute((GLuint)256, 1, 1);
+					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					timer.stop();
+					build_times[12] += timer.elapsed_time();
+
+					// Perform marking
+					glUseProgram(m_marking_part_two_program);
+					timer.start();
+					glDispatchCompute((GLuint)256, 1, 1);
+					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					timer.stop();
+					build_times[13] += timer.elapsed_time();
+
+					//Perform flipping to ensure that mesh is CDT
+					glUseProgram(m_flip_edges_part_one_program);
+					timer.start();
+					glDispatchCompute((GLuint)256, 1, 1);
+					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					timer.stop();
+					build_times[14] += timer.elapsed_time();
+
+					glUseProgram(m_flip_edges_part_two_program);
+					timer.start();
+					glDispatchCompute((GLuint)256, 1, 1);
+					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					timer.stop();
+					build_times[15] += timer.elapsed_time();
+
+					glUseProgram(m_flip_edges_part_three_program);
+					timer.start();
+					glDispatchCompute((GLuint)256, 1, 1);
+					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					timer.stop();
+					build_times[16] += timer.elapsed_time();
+
+					cont = m_status.get_buffer_data<int>()[0];
+				} while (cont == 1);
+			}
+			else
+			{
+				break;
+			}
+		} while (false);
+		return build_times;
+	}
+
 	std::vector<glm::vec2> GPUMesh::get_vertices()
 	{
 		return m_point_bufs.positions.get_buffer_data<glm::vec2>();
