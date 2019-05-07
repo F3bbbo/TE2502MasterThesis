@@ -141,6 +141,29 @@ bool point_line_test(in vec2 p1, in vec2 s1, in vec2 s2, float epsi = EPSILON)
 //-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------
+bool check_for_sliver_tri(int sym_edge)
+{
+	// first find the longest edge
+	float best_dist = 0.0f;
+	int best_i = -1;
+	vec2 tri[3];
+	get_face(sym_edges[sym_edge].face, tri);
+	for (int i = 0; i < 3; i++)
+	{
+		float dist = distance(tri[i], tri[(i + 1) % 3]);
+		if (dist > best_dist)
+		{
+			best_i = i;
+			best_dist = dist;
+		}
+	}
+	// then check if the third point is on the ray of that line.
+	vec2 p1 = tri[(best_i + 2) % 3];
+	vec2 s1 = tri[best_i];
+	vec2 s2 = tri[(best_i + 1) % 3];
+	return point_ray_test(p1, s1, s2);
+}
+
 bool valid_point_into_face(int face, vec2 p)
 {
 	int curr_e = tri_symedges[face].x;
@@ -149,14 +172,12 @@ bool valid_point_into_face(int face, vec2 p)
 		SymEdge curr_sym = sym_edges[curr_e];
 		vec2 s1 = point_positions[curr_sym.vertex];
 		vec2 s2 = point_positions[sym_edges[nxt(curr_e)].vertex];
-		if (point_line_test(p, s1, s2) && edge_label[curr_sym.edge] == 3)
+		if (point_line_test(p, s1, s2))
 		{
 			int e_sym = sym(curr_e);
 			if (e_sym > -1)
 			{
-				vec2 tri_points[3];
-				get_face(sym_edges[e_sym].face, tri_points);
-				if (point_ray_test(tri_points[0], tri_points[1], tri_points[2]))
+				if (check_for_sliver_tri(e_sym))
 				{
 					return false;
 				}
