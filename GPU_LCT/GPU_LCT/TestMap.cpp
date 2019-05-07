@@ -26,7 +26,7 @@ void TestMap::generate_map()
 		// create the outer barrier to try and remove sliver triangles
 		float wall_point_interval = 10.f;
 		glm::ivec2 num_wall_intervals = m_num_obsticles / int(wall_point_interval) + 1;
-		glm::vec2 pads = delta * 0.4f;
+		glm::vec2 pads = glm::vec2(0.0f);
 		glm::vec2 wall_delta = ((m_end - pads) - (m_start + pads)) / glm::vec2(num_wall_intervals);
 		glm::vec2 curr_pos = m_start + pads;
 		std::vector<glm::vec2> wall_points;
@@ -63,7 +63,7 @@ void TestMap::generate_map()
 		// calculate the scale
 		glm::vec2 obstacles_scale;
 		obstacles_scale = -delta / 2.0f;
-		glm::vec2 scale_variance = -delta / 4.0f;
+		glm::vec2 scale_variance = -delta / 8.0f;
 		// add obsticles inside the map area according to specified values
 		int shape_type = 0;
 		for (unsigned int y = 0; y < m_num_obsticles.y; y++)
