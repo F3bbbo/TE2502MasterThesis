@@ -558,7 +558,7 @@ namespace GPU
 			refine_points.clear();
 
 			sym_edges.clear();
-			// read points dat
+			// read points data
 			input.read((char*)&value, sizeof(int));
 			float* buff = new float[value];
 			input.read((char*)buff, value);
