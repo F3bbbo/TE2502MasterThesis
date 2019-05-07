@@ -26,6 +26,7 @@ namespace GPU
 		std::vector<glm::ivec3> get_faces();
 		int locate_face(glm::vec2 p);
 		void set_epsilon(float epsi);
+		void load_from_file(std::string filename);
 	private:
 		void setup_compute_shaders();
 		void compile_cs(GLuint& program, const char* path, int work_group_size = 64);

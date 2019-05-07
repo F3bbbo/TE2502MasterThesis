@@ -516,6 +516,111 @@ namespace GPU
 		m_epsilon_buff.update_buffer<float>({ m_epsilon });
 	}
 
+	void GPUMesh::load_from_file(std::string filename)
+	{
+		std::ifstream input (filename.c_str(), std::ifstream::in | std::ifstream::binary);
+		int value;
+		if (input.is_open())
+		{
+			// clear data
+			m_point_bufs.positions.clear();
+			m_point_bufs.inserted.clear();
+			m_point_bufs.tri_index.clear();
+			m_edge_bufs.is_constrained.clear();
+			m_edge_bufs.label.clear();
+			m_segment_bufs.endpoint_indices.clear();
+			m_segment_bufs.inserted.clear();
+			m_triangle_bufs.symedge_indices.clear();
+			m_triangle_bufs.ins_point_index.clear();
+			m_triangle_bufs.seg_inters_index.clear();
+			m_triangle_bufs.edge_flip_index.clear();
+			m_sym_edges.clear();
+			m_new_points.clear();
+			m_refine_points.clear();
+			m_nr_of_symedges.clear();
+			m_status.clear();
+			// read points data
+			input.read((char*)&value, sizeof(int));
+			std::vector<glm::vec2> vec2_buff;
+			vec2_buff.resize(value / sizeof(glm::vec2));
+			input.read((char*)vec2_buff.data(), value);			m_point_bufs.positions.append_to_buffer(vec2_buff);
+			vec2_buff.clear();
+
+			input.read((char*)&value, sizeof(int));
+			std::vector<int> int_buff;
+			int_buff.resize(value / sizeof(int));
+			input.read((char*)int_buff.data(), value);			m_point_bufs.inserted.append_to_buffer(int_buff);
+			int_buff.clear();
+
+			input.read((char*)&value, sizeof(int));
+			int_buff.resize(value / sizeof(int));
+			input.read((char*)int_buff.data(), value);
+			m_point_bufs.tri_index.append_to_buffer(int_buff);
+			int_buff.clear();
+			// read edge data
+			input.read((char*)&value, sizeof(int));
+			int_buff.resize(value / sizeof(int));
+			input.read((char*)int_buff.data(), value);
+			m_edge_bufs.label.append_to_buffer(int_buff);			int_buff.clear();
+
+			input.read((char*)&value, sizeof(int));
+			int_buff.resize(value / sizeof(int));
+			input.read((char*)int_buff.data(), value);
+			m_edge_bufs.is_constrained.append_to_buffer(int_buff);			int_buff.clear();
+
+			// read segment data
+			input.read((char*)&value, sizeof(int));
+			std::vector<glm::ivec2> ivec2_buff;
+			ivec2_buff.resize(value / sizeof(glm::ivec2));
+			input.read((char*)ivec2_buff.data(), value);
+			m_segment_bufs.endpoint_indices.append_to_buffer(ivec2_buff);			ivec2_buff.clear();
+
+			input.read((char*)&value, sizeof(int));
+			int_buff.resize(value / sizeof(int));
+			input.read((char*)int_buff.data(), value);
+			m_segment_bufs.inserted.append_to_buffer(int_buff);			int_buff.clear();
+			// read triangle data
+			input.read((char*)&value, sizeof(int));
+			std::vector<glm::ivec4> ivec4_buff;
+			ivec4_buff.resize(value / sizeof(glm::ivec4));
+			input.read((char*)ivec4_buff.data(), value);
+			m_triangle_bufs.symedge_indices.append_to_buffer(ivec4_buff);			ivec4_buff.clear();
+
+			input.read((char*)&value, sizeof(int));
+			int_buff.resize(value / sizeof(int));
+			input.read((char*)int_buff.data(), value);
+			m_triangle_bufs.ins_point_index.append_to_buffer(int_buff);
+			int_buff.clear();
+			input.read((char*)&value, sizeof(int));
+			int_buff.resize(value / sizeof(int));
+			input.read((char*)int_buff.data(), value);
+			m_triangle_bufs.seg_inters_index.append_to_buffer(int_buff);
+			int_buff.clear();
+			input.read((char*)&value, sizeof(int));
+			int_buff.resize(value / sizeof(int));
+			input.read((char*)int_buff.data(), value);
+			m_triangle_bufs.edge_flip_index.append_to_buffer(int_buff);
+			int_buff.clear();
+			input.read((char*)&value, sizeof(int));
+			std::vector<NewPoint> new_point_buff;
+			new_point_buff.resize(value / sizeof(NewPoint));
+			input.read((char*)new_point_buff.data(), value);
+			m_refine_points.append_to_buffer(new_point_buff);
+			new_point_buff.clear();
+			input.read((char*)&value, sizeof(int));
+			std::vector<SymEdge> symedge_buff;
+			symedge_buff.reserve(value / sizeof(SymEdge));
+			input.read((char*)symedge_buff.data(), value);
+			m_sym_edges.append_to_buffer(symedge_buff);
+			symedge_buff.clear();
+			m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
+			m_status.update_buffer<int>({ 0 });
+			input.close();
+		}
+		else
+			LOG_T(WARNING, "can not open file:" + filename);
+	}
+
 	void GPUMesh::setup_compute_shaders()
 	{
 		// CDT
