@@ -83,6 +83,103 @@ namespace GPU
 		//m_status.create_buffer(type, std::vector<int>(1, 1), GL_DYNAMIC_DRAW, 12, 1);
 	}
 
+	void GCMesh::add_frame_points(std::vector<glm::vec2> points)
+	{
+		int num_old_points = point_positions.size();
+		new_points.clear();
+		new_points.insert(new_points.end(), point_positions.begin(), point_positions.end());
+		new_points.insert(new_points.end(), points.begin(), points.end());
+		remove_duplicate_points();
+		point_positions.insert(point_positions.end(), new_points.begin() + num_old_points, new_points.end());
+		new_points.clear();
+
+		int num_new_points = new_points.size();
+		append_vec(point_inserted, std::vector<int>(num_new_points, 0));
+		append_vec(point_tri_index, std::vector<int>(num_new_points, 0));
+
+		// increase sizes of arrays, 
+		// based on how many new points are inserted
+		//append_vec(point_positions, std::vector<glm::vec2>(num_new_points));
+		//append_vec(point_inserted, std::vector<int>(num_new_points));
+		//append_vec(point_tri_index, std::vector<int>(num_new_points));
+		// segments
+		int num_new_tri = num_new_points * 2;
+		int num_new_segs = num_new_points;
+
+		// fix new sizes of triangle buffers
+		append_vec(tri_symedges, std::vector<glm::ivec4>(num_new_tri, { -1, -1, -1, -1 }));
+		append_vec(tri_ins_point_index, std::vector<int>(num_new_tri, -1));
+		append_vec(tri_edge_flip_index, std::vector<int>(num_new_tri, -1));
+		append_vec(tri_seg_inters_index, std::vector<int>(num_new_tri, -1));
+
+
+		// fix new size of segment buffers
+		append_vec(seg_endpoint_indices, std::vector<glm::ivec2>(num_new_segs));
+		append_vec(seg_inserted, std::vector<int>(num_new_segs));
+		// fix new sizes of edge buffers 
+		// TODO: fix so it can handle repeated insertions
+		int num_new_edges = num_new_points * 3;
+		append_vec(edge_is_constrained, std::vector<int>(num_new_edges, -1));
+		append_vec(edge_label, std::vector<int>(num_new_edges, -1));
+		// fix new size of symedges buffer
+		// TODO: fix so it can handle repeated insertions
+		int num_new_sym_edges = num_new_points * 6;
+		//m_sym_edges, );
+		append_vec(sym_edges, std::vector<SymEdge>(num_new_sym_edges));
+		append_vec(refine_points, std::vector<NewPoint>(num_new_sym_edges));
+		new_points.clear();
+		new_points.resize(num_new_points);
+		// TODO, maybe need to check if triangle buffers needs to grow
+		symedge_buffer_size = sym_edges.size();
+
+		//m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
+		int counter = 0;
+		int cont = 1;
+		do
+		{
+			//m_status.update_buffer<int>({ 0 });
+			status = 0;
+			counter++;
+			//// Find out which triangle the point is on the edge of
+			locate_point_triangle_program();
+			//glUseProgram(m_locate_point_triangle_program);
+			//glDispatchCompute((GLuint)256, 1, 1);
+			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+			validate_edges_program();
+			//glUseProgram(m_validate_edges_program);
+			//glDispatchCompute((GLuint)256, 1, 1);
+			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+			//// Insert point into the edge
+			insert_in_edge_program();
+			//glUseProgram(m_insert_in_edge_program);
+			//glDispatchCompute((GLuint)256, 1, 1);
+			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+			//// Perform marking
+			marking_part_two_program();
+			//glUseProgram(m_marking_part_two_program);
+			//glDispatchCompute((GLuint)256, 1, 1);
+			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+			//// Perform flipping to ensure that mesh is CDT
+			flip_edges_part_one_program();
+			//glUseProgram(m_flip_edges_part_one_program);
+			//glDispatchCompute((GLuint)256, 1, 1);
+			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			flip_edges_part_two_program();
+			//glUseProgram(m_flip_edges_part_two_program);
+			//glDispatchCompute((GLuint)256, 1, 1);
+			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			flip_edges_part_three_program();
+			//glUseProgram(m_flip_edges_part_three_program);
+			//glDispatchCompute((GLuint)256, 1, 1);
+			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			//cont = m_status[0];
+		} while (status == 1);
+	}
+
 	long long GCMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
 	{
 		append_vec(point_positions, points);
@@ -119,27 +216,7 @@ namespace GPU
 
 		//m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
 		symedge_buffer_size = sym_edges.size();
-		// Bind all ssbo's
-		//point_positions.bind_buffer();
-		//point_inserted.bind_buffer();
-		//point_tri_index.bind_buffer();
 
-		//edge_label.bind_buffer();
-		//edge_is_constrained.bind_buffer();
-
-		//seg_endpoint_indices.bind_buffer();
-		//seg_inserted.bind_buffer();
-
-		//tri_symedges.bind_buffer();
-		//tri_ins_point_index.bind_buffer();
-		//tri_seg_inters_index.bind_buffer();
-		//tri_edge_flip_index.bind_buffer();
-		//tri_insert_points.bind_buffer();
-
-		//m_sym_edges.bind_buffer();
-		//m_nr_of_symedges.bind_buffer();
-
-		//m_status.bind_buffer();
 
 		int counter = 0;
 
@@ -264,6 +341,16 @@ namespace GPU
 			num_new_points = status;
 			if (num_new_points > 0)
 			{
+				// add new points to the new_points buffer
+				add_new_points_program();
+				// remove duplicate points
+				remove_duplicate_points();
+				// add the the points without duplicates to the point buffers
+				append_vec(point_positions, new_points);
+				num_new_points = new_points.size();
+				append_vec(point_inserted, std::vector<int>(num_new_points, 0));
+				append_vec(point_tri_index, std::vector<int>(num_new_points, 0));
+
 				// increase sizes of arrays, 
 				// based on how many new points are inserted
 				//append_vec(point_positions, std::vector<glm::vec2>(num_new_points));
@@ -300,40 +387,6 @@ namespace GPU
 				symedge_buffer_size = sym_edges.size();
 
 				//m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
-
-				// then rebind the buffers that has been changed
-	/*			point_positions.bind_buffer();
-				point_inserted.bind_buffer();
-				point_tri_index.bind_buffer();
-
-				edge_label.bind_buffer();
-				edge_is_constrained.bind_buffer();
-
-				seg_endpoint_indices.bind_buffer();
-				seg_inserted.bind_buffer();
-
-				tri_symedges.bind_buffer();
-				tri_ins_point_index.bind_buffer();
-				tri_seg_inters_index.bind_buffer();
-				tri_edge_flip_index.bind_buffer();
-				tri_insert_points.bind_buffer();
-
-				m_sym_edges.bind_buffer();
-				m_nr_of_symedges.bind_buffer();*/
-
-				// add new points to the new_points buffer
-				add_new_points_program();
-				// remove duplicate points
-				remove_duplicate_points();
-				// add the the points without duplicates to the point buffers
-				append_vec(point_positions, new_points);
-				append_vec(point_inserted, std::vector<int>(new_points.size(), 0));
-				append_vec(point_tri_index, std::vector<int>(new_points.size(), 0));
-				//glUseProgram(m_add_new_points_program);
-				//glDispatchCompute((GLuint)256, 1, 1);
-				//glMemoryBarrier(GL_ALL_BARRIER_BITS);
-				// Perform insertion of points untill all has been inserted 
-				// and triangulation is CDT
 				int counter = 0;
 				int cont = 1;
 				do
@@ -484,7 +537,7 @@ namespace GPU
 		filename += '_' + std::to_string(inserted_objects) + '_' + std::to_string(get_num_vertices());
 
 		std::string str = "";
-		std::ofstream output (filename.c_str(), std::ofstream::out | std::ofstream::binary);
+		std::ofstream output(filename.c_str(), std::ofstream::out | std::ofstream::binary);
 		int size;
 		if (output.is_open())
 		{
@@ -539,7 +592,7 @@ namespace GPU
 	}
 	void GCMesh::load_from_file(std::string filename)
 	{
-		std::ifstream input (filename.c_str(), std::ifstream::in | std::ifstream::binary);
+		std::ifstream input(filename.c_str(), std::ifstream::in | std::ifstream::binary);
 		int value;
 		if (input.is_open())
 		{
@@ -608,7 +661,7 @@ namespace GPU
 			ibuff = new int[value];
 			input.read((char*)ibuff, value);
 			for (int i = 0; i < value / sizeof(int); i += 4)
-				tri_symedges.push_back({ ibuff[i], ibuff[i + 1], ibuff[i + 2], ibuff[i + 3]});
+				tri_symedges.push_back({ ibuff[i], ibuff[i + 1], ibuff[i + 2], ibuff[i + 3] });
 			delete[] ibuff;
 			input.read((char*)&value, sizeof(int));
 			ibuff = new int[value];
