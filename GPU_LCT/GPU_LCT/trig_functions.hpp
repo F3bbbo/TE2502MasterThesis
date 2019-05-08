@@ -40,7 +40,7 @@ float line_length(glm::vec2 line);
 
 float line_length2(glm::vec2 line);
 
-glm::vec2 line_line_intersection_point(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 d, float epsi = EPSILON);
+glm::vec2 line_line_intersection_point(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 d, bool &degenerate_triangle, float epsi = EPSILON);
 
 // the three first points belong to the triangle and are ccw
 // the last point is the point being tested

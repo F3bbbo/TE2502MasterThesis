@@ -2200,30 +2200,28 @@ namespace GPU
 
 		if (index != -1)
 		{
-			mat4x4 mat;
-
 			vec2 face_vertices[3];
-			face_vertices[2] = get_vertex(get_symedge(sym).vertex);
-			face_vertices[0] = get_vertex(get_symedge(nxt(sym)).vertex);
-			face_vertices[1] = get_vertex(get_symedge(prev(sym)).vertex);
-			//get_face(sym.face, face_vertices);
+			face_vertices[0] = get_vertex(get_symedge(sym).vertex);
+			face_vertices[1] = get_vertex(get_symedge(nxt(sym)).vertex);
+			face_vertices[2] = get_vertex(get_symedge(prev(sym)).vertex);
 
-			for (int i = 0; i < 3; i++)
-			{
-				mat[0][i] = face_vertices[i].x;
-				mat[1][i] = face_vertices[i].y;
-				mat[2][i] = mat[0][i] * mat[0][i] + mat[1][i] * mat[1][i];
-				mat[3][i] = 1.f;
-			}
+			vec2 ab = face_vertices[1] - face_vertices[0];
+			vec2 bc = face_vertices[2] - face_vertices[1];
+
+			vec2 mid_point1 = face_vertices[0] + ab / 2.f;
+			vec2 mid_point2 = face_vertices[1] + bc / 2.f;
+
+			// rotate vectors 90 degrees
+			vec2 normal1 = vec2(-ab.y, ab.x);
+			vec2 normal2 = vec2(-bc.y, bc.x);
+
+			bool degenerate_triangle;
+			vec2 circle_center = line_line_intersection_point(mid_point1, mid_point1 + normal1, mid_point2, mid_point2 + normal2, degenerate_triangle);
+			if (degenerate_triangle == true)
+				return false;
 
 			vec2 other = get_vertex(get_symedge(prev(index)).vertex);
-
-			mat[0][3] = other.x;
-			mat[1][3] = other.y;
-			mat[2][3] = mat[0][3] * mat[0][3] + mat[1][3] * mat[1][3];
-			mat[3][3] = 1.f;
-
-			if (determinant(mat) > 0)
+			if (length(circle_center - other) < length(face_vertices[0] - circle_center) - EPSILON)
 				return false;
 		}
 		return true;

@@ -667,7 +667,8 @@ namespace CPU
 			if (m_edges[(edge_list[cei])->edge].constraint_ref.size() > 0)
 			{
 				glm::ivec2 edge_index = m_edges[(edge_list[cei])->edge].edge;
-				glm::vec2 intersection_point = line_line_intersection_point(m_vertices[edge_index.x].vertice, m_vertices[edge_index.y].vertice, m_vertices[v1->vertex].vertice, m_vertices[v2->vertex].vertice);
+				bool deg_tri;
+				glm::vec2 intersection_point = line_line_intersection_point(m_vertices[edge_index.x].vertice, m_vertices[edge_index.y].vertice, m_vertices[v1->vertex].vertice, m_vertices[v2->vertex].vertice, deg_tri);
 				// TODO: Change locate_point to oriented_walk
 				LocateRes point_location = Locate_point(intersection_point);
 				if (point_location.type == LocateType::EDGE)
@@ -1234,7 +1235,8 @@ namespace CPU
 
 		bool inside_triangle = point_inside_triangle(a, c, b, center_prim);
 		bool inside_circle = center_prim_length <= sector_radius;
-		glm::vec2 point = line_line_intersection_point(b, center_prim, a, c);
+		bool deg_tri;
+		glm::vec2 point = line_line_intersection_point(b, center_prim, a, c, deg_tri);
 		bool other_side_of_ac = glm::dot(point - b, center_prim - b) > 0 && center_prim_length > line_length(point - b);
 		if (inside_triangle || (inside_circle && other_side_of_ac))
 			return true;

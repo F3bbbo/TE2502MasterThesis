@@ -170,7 +170,7 @@ float line_length2(glm::vec2 line)
 	return line.x * line.x + line.y * line.y;
 }
 
-glm::vec2 line_line_intersection_point(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 d, float epsi)
+glm::vec2 line_line_intersection_point(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 d, bool &degenerate_triangle, float epsi)
 {
 	// Line AB represented as a1x + b1y = c1 
 	float a1 = b.y - a.y;
@@ -182,35 +182,19 @@ glm::vec2 line_line_intersection_point(glm::vec2 a, glm::vec2 b, glm::vec2 c, gl
 	float b2 = c.x - d.x;
 	float c2 = a2 * (c.x) + b2 * (c.y);
 
-	float determinant = a1 * b2 - a2 * b1;
+	float det = a1 * b2 - a2 * b1;
 
-	if (std::fabs(determinant) < epsi)
+	if (abs(det) < EPSILON)
 	{
-		// The lines are parallel. This is simplified 
-		// by returning a pair of FLT_MAX 
-		return { FLT_MAX, FLT_MAX };
+		// The lines are parallel
+		degenerate_triangle = true;
+		return vec2(FLT_MAX);
 	}
 	else
 	{
-		float x = (b2 * c1 - b1 * c2) / determinant;
-		float y = (a1 * c2 - a2 * c1) / determinant;
-		return { x, y };
+		degenerate_triangle = false;
+		return vec2((b2 * c1 - b1 * c2) / det, (a1 * c2 - a2 * c1) / det);
 	}
-
-	//// http://demonstrations.wolfram.com/IntersectionOfTwoLinesUsingVectors/
-	//if (glm::dot(w - u, z - v) < 0.f)
-	//{
-	//	auto tmp = u;
-	//	u = w;
-	//	w = tmp;
-	//}
-
-
-	//float beta = glm::acos(glm::dot(w - u, z - v));
-	//glm::vec2 uv = v - u;
-	//float alpha = glm::acos(glm::dot(uv, z - v));
-
-	//return v + line_length(uv) * ((sin(alpha) * (z - v)) / (sin(beta) * line_length(z - v)));
 }
 
 bool point_in_circle(std::array<glm::vec2, 4> points)
@@ -296,7 +280,8 @@ bool edge_intersects_sector(vec2 a, vec2 b, vec2 c, vec2 segment[2])
 	bool inside_triangle = point_triangle_test(center_prim, tri);
 	bool inside_circle = center_prim_length <= sector_radius;
 	vec2 point;
-	point = line_line_intersection_point(b, center_prim, a, c, EPSILON);
+	bool deg_tri;
+	point = line_line_intersection_point(b, center_prim, a, c, deg_tri, EPSILON);
 	if (point_equal(point, vec2(FLT_MAX)))
 		return false;
 
@@ -358,8 +343,8 @@ glm::vec2 circle_center_from_points(glm::vec2 a, glm::vec2 b, glm::vec2 c)
 
 	vec = cross(glm::vec3(bc.x, bc.y, 0.f), glm::vec3(0.f, 0.f, 1.f));
 	normals[1] = glm::vec2(vec.x, vec.y);
-
-	return line_line_intersection_point(midpoints[0], midpoints[0] + normals[0], midpoints[1], midpoints[1] + normals[1]);
+	bool deg_tri;
+	return line_line_intersection_point(midpoints[0], midpoints[0] + normals[0], midpoints[1], midpoints[1] + normals[1], deg_tri);
 }
 
 std::vector<glm::vec2> ray_circle_intersection(std::array<glm::vec2, 2> ray, glm::vec2 center, float r)
