@@ -125,13 +125,14 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	//m.refine_LCT();
 	g_m.add_frame_points(gpu_frame.first);
 	g_m.build_CDT(gpu_map.first, gpu_map.second);
+	g_m.refine_LCT();
 
 	m.add_frame_points(gpu_frame.first);
 	m.build_CDT(gpu_map.first, gpu_map.second);
 	m.refine_LCT();
 
 	//g_m.build_CDT(dynamic_obj.first, dynamic_obj.second);
-	//g_m.refine_LCT();
+
 }
 
 int main()

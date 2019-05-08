@@ -531,7 +531,7 @@ namespace GPU
 			{
 				break;
 			}
-		} while (false);
+		} while (true);
 		timer.stop();
 		return timer.elapsed_time();
 	}
