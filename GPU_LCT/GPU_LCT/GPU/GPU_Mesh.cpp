@@ -848,7 +848,7 @@ namespace GPU
 			{
 				break;
 			}
-		} while (false);
+		} while (true);
 		return build_times;
 	}
 

@@ -190,7 +190,7 @@ void second_test(glm::ivec2 obstacles, int iterations)
 
 	if (!output.is_open())
 	{
-		LOG_T(WARNING, "Can not open output file: " + filename);
+		LOG_T(WARNING, "Can not open output file: " + filename + '\n');
 		return;
 	}
 
@@ -200,7 +200,7 @@ void second_test(glm::ivec2 obstacles, int iterations)
 		mesh.initiate_buffers({ 45, 45 });
 
 		shader_times.push_back(mesh.measure_shaders(data.first, data.second));
-		LOG_ND("Second Test iteration: " + std::to_string(i + 1));
+		LOG_ND("Second Test iteration: " + std::to_string(i + 1) + '\n');
 	}
 
 	int num_shaders = 17;
@@ -266,7 +266,7 @@ void third_test(std::string input_file)
 
 		// All input data has been loaded
 		// GPU CPU
-		std::string output_filename = "Output files/third_test_result_of_" + input_file + "_CPUGPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size());
+		std::string output_filename = "Output files/third_test_result_of_" + input_file + "_CPUGPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size()) + ".txt";
 		std::ofstream output (output_filename.c_str(), std::ifstream::out);
 
 		if (!output.is_open())
