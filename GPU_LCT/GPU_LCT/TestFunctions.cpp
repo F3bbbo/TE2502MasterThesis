@@ -120,19 +120,19 @@ void first_test(glm::ivec2 obstacle_amount, int iterations)
 	int num_vertices[2];
 	for (int i = 0; i < iterations; i++)
 	{
-		/*GPU::GCMesh gc_mesh({ 1600, 800 });
+		GPU::GCMesh gc_mesh({ 1600, 800 });
 		gc_mesh.initiate_buffers({ 45, 45 });
 		
 		build_times.push_back(gc_mesh.build_CDT(data.first, data.second));
 		num_vertices[0] = gc_mesh.get_num_vertices();
 		build_times.push_back(gc_mesh.refine_LCT());
-		num_vertices[1] = gc_mesh.get_num_vertices();*/
+		num_vertices[1] = gc_mesh.get_num_vertices();
 		build_times.push_back(0);
 		build_times.push_back(0);
-		LOG("First Test CPUGPU Completed iteration: " + std::to_string(i + 1));
+		LOG_ND("First Test CPUGPU iteration: " + std::to_string(i + 1));
 	}
 
-	std::string filename = "Output files/CPUGPU-" + '-' + std::to_string(num_vertices[0]) + '-' + std::to_string(num_vertices[1]);
+	std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(num_vertices[0]) + '-' + std::to_string(num_vertices[1]) + ".txt";
 	std::ofstream output(filename.c_str(), std::ofstream::out);
 
 	if (output.is_open())
@@ -156,10 +156,10 @@ void first_test(glm::ivec2 obstacle_amount, int iterations)
 		num_vertices[0] = gc_mesh.get_num_vertices();
 		build_times.push_back(gc_mesh.refine_LCT());
 		num_vertices[1] = gc_mesh.get_num_vertices();
-		LOG("First Test GPU Completed iteration: " + std::to_string(i + 1));
+		LOG_ND("First Test GPU iteration: " + std::to_string(i + 1));
 	}
 
-	filename = "Output files/GPU-" + std::to_string(num_vertices[0]) + '-' + std::to_string(num_vertices[1]) + ".txt";
+	filename = "Output files/first_test_GPU-" + std::to_string(num_vertices[0]) + '-' + std::to_string(num_vertices[1]) + ".txt";
 	output.open(filename.c_str(), std::ofstream::out);
 
 	if (output.is_open())
@@ -190,7 +190,7 @@ void second_test(glm::ivec2 obstacles, int iterations)
 
 	if (!output.is_open())
 	{
-		LOG("Can not open output file: " + filename);
+		LOG_T(WARNING, "Can not open output file: " + filename);
 		return;
 	}
 
@@ -200,20 +200,26 @@ void second_test(glm::ivec2 obstacles, int iterations)
 		mesh.initiate_buffers({ 45, 45 });
 
 		shader_times.push_back(mesh.measure_shaders(data.first, data.second));
-		LOG("Second Test Completed iteration: " + std::to_string(i + 1));
+		LOG_ND("Second Test iteration: " + std::to_string(i + 1));
 	}
+
+	int num_shaders = 17;
+	std::vector<long long> total_times;
+	total_times.resize(num_shaders, 0);
 
 	for (int i = 0; i < iterations; i++)
 	{
-		long long sum = 0;
-		for (int j = 0; j < iterations; j++)
-			sum += shader_times[j][i];
+		for (int j = 0; j < num_shaders; j++)
+			total_times[j] += shader_times[i][j];
+	}
 
-		sum /= iterations;
-		output << std::to_string(sum);
-		if (i < iterations - 1)
+	for (int i = 0; i < total_times.size(); i++)
+	{
+		output << std::to_string(total_times[i] / iterations);
+		if (i < num_shaders - 1)
 			output << ',';
 	}
+
 	output.close();
 }
 
@@ -260,7 +266,7 @@ void third_test(std::string input_file)
 
 		// All input data has been loaded
 		// GPU CPU
-		std::string output_filename = "Output files/result_of_" + input_file + "_CPUGPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size());
+		std::string output_filename = "Output files/third_test_result_of_" + input_file + "_CPUGPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size());
 		std::ofstream output (output_filename.c_str(), std::ifstream::out);
 
 		if (!output.is_open())
@@ -272,13 +278,11 @@ void third_test(std::string input_file)
 		std::vector<long long> build_times;
 		for (int j = 0; j < 10; j++)
 		{
-			//build_times.push_back(gc_mesh.build_CDT(dynamic_vertices, dynamic_vertex_indices));
-			//build_times.push_back(gc_mesh.refine_LCT());
-			build_times.push_back(0);
-			build_times.push_back(0);
+			build_times.push_back(gc_mesh.build_CDT(dynamic_vertices, dynamic_vertex_indices));
+			build_times.push_back(gc_mesh.refine_LCT());
 			output << std::to_string(j) + ',' + std::to_string(build_times[j * 2]) + ',' + std::to_string(build_times[j * 2 + 1]) + ',' + std::to_string((int)gc_mesh.get_num_vertices() - num_static_vertices - (int)dynamic_vertices.size()) + '\n';
 			gc_mesh = gc_mesh_copy;
-			LOG("Third Test CPUGPU Completed iteration: " + std::to_string(i + 1));
+			LOG("Third Test CPUGPU iteration: " + std::to_string(i + 1));
 		}
 		output.close();
 
@@ -289,7 +293,7 @@ void third_test(std::string input_file)
 		g_mesh.load_from_file(mesh_name);
 		GPU::GPUMesh g_mesh_copy = g_mesh;
 
-		output_filename = "Output files/result_of_" + input_file + "_GPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size());
+		output_filename = "Output files/third_test_result_of_" + input_file + "_GPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size());
 		output.open(output_filename.c_str(), std::ifstream::out);
 
 		if (!output.is_open())
@@ -305,7 +309,7 @@ void third_test(std::string input_file)
 
 			output << std::to_string(j) + ',' + std::to_string(build_times[j * 2]) + ',' + std::to_string(build_times[j * 2 + 1]) + ',' + std::to_string((int)g_mesh.get_num_vertices() - num_static_vertices - (int)dynamic_vertices.size()) + '\n';
 			g_mesh = g_mesh_copy;
-			LOG("Second Test GPU Completed iteration: " + std::to_string(i + 1));
+			LOG("Second Test GPU iteration: " + std::to_string(i + 1));
 		}
 		output.close();
 	}
