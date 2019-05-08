@@ -613,14 +613,14 @@ namespace GPU
 			glUseProgram(m_location_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
-			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glFinish();
 			timer.stop();
 			build_times[0] += timer.elapsed_time();
 
 			glUseProgram(m_location_tri_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
-			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glFinish();
 			timer.stop();
 			build_times[1] += timer.elapsed_time();
 
@@ -628,7 +628,7 @@ namespace GPU
 			glUseProgram(m_insertion_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
-			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glFinish();
 			timer.stop();
 			build_times[2] += timer.elapsed_time();
 
@@ -636,14 +636,14 @@ namespace GPU
 			glUseProgram(m_marking_part_one_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
-			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glFinish();
 			timer.stop();
 			build_times[3] += timer.elapsed_time();
 
 			glUseProgram(m_marking_part_two_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
-			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glFinish();
 			timer.stop();
 			build_times[4] += timer.elapsed_time();
 
@@ -651,21 +651,21 @@ namespace GPU
 			glUseProgram(m_flip_edges_part_one_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
-			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glFinish();
 			timer.stop();
 			build_times[5] += timer.elapsed_time();
 
 			glUseProgram(m_flip_edges_part_two_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
-			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glFinish();
 			timer.stop();
 			build_times[6] += timer.elapsed_time();
 
 			glUseProgram(m_flip_edges_part_three_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
-			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glFinish();
 			timer.stop();
 			build_times[7] += timer.elapsed_time();
 
@@ -705,7 +705,7 @@ namespace GPU
 			glUseProgram(m_locate_disturbances_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
-			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glFinish();
 			timer.stop();
 			build_times[8] += timer.elapsed_time();
 			// Check how many new points are going to get inserted
@@ -719,7 +719,7 @@ namespace GPU
 				glUseProgram(m_add_new_points_program);
 				timer.start();
 				glDispatchCompute((GLuint)256, 1, 1);
-				glMemoryBarrier(GL_ALL_BARRIER_BITS);
+				glFinish();
 				timer.stop();
 				build_times[9] += timer.elapsed_time();
 
@@ -792,14 +792,14 @@ namespace GPU
 					glUseProgram(m_locate_point_triangle_program);
 					timer.start();
 					glDispatchCompute((GLuint)256, 1, 1);
-					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					glFinish();
 					timer.stop();
 					build_times[10] += timer.elapsed_time();
 
 					glUseProgram(m_validate_edges_program);
 					timer.start();
 					glDispatchCompute((GLuint)256, 1, 1);
-					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					glFinish();
 					timer.stop();
 					build_times[11] += timer.elapsed_time();
 
@@ -807,7 +807,7 @@ namespace GPU
 					glUseProgram(m_insert_in_edge_program);
 					timer.start();
 					glDispatchCompute((GLuint)256, 1, 1);
-					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					glFinish();
 					timer.stop();
 					build_times[12] += timer.elapsed_time();
 
@@ -815,7 +815,7 @@ namespace GPU
 					glUseProgram(m_marking_part_two_program);
 					timer.start();
 					glDispatchCompute((GLuint)256, 1, 1);
-					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					glFinish();
 					timer.stop();
 					build_times[13] += timer.elapsed_time();
 
@@ -823,21 +823,21 @@ namespace GPU
 					glUseProgram(m_flip_edges_part_one_program);
 					timer.start();
 					glDispatchCompute((GLuint)256, 1, 1);
-					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					glFinish();
 					timer.stop();
 					build_times[14] += timer.elapsed_time();
 
 					glUseProgram(m_flip_edges_part_two_program);
 					timer.start();
 					glDispatchCompute((GLuint)256, 1, 1);
-					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					glFinish();
 					timer.stop();
 					build_times[15] += timer.elapsed_time();
 
 					glUseProgram(m_flip_edges_part_three_program);
 					timer.start();
 					glDispatchCompute((GLuint)256, 1, 1);
-					glMemoryBarrier(GL_ALL_BARRIER_BITS);
+					glFinish();
 					timer.stop();
 					build_times[16] += timer.elapsed_time();
 
