@@ -343,6 +343,7 @@ namespace GPU
 			num_new_points = status;
 			if (num_new_points > 0)
 			{
+				new_points.resize(num_new_points);
 				// add new points to the new_points buffer
 				add_new_points_program();
 				// remove duplicate points
