@@ -81,19 +81,25 @@ public:
 		{
 			// Need to reallocate data
 
-			// Get the current data from the buffer
-			void* ptr = malloc(m_used_buffer_size);
-			void* mapped_data = glMapNamedBufferRange(m_buf, 0, m_used_buffer_size, GL_MAP_READ_BIT);
-			memcpy(ptr, mapped_data, m_used_buffer_size);
-			glUnmapNamedBuffer(m_buf);
-
+			void* ptr = nullptr;
+			if (m_used_buffer_size > 0)
+			{
+				// Get the current data from the buffer
+				ptr = malloc(m_used_buffer_size);
+				void* mapped_data = glMapNamedBufferRange(m_buf, 0, m_used_buffer_size, GL_MAP_READ_BIT);
+				memcpy(ptr, mapped_data, m_used_buffer_size);
+				glUnmapNamedBuffer(m_buf);
+			}
 			// Create a bigger buffer
-			GLuint buffer_increase = BUFFER_APPEND_BYTE_AMMOUNT + (m_used_buffer_size + append_byte_length - m_buffer_size - (BUFFER_APPEND_BYTE_AMMOUNT % (m_used_buffer_size + append_byte_length - m_buffer_size)));
-			glNamedBufferData(m_buf, m_buffer_size + buffer_increase, NULL, m_usage);
-			glNamedBufferSubData(m_buf, 0, m_used_buffer_size, ptr);
+			GLuint new_buff_size = m_used_buffer_size + append_byte_length + (BUFFER_APPEND_BYTE_AMMOUNT - ((m_used_buffer_size + append_byte_length) % BUFFER_APPEND_BYTE_AMMOUNT));
+			glNamedBufferData(m_buf, new_buff_size, NULL, m_usage);
+			if (m_used_buffer_size > 0)
+			{
+				glNamedBufferSubData(m_buf, 0, m_used_buffer_size, ptr);
+				free(ptr);
+			}
 			glNamedBufferSubData(m_buf, m_used_buffer_size, append_byte_length, data.data());
-			m_buffer_size += buffer_increase;
-			free(ptr);
+			m_buffer_size = new_buff_size;
 		}
 		else
 		{
@@ -170,8 +176,8 @@ public:
 	};
 private:
 	GLuint m_type;
-	GLuint m_buf;
-	GLuint m_vao;
+	GLuint m_buf = 0;
+	GLuint m_vao = 0;
 	GLuint m_loc;
 	GLuint m_usage;
 	GLuint m_buffer_size = 0; // bytes
