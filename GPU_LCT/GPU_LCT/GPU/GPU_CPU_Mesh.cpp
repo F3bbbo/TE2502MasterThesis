@@ -229,7 +229,8 @@ namespace GPU
 			counter++;
 			status = 0;
 			//m_status.update_buffer<int>({ 0 });
-
+			//if (counter == 4)
+			//	break;
 			//// Locate Step
 			location_program();
 			//glUseProgram(m_location_program);
@@ -1583,11 +1584,12 @@ namespace GPU
 				tri_symedges[t1] = ivec4(new_symedges[1], e2, new_symedges[0], -1);
 
 				int new_segment_index = seg_inserted.size() - (seg_inserted.size() - point_index);
-
-				seg_endpoint_indices[edge_is_constrained[get_symedge(segment).edge]] = ivec2(point_index, get_symedge(e1).vertex);	// reused segment
+				int old_segment_index = edge_is_constrained[get_symedge(segment).edge];
+				seg_endpoint_indices[old_segment_index] = ivec2(point_index, get_symedge(e1).vertex);	// reused segment
 				seg_endpoint_indices[new_segment_index] = ivec2(get_symedge(new_symedges[0]).vertex, point_index);		// new segment
 
 				edge_is_constrained[edge1] = new_segment_index;
+				//edge_is_constrained[edge3] = old_segment_index;
 
 				// mark as maybe non delauney
 				seg_inserted[new_segment_index] = 1;
@@ -2312,6 +2314,8 @@ namespace GPU
 		for (int i = 0; i < seg_endpoint_indices.size(); i++)
 		{
 			ivec2 seg_i = seg_endpoint_indices[i];
+			//if (seg_i.x < 0 || seg_i.y < 0)
+			//	continue;
 			vec2 s[2];
 			s[0] = point_positions[seg_i[0]];
 			s[1] = point_positions[seg_i[1]];

@@ -123,9 +123,13 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	auto dynamic_obj = test_map.get_GPU_dynamic_obstacles();
 	//m.build_CDT(gpu_map.first, gpu_map.second);
 	//m.refine_LCT();
-	//g_m.build_CDT(gpu_frame.first, gpu_frame.second);
 	g_m.add_frame_points(gpu_frame.first);
 	g_m.build_CDT(gpu_map.first, gpu_map.second);
+
+	m.add_frame_points(gpu_frame.first);
+	m.build_CDT(gpu_map.first, gpu_map.second);
+	m.refine_LCT();
+
 	//g_m.build_CDT(dynamic_obj.first, dynamic_obj.second);
 	//g_m.refine_LCT();
 }
@@ -135,7 +139,7 @@ int main()
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
 	float scale = 49.0f;
-	int num_object_multi = 150;
+	int num_object_multi = 20;
 	glm::vec2 map_scaling = { scale, scale };
 	glm::ivec2 num_objects = { num_object_multi, num_object_multi };
 	GPU::GPUMesh g_mesh({ 1600, 800 });
