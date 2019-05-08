@@ -91,7 +91,7 @@ namespace GPU
 		new_points.insert(new_points.end(), points.begin(), points.end());
 		remove_duplicate_points();
 		point_positions.insert(point_positions.end(), new_points.begin() + num_old_points, new_points.end());
-		int num_new_points = new_points.size();
+		int num_new_points = new_points.size() - num_old_points;
 		new_points.clear();
 		append_vec(point_inserted, std::vector<int>(num_new_points, 0));
 		append_vec(point_tri_index, std::vector<int>(num_new_points, 0));
