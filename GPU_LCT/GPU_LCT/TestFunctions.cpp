@@ -223,7 +223,7 @@ void second_test(glm::ivec2 obstacles, int iterations)
 	output.close();
 }
 
-void third_test(std::string input_file)
+void third_test(std::string input_file, bool test_CPUGPU, bool test_GPU)
 {
 	// Test: 3
 	// Filename:[Algorithm]-[number of static vertices]-[number of dynamic obstacle vertices]
@@ -246,10 +246,6 @@ void third_test(std::string input_file)
 		char* mesh_name_c = new char[size];
 		input.read(mesh_name_c, size);
 		std::string mesh_name(mesh_name_c, size);
-
-		GPU::GCMesh gc_mesh({ 1600, 800 });
-		gc_mesh.load_from_file(mesh_name);
-		GPU::GCMesh gc_mesh_copy = gc_mesh;
 		
 		int num_static_vertices;
 		input.read((char*)&num_static_vertices, sizeof(int)); // get number of static object vertices
@@ -276,42 +272,52 @@ void third_test(std::string input_file)
 		}
 		
 		std::vector<long long> build_times;
-		for (int j = 0; j < 10; j++)
+
+		if (test_CPUGPU)
 		{
-			build_times.push_back(gc_mesh.build_CDT(dynamic_vertices, dynamic_vertex_indices));
-			build_times.push_back(gc_mesh.refine_LCT());
-			output << std::to_string(j) + ',' + std::to_string(build_times[j * 2]) + ',' + std::to_string(build_times[j * 2 + 1]) + ',' + std::to_string((int)gc_mesh.get_num_vertices() - num_static_vertices - (int)dynamic_vertices.size()) + '\n';
-			gc_mesh = gc_mesh_copy;
-			LOG("Third Test CPUGPU iteration: " + std::to_string(i + 1));
-		}
-		output.close();
+			GPU::GCMesh gc_mesh({ 1600, 800 });
+			gc_mesh.load_from_file(mesh_name);
+			GPU::GCMesh gc_mesh_copy = gc_mesh;
 
-		// GPU
-		build_times.clear();
-
-		GPU::GPUMesh g_mesh({ 1600, 800 });
-		g_mesh.load_from_file(mesh_name);
-		GPU::GPUMesh g_mesh_copy = g_mesh;
-
-		output_filename = "Output files/third_test_result_of_" + input_file + "_GPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size());
-		output.open(output_filename.c_str(), std::ifstream::out);
-
-		if (!output.is_open())
-		{
-			LOG_T(WARNING, "can not open file:" + output_filename);
-			continue;
+			for (int j = 0; j < 10; j++)
+			{
+				build_times.push_back(gc_mesh.build_CDT(dynamic_vertices, dynamic_vertex_indices));
+				build_times.push_back(gc_mesh.refine_LCT());
+				output << std::to_string(j) + ',' + std::to_string(build_times[j * 2]) + ',' + std::to_string(build_times[j * 2 + 1]) + ',' + std::to_string((int)gc_mesh.get_num_vertices() - num_static_vertices - (int)dynamic_vertices.size()) + '\n';
+				gc_mesh = gc_mesh_copy;
+				LOG("Third Test CPUGPU iteration: " + std::to_string(i + 1));
+			}
+			output.close();
+			build_times.clear();
 		}
 		
-		for (int j = 0; j < 10; j++)
+		if (test_GPU)
 		{
-			build_times.push_back(g_mesh.build_CDT(dynamic_vertices, dynamic_vertex_indices));
-			build_times.push_back(g_mesh.refine_LCT());
+			GPU::GPUMesh g_mesh({ 1600, 800 });
+			g_mesh.initiate_buffers({45.f, 45.f});
+			g_mesh.load_from_file(mesh_name);
+			GPU::GPUMesh g_mesh_copy = g_mesh;
 
-			output << std::to_string(j) + ',' + std::to_string(build_times[j * 2]) + ',' + std::to_string(build_times[j * 2 + 1]) + ',' + std::to_string((int)g_mesh.get_num_vertices() - num_static_vertices - (int)dynamic_vertices.size()) + '\n';
-			g_mesh = g_mesh_copy;
-			LOG("Second Test GPU iteration: " + std::to_string(i + 1));
+			output_filename = "Output files/third_test_result_of_" + input_file + "_GPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size());
+			output.open(output_filename.c_str(), std::ifstream::out);
+
+			if (!output.is_open())
+			{
+				LOG_T(WARNING, "can not open file:" + output_filename);
+				continue;
+			}
+
+			for (int j = 0; j < 10; j++)
+			{
+				build_times.push_back(g_mesh.build_CDT(dynamic_vertices, dynamic_vertex_indices));
+				build_times.push_back(g_mesh.refine_LCT());
+
+				output << std::to_string(j) + ',' + std::to_string(build_times[j * 2]) + ',' + std::to_string(build_times[j * 2 + 1]) + ',' + std::to_string((int)g_mesh.get_num_vertices() - num_static_vertices - (int)dynamic_vertices.size()) + '\n';
+				g_mesh = g_mesh_copy;
+				LOG("Second Test GPU iteration: " + std::to_string(i + 1));
+			}
+			output.close();
 		}
-		output.close();
 	}
 	input.close();
 }

@@ -12,4 +12,4 @@ void first_test(glm::ivec2 obstacle_amount, int iterations);
 
 void second_test(glm::ivec2 obstacle_amount, int iterations);
 
-void third_test(std::string input_file);
+void third_test(std::string input_file, bool test_CPUGPU, bool test_GPU);
