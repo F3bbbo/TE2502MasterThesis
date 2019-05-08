@@ -75,9 +75,7 @@ GLuint Buffer::buffer_size()
 void Buffer::clear()
 {
 	unbind_buffer();
-	glBufferData(m_buf, 0, NULL, m_usage);
-	glDeleteBuffers(1, &m_vao);
-	glGenBuffers(1, &m_vao);
+	glNamedBufferData(m_buf, 0, NULL, m_usage);
 	m_buffer_size = 0;
 	m_num_elements = 0;
 	m_used_buffer_size = 0;
