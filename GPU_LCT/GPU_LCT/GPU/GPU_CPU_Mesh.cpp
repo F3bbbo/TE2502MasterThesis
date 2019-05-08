@@ -1207,7 +1207,7 @@ namespace GPU
 				// so now label ones are processed all the time.
 				for (int i = 0; i < 3; i++)
 				{
-					if (edge_label[get_symedge(tri_sym).edge] == 1 && ((!is_flippable(tri_sym) || is_delaunay(tri_sym)) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
+					if (edge_label[get_symedge(tri_sym).edge] == 1 && ((is_delaunay(tri_sym)) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
 						edge_label[get_symedge(tri_sym).edge] = 0;
 
 					tri_sym = nxt(tri_sym);
@@ -1218,7 +1218,7 @@ namespace GPU
 					{
 						for (int i = 0; i < 3; i++)
 						{
-							if (edge_label[get_symedge(tri_sym).edge] == 1 && ((!is_flippable(tri_sym) || is_delaunay(tri_sym)) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
+							if (edge_label[get_symedge(tri_sym).edge] == 1 && ((is_delaunay(tri_sym)) || edge_is_constrained[get_symedge(tri_sym).edge] > -1))
 								edge_label[get_symedge(tri_sym).edge] = 0;
 
 							tri_sym = nxt(tri_sym);
@@ -2065,7 +2065,7 @@ namespace GPU
 
 	bool GCMesh::will_be_flipped(int segment_index, SymEdge triangle)
 	{
-		if (tri_seg_inters_index[triangle.face] == segment_index && tri_seg_inters_index[sym_symedge(triangle).face] == segment_index && edge_label[triangle.edge] < 3 && is_flippable(get_index(triangle)))
+		if (tri_seg_inters_index[triangle.face] == segment_index && tri_seg_inters_index[sym_symedge(triangle).face] == segment_index && edge_label[triangle.edge] < 3)
 		{
 			edge_label[triangle.edge] = 2;
 			return true;
@@ -2226,24 +2226,7 @@ namespace GPU
 		}
 		return true;
 	}
-	bool GCMesh::is_flippable(int e)
-	{
-		int e_sym = sym(e);
-		if (e_sym > -1)
-		{
-			vec2 a = point_positions[sym_edges[e_sym].vertex];
-			vec2 d = point_positions[sym_edges[prev(e_sym)].vertex];
 
-			vec2 c = point_positions[sym_edges[e].vertex];
-			vec2 b = point_positions[sym_edges[prev(e)].vertex];
-			// first check so the new triangles will not be degenerate
-			if (point_ray_test(a, d, b) || point_ray_test(c, d, b))
-				return false;
-			// then check so they will not overlap other triangles
-			return line_line_test(a, c, b, d);
-		}
-		return false;
-	}
 	void GCMesh::set_quad_edges_label(int label, SymEdge edge)
 	{
 		edge_label[nxt(edge).edge] = edge_is_constrained[nxt(edge).edge] == -1 ? max(label, edge_label[nxt(edge).edge]) : edge_label[nxt(edge).edge];
