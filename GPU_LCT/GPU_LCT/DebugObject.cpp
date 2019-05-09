@@ -157,7 +157,7 @@ void DebugObject::build(GPU::GPUMesh & mesh)
 	int i = 0; 
 	for (auto& vertex : mesh_verts) 
 	{ 
-		if (i != 48) 
+		if (i != -1) 
 			vertices.push_back({ vertex, {m_color.r, m_color.g, m_color.b, 1.f} }); 
 		else 
 			vertices.push_back({ vertex, {1.f, 0.f, 1.f, 1.f} }); 

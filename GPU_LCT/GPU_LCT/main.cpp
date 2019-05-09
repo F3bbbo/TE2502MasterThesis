@@ -160,18 +160,18 @@ int main()
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
 	float scale = 490.0f;
-	int num_object_multi = 120;
+	int num_object_multi = 190;
 	glm::vec2 map_scaling = { scale, scale };
 	glm::ivec2 num_objects = { num_object_multi, num_object_multi };
 	GPU::GPUMesh g_mesh({ 1600, 800 });
 	g_mesh.initiate_buffers(map_scaling);
 	//g_mesh.build_CDT({ { -0.25f, -0.25f }, { -0.25f, 0.25f }, { 0.25f, 0.25f }, { 0.25f, -0.25f } }, { {0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 2} });
-	vec2 s1 = vec2(100.0f);
-	vec2 s2 = vec2(101.0f);
-	vec2 s3 = vec2(100.01f, 100.0f);
-	vec2 s4 = vec2(101.0f);
-	
-	LOG(std::to_string(line_line_test(s1, s2, s3, s4, 0.001f)));
+	//vec2 s1 = vec2(100.0f);
+	//vec2 s2 = vec2(101.0f);
+	//vec2 s3 = vec2(100.01f, 100.0f);
+	//vec2 s4 = vec2(101.0f);
+	//
+	//LOG(std::to_string(line_line_test(s1, s2, s3, s4, 0.001f)));
 	renderer.set_camera_base_zoom(map_scaling, 2.3f);
 
 	GPU::GCMesh gc_mesh({ 1600, 800 });
@@ -186,9 +186,9 @@ int main()
 	//lct_example(m, g_mesh);
 
 	test_test_map(gc_mesh, g_mesh, map_scaling, num_objects);
-	auto points = g_mesh.get_vertices();
-	LOG(std::to_string(check_for_sliver_tri({points[118], points[124], points[121] }, 0.001f)));
-	
+	//auto points = g_mesh.get_vertices();
+	//LOG(std::to_string(check_for_sliver_tri({points[118], points[124], points[121] }, 0.001f)));
+	//
 	//generate_third_test_input("test2", { {{300, 300}, 0.25f} });
 	//third_test("test2");
 	//gc_mesh.save_to_file("test.txt", false);

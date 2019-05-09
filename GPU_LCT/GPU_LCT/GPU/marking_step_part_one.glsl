@@ -388,12 +388,12 @@ int oriented_walk_point(int start_e, int goal_point_i)
 	while (true)
 	{
 		counter++;
-		if (counter > 1501)
-		{
-			edge_label[sym_edges[curr_e].edge] = -2;
-			edge_is_constrained[sym_edges[curr_e].edge] = goal_point_i;
-			return -1;
-		}
+		//if (counter > 1001)
+		//{
+		//	edge_label[sym_edges[curr_e].edge] = -2;
+		//	edge_is_constrained[sym_edges[curr_e].edge] = goal_point_i;
+		//	return -1;
+		//}
 		if (face_contains_vertice(sym_edges[curr_e].face, goal_point_i))
 			return get_face_vertex_symedge(sym_edges[curr_e].face, goal_point_i);
 		//check if current triangle is a sliver triangle
@@ -411,7 +411,12 @@ int oriented_walk_point(int start_e, int goal_point_i)
 				vec2 bc = point_positions[sym_edges[nxt(curr_e)].vertex] - point_positions[sym_edges[curr_e].vertex];
 				dir = dot(ab, bc);
 			} while (dir > 0.0f);
-			curr_e = sym(curr_e);
+			int last_e = curr_e;
+			do
+			{
+				curr_e = sym(last_e);
+				last_e = nxt(last_e);
+			} while (curr_e < 0);
 		}
 		else
 		{
@@ -739,11 +744,11 @@ void main(void)
 					//	return ;
 					//}
 					int starting_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].x);
-					if (start_index < 0)
-						return;
+					//if (start_index < 0)
+					//	return;
 					int ending_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].y);
-					if (ending_symedge < 0)
-						return;
+					//if (ending_symedge < 0)
+					//	return;
 					// update the points triangle indexes
 					point_tri_index[sym_edges[starting_symedge].vertex] = sym_edges[starting_symedge].face;
 					point_tri_index[sym_edges[ending_symedge].vertex] = sym_edges[ending_symedge].face;
@@ -758,11 +763,11 @@ void main(void)
 					else
 					{
 						straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
-						if (index < 0)
-							return;
+						//if (index < 0)
+						//	return;
 						straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
-						if (index < 0)
-							return;
+						//if (index < 0)
+						//	return;
 					}
 				}
 			}
