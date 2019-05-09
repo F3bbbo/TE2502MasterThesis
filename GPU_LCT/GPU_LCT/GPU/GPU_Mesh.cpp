@@ -844,7 +844,7 @@ namespace GPU
 			int j = i + 1;
 			while (j < num_valid_points)
 			{
-				if (point_equal(list[i], list[j]))
+				if (point_equal(list[i], list[j], m_epsilon))
 				{
 					// swap away point behind the valid pointsto be removed later.
 					vec2 tmp = list[j];

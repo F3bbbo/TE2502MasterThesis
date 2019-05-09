@@ -295,7 +295,7 @@ void main(void)
 			seg_endpoint_indices[new_segment_index] = ivec2(get_symedge(new_symedges[0]).vertex, point_index);		// new segment
 
 			edge_is_constrained[edge1] = new_segment_index;
-
+			seg_inserted[new_segment_index] = 1;
 			// mark as maybe non delauney
 
 			edge_label[get_symedge(e1).edge] = edge_is_constrained[get_symedge(e1).edge] == -1 ? 1 : edge_label[get_symedge(e1).edge];
@@ -350,7 +350,7 @@ void main(void)
 				tri_symedges[t2] = ivec4(new_symedges[5], e3, new_symedges[4], -1);
 				tri_symedges[t3] = ivec4(new_symedges[3], e4, segment_symedges[1], -1);
 
-				seg_inserted[new_segment_index] = 1;
+				
 
 				// mark as maybe non delauney
 				edge_label[get_symedge(e3).edge] = edge_is_constrained[get_symedge(e3).edge] == -1 ? 1 : edge_label[get_symedge(e3).edge];
