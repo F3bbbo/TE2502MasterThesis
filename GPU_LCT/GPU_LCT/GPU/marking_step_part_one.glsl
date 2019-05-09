@@ -311,7 +311,7 @@ bool line_line_test(vec2 p1, vec2 p2, vec2 q1, vec2 q2, float epsi = EPSILON)
 		float l_epsi = 0.0001f;
 		float u = qpr / rs;
 		float t = vec2_cross(qp, s) / rs;
-		if ((0.0f - epsi) <= u && u <= (1.0f + epsi) && (0.0f - epsi) <= t && t <= (1.0f + epsi))
+		if ((0.0f - l_epsi) <= u && u <= (1.0f + l_epsi) && (0.0f - l_epsi) <= t && t <= (1.0f + l_epsi))
 			return true;
 	}
 	return false;
@@ -391,7 +391,7 @@ int oriented_walk_point(int start_e, int goal_point_i)
 		if (counter > 1501)
 		{
 			edge_label[sym_edges[curr_e].edge] = -2;
-			edge_is_constrained[sym_edges[curr_e].edge] = start_e;
+			edge_is_constrained[sym_edges[curr_e].edge] = goal_point_i;
 			return -1;
 		}
 		if (face_contains_vertice(sym_edges[curr_e].face, goal_point_i))
@@ -732,12 +732,12 @@ void main(void)
 				if (endpoints_inserted == 1)
 				{
 					int start_index = tri_symedges[point_tri_index[seg_endpoint_indices[index].x]].x;
-					if (start_index < 0)
-					{	
-						edge_label[index] = -2;
-						edge_is_constrained[index] = seg_inserted[index];
-						return ;
-					}
+					//if (start_index < 0)
+					//{	
+					//	edge_label[index] = -2;
+					//	edge_is_constrained[index] = seg_inserted[index];
+					//	return ;
+					//}
 					int starting_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].x);
 					if (start_index < 0)
 						return;
