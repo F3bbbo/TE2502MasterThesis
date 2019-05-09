@@ -974,8 +974,6 @@ namespace GPU
 			m_sym_edges.clear();
 			m_new_points.clear();
 			m_refine_points.clear();
-			m_nr_of_symedges.clear();
-			m_status.clear();
 
 			// read points data
 			input.read((char*)&value, sizeof(int));
@@ -1060,7 +1058,7 @@ namespace GPU
 
 			input.read((char*)&value, sizeof(int));
 			std::vector<SymEdge> symedge_buff;
-			symedge_buff.reserve(value / sizeof(SymEdge));
+			symedge_buff.resize(value / sizeof(SymEdge));
 			input.read((char*)symedge_buff.data(), value);
 			m_sym_edges.append_to_buffer(symedge_buff);
 			symedge_buff.clear();
