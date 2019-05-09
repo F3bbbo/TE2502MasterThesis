@@ -125,7 +125,7 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	//m.refine_LCT();
 	g_m.add_frame_points(gpu_frame.first);
 	g_m.build_CDT(gpu_map.first, gpu_map.second);
-	//g_m.refine_LCT();
+	g_m.refine_LCT();
 
 	//m.add_frame_points(gpu_frame.first);
 	//m.build_CDT(gpu_map.first, gpu_map.second);
@@ -160,7 +160,7 @@ int main()
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
 	float scale = 490.0f;
-	int num_object_multi = 190;
+	int num_object_multi = 100;
 	glm::vec2 map_scaling = { scale, scale };
 	glm::ivec2 num_objects = { num_object_multi, num_object_multi };
 	GPU::GPUMesh g_mesh({ 1600, 800 });
