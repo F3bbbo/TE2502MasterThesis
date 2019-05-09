@@ -117,7 +117,7 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	//}
 
 	// create GPU data
-	g_m.set_epsilon(0.0001f);
+	g_m.set_epsilon(0.001f);
 	auto gpu_frame = test_map.get_GPU_frame();
 	auto gpu_map = test_map.get_GPU_static_obstacles();
 	auto dynamic_obj = test_map.get_GPU_dynamic_obstacles();
@@ -125,28 +125,53 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	//m.refine_LCT();
 	g_m.add_frame_points(gpu_frame.first);
 	g_m.build_CDT(gpu_map.first, gpu_map.second);
-	g_m.refine_LCT();
+	//g_m.refine_LCT();
 
-	m.add_frame_points(gpu_frame.first);
-	m.build_CDT(gpu_map.first, gpu_map.second);
-	m.refine_LCT();
+	//m.add_frame_points(gpu_frame.first);
+	//m.build_CDT(gpu_map.first, gpu_map.second);
+	//m.refine_LCT();
 
 	//g_m.build_CDT(dynamic_obj.first, dynamic_obj.second);
 
 }
+bool check_for_sliver_tri(std::array<vec2, 3> tri, float epsi = EPSILON)
+{
+	// first find the longest edge
+	float best_dist = 0.0f;
+	int best_i = -1;
+	for (int i = 0; i < 3; i++)
+	{
+		float dist = distance(tri[i], tri[(i + 1) % 3]);
+		if (dist > best_dist)
+		{
+			best_i = i;
+			best_dist = dist;
+		}
+	}
+	// then check if the third point is on the ray of that line.
+	vec2 p1 = tri[(best_i + 2) % 3];
+	vec2 s1 = tri[best_i];
+	vec2 s2 = tri[(best_i + 1) % 3];
 
+	return point_ray_test(p1, s1, s2, epsi * 10.0f);
+}
 int main()
 {
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
-	float scale = 49.0f;
-	int num_object_multi = 20;
+	float scale = 490.0f;
+	int num_object_multi = 120;
 	glm::vec2 map_scaling = { scale, scale };
 	glm::ivec2 num_objects = { num_object_multi, num_object_multi };
 	GPU::GPUMesh g_mesh({ 1600, 800 });
 	g_mesh.initiate_buffers(map_scaling);
 	//g_mesh.build_CDT({ { -0.25f, -0.25f }, { -0.25f, 0.25f }, { 0.25f, 0.25f }, { 0.25f, -0.25f } }, { {0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 2} });
-
+	vec2 s1 = vec2(100.0f);
+	vec2 s2 = vec2(101.0f);
+	vec2 s3 = vec2(100.01f, 100.0f);
+	vec2 s4 = vec2(101.0f);
+	
+	LOG(std::to_string(line_line_test(s1, s2, s3, s4, 0.001f)));
 	renderer.set_camera_base_zoom(map_scaling, 2.3f);
 
 	GPU::GCMesh gc_mesh({ 1600, 800 });
@@ -161,7 +186,9 @@ int main()
 	//lct_example(m, g_mesh);
 
 	test_test_map(gc_mesh, g_mesh, map_scaling, num_objects);
-
+	auto points = g_mesh.get_vertices();
+	LOG(std::to_string(check_for_sliver_tri({points[118], points[124], points[121] }, 0.001f)));
+	
 	//generate_third_test_input("test2", { {{300, 300}, 0.25f} });
 	//third_test("test2");
 	//gc_mesh.save_to_file("test.txt", false);

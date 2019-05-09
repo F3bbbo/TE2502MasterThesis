@@ -154,8 +154,15 @@ void DebugObject::build(GPU::GPUMesh & mesh)
 	std::vector<glm::vec2> mesh_verts = mesh.get_vertices();
 	std::vector<DrawVertex> vertices;
 
-	for (auto& vertex : mesh_verts)
-		vertices.push_back({ vertex, {m_color.r, m_color.g, m_color.b, 1.f} });
+	int i = 0; 
+	for (auto& vertex : mesh_verts) 
+	{ 
+		if (i != 48) 
+			vertices.push_back({ vertex, {m_color.r, m_color.g, m_color.b, 1.f} }); 
+		else 
+			vertices.push_back({ vertex, {1.f, 0.f, 1.f, 1.f} }); 
+		i++; 
+	} 
 
 	m_vertex_input.create_buffer(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
 	m_vertex_input.bind_buffer();

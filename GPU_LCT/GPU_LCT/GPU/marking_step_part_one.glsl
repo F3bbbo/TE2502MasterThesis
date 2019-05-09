@@ -239,9 +239,9 @@ bool point_line_test(in vec2 p1, in vec2 s1, in vec2 s2, float epsi = EPSILON)
 	vec2 v1 = s1 - p1;
 	vec2 v2 = s1 - s2;
 	float dot_p = dot(v1, v2);
-	if (dot_p < -epsi * epsi)
+	if (dot_p < epsi * epsi)
 		return false;
-	if (dot_p > (dot(v2, v2) + epsi * epsi))
+	if (dot_p > (dot(v2, v2) - epsi * epsi))
 		return false;
 
 	return true;
@@ -308,9 +308,10 @@ bool line_line_test(vec2 p1, vec2 p2, vec2 q1, vec2 q2, float epsi = EPSILON)
 	}
 	else // case 3
 	{
+		float l_epsi = 0.0001f;
 		float u = qpr / rs;
 		float t = vec2_cross(qp, s) / rs;
-		if ((0.0f - epsi) < u && u < (1.0f + epsi) && (0.0f - epsi) < t && t < (1.0f + epsi))
+		if ((0.0f - epsi) <= u && u <= (1.0f + epsi) && (0.0f - epsi) <= t && t <= (1.0f + epsi))
 			return true;
 	}
 	return false;
@@ -390,7 +391,7 @@ int oriented_walk_point(int start_e, int goal_point_i)
 		if (counter > 1501)
 		{
 			edge_label[sym_edges[curr_e].edge] = -2;
-			edge_is_constrained[sym_edges[curr_e].edge] = goal_point_i;
+			edge_is_constrained[sym_edges[curr_e].edge] = start_e;
 			return -1;
 		}
 		if (face_contains_vertice(sym_edges[curr_e].face, goal_point_i))
@@ -420,6 +421,11 @@ int oriented_walk_point(int start_e, int goal_point_i)
 
 			for (int i = 0; i < 3; i++)
 			{
+				if (sym(curr_e) < 0)
+				{
+					curr_e = nxt(curr_e);
+					continue;
+				}
 				vec2 s1 = point_positions[sym_edges[curr_e].vertex];
 				vec2 s2 = point_positions[sym_edges[sym_edges[curr_e].nxt].vertex];
 
@@ -614,7 +620,7 @@ bool Qi_check(int segment_index, SymEdge ei1, SymEdge ei)
 	return false;
 }
 
-void straight_walk(int segment_index, SymEdge s_starting_point, int ending_point_i)
+void straight_walk(inout int segment_index, SymEdge s_starting_point, int ending_point_i)
 {
 	SymEdge cur_edge = s_starting_point;
 	SymEdge prev_intersecting_edge = s_starting_point;
@@ -622,9 +628,10 @@ void straight_walk(int segment_index, SymEdge s_starting_point, int ending_point
 	constraint_edge[0] = get_vertex(s_starting_point.vertex);
 	constraint_edge[1] = get_vertex(ending_point_i);
 	vec2 normalized_constrained_edge = normalize(constraint_edge[1] - constraint_edge[0]);
-
+	int counter = 0;
 	while (true)
 	{
+
 		vec2 v0 = get_vertex(get_symedge(cur_edge.nxt).vertex);
 		vec2 v1 = get_vertex(prev_symedge(cur_edge).vertex);
 		if (line_seg_intersection_ccw(constraint_edge[0], constraint_edge[1], v0, v1))
@@ -658,6 +665,13 @@ void straight_walk(int segment_index, SymEdge s_starting_point, int ending_point
 	// walk towards the constraint endpoins and stop if we reach the triangle that contains the segment endpoint
 	while (true)
 	{
+		counter++;
+		if (counter > 500)
+		{
+			edge_label[cur_edge.edge] = -3;
+			segment_index = -1;
+			return;
+		}
 		int checks;
 		for (checks = 0; checks < 2; checks++)
 		{
@@ -704,10 +718,12 @@ void main(void)
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
-	
+
 	// Check if the segment has not been inserted and if both endpoints has been inserted
 	while (index < seg_inserted.length())
 	{
+		//seg_inserted[index] = seg_inserted[index];
+		//return;
 		if (seg_inserted[index] == 0)
 		{
 			if (seg_endpoint_indices[index].x > -1)
@@ -716,8 +732,18 @@ void main(void)
 				if (endpoints_inserted == 1)
 				{
 					int start_index = tri_symedges[point_tri_index[seg_endpoint_indices[index].x]].x;
+					if (start_index < 0)
+					{	
+						edge_label[index] = -2;
+						edge_is_constrained[index] = seg_inserted[index];
+						return ;
+					}
 					int starting_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].x);
-					int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y);
+					if (start_index < 0)
+						return;
+					int ending_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].y);
+					if (ending_symedge < 0)
+						return;
 					// update the points triangle indexes
 					point_tri_index[sym_edges[starting_symedge].vertex] = sym_edges[starting_symedge].face;
 					point_tri_index[sym_edges[ending_symedge].vertex] = sym_edges[ending_symedge].face;
@@ -732,7 +758,11 @@ void main(void)
 					else
 					{
 						straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
+						if (index < 0)
+							return;
 						straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
+						if (index < 0)
+							return;
 					}
 				}
 			}
