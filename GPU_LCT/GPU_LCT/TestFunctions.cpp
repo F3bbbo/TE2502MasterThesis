@@ -129,7 +129,7 @@ void first_test(glm::ivec2 obstacle_amount, int iterations)
 		num_vertices[1] = gc_mesh.get_num_vertices();
 		build_times.push_back(0);
 		build_times.push_back(0);
-		LOG_ND("First Test CPUGPU iteration: " + std::to_string(i + 1));
+		LOG_ND("First Test CPUGPU iteration: " + std::to_string(i + 1) + '\n');
 	}
 
 	std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(num_vertices[0]) + '-' + std::to_string(num_vertices[1]) + ".txt";
@@ -156,7 +156,7 @@ void first_test(glm::ivec2 obstacle_amount, int iterations)
 		num_vertices[0] = gc_mesh.get_num_vertices();
 		build_times.push_back(gc_mesh.refine_LCT());
 		num_vertices[1] = gc_mesh.get_num_vertices();
-		LOG_ND("First Test GPU iteration: " + std::to_string(i + 1));
+		LOG_ND("First Test GPU iteration: " + std::to_string(i + 1) + '\n');
 	}
 
 	filename = "Output files/first_test_GPU-" + std::to_string(num_vertices[0]) + '-' + std::to_string(num_vertices[1]) + ".txt";
@@ -262,19 +262,20 @@ void third_test(std::string input_file, bool test_CPUGPU, bool test_GPU)
 
 		// All input data has been loaded
 		// GPU CPU
-		std::string output_filename = "Output files/third_test_result_of_" + input_file + "_CPUGPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size()) + ".txt";
-		std::ofstream output (output_filename.c_str(), std::ifstream::out);
-
-		if (!output.is_open())
-		{
-			LOG_T(WARNING, "can not open file:" + output_filename);
-			continue;
-		}
 		
 		std::vector<long long> build_times;
 
 		if (test_CPUGPU)
 		{
+			std::string output_filename = "Output files/third_test_result_of_" + input_file + "_CPUGPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size()) + ".txt";
+			std::ofstream output(output_filename.c_str(), std::ifstream::out);
+
+			if (!output.is_open())
+			{
+				LOG_T(WARNING, "can not open file:" + output_filename);
+				continue;
+			}
+
 			GPU::GCMesh gc_mesh;
 			gc_mesh.load_from_file(mesh_name);
 			GPU::GCMesh gc_mesh_copy = gc_mesh;
@@ -299,8 +300,8 @@ void third_test(std::string input_file, bool test_CPUGPU, bool test_GPU)
 			GPU::GPUMesh g_mesh_copy;
 			g_mesh_copy = g_mesh;
 
-			output_filename = "Output files/third_test_result_of_" + input_file + "_GPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size());
-			output.open(output_filename.c_str(), std::ifstream::out);
+			std::string output_filename = "Output files/third_test_result_of_" + input_file + "_GPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size()) + ".txt";
+			std::ofstream output(output_filename.c_str(), std::ifstream::out);
 
 			if (!output.is_open())
 			{
