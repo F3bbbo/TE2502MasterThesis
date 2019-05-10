@@ -601,11 +601,16 @@ namespace GPU
 			output.write((char*)&size, sizeof(int));
 			output.write((char*)tri_edge_flip_index.data(), size);
 
+			// save misc data
+
+			size = (int)this->new_points.size() * (int)sizeof(glm::vec2);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)new_points.data(), size);
+
 			size = (int)refine_points.size() * (int)sizeof(NewPoint);
 			output.write((char*)&size, sizeof(int));
 			output.write((char*)refine_points.data(), size);
 
-			// save symedge data
 			size = (int)sym_edges.size() * (int)sizeof(SymEdge);
 			output.write((char*)&size, sizeof(int));
 			output.write((char*)sym_edges.data(), size);
