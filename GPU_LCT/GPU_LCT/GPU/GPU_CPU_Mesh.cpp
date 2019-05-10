@@ -177,6 +177,7 @@ namespace GPU
 			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			//cont = m_status[0];
 		} while (status == 1);
+		LOG(std::string("Frame insertion number of iterations: ") + std::to_string(counter));
 	}
 
 	long long GCMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
@@ -1831,87 +1832,70 @@ namespace GPU
 		int counter = 0;
 		while (true)
 		{
+			counter++;
+			//if (counter > 1001)
+			//{
+			//	edge_label[sym_edges[curr_e].edge] = -2;
+			//	edge_is_constrained[sym_edges[curr_e].edge] = goal_point_i;
+			//	return -1;
+			//}
 			if (face_contains_vertice(sym_edges[curr_e].face, goal_point_i))
 				return get_face_vertex_symedge(sym_edges[curr_e].face, goal_point_i);
-
-			tri_cent = get_face_center(sym_edges[curr_e].face);
-
-			// Loop through edges to see if we should continue through the edge
-			// to the neighbouring triangle 
-			bool line_line_hit = false;
-			for (int i = 0; i < 3; i++)
+			//check if current triangle is a sliver triangle
+			bool sliver_tri = check_for_sliver_tri(curr_e);
+			if (sliver_tri)
 			{
-				if (sym_edges[sym_edges[curr_e].nxt].rot == -1)
+				float dir;
+				do {
+					// continue until the edge of triangle is found that is facing the other
+					// compared to the intial edge, so we are checking when the edges start going the other
+					// direction by doing the dot product between the last edge and next edge, when the dot is 
+					// negative it implies that the next edge is facing another direction than the previous ones.
+					curr_e = nxt(curr_e);
+					vec2 ab = point_positions[sym_edges[curr_e].vertex] - point_positions[sym_edges[prev(curr_e)].vertex];
+					vec2 bc = point_positions[sym_edges[nxt(curr_e)].vertex] - point_positions[sym_edges[curr_e].vertex];
+					dir = dot(ab, bc);
+				} while (dir > 0.0f);
+				int last_e = curr_e;
+				do
 				{
-					curr_e = sym_edges[curr_e].nxt;
-					continue;
-				}
-
-				vec2 s1 = point_positions[sym_edges[curr_e].vertex];
-				vec2 s2 = point_positions[sym_edges[sym_edges[curr_e].nxt].vertex];
-
-				// No degenerate triangles detected
-				line_line_hit = point_line_test(goal_point, s1, s2) || line_line_test(
-					tri_cent,
-					goal_point,
-					s1,
-					s2);
-
-				if (line_line_hit)
-				{
-
-					// handle degenerate triangles
-					bool not_valid_edge = false;
-					int other_e = prev(sym(curr_e));
-
-					vec2 p1 = point_positions[sym_edges[sym_edges[curr_e].nxt].vertex];
-					vec2 p2 = point_positions[sym_edges[curr_e].vertex];
-					//not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
-					not_valid_edge = check_for_sliver_tri(other_e);
-					if (not_valid_edge == true)
-					{
-						//magic = 1;
-						//return 0;
-						curr_e = sym(curr_e);
-						while (not_valid_edge == true)
-						{
-							// check if face contains vertex
-							if (face_contains_vertice(get_symedge(curr_e).face, goal_point_i))
-								return get_face_vertex_symedge(get_symedge(curr_e).face, goal_point_i);
-							float dir;
-							int i = 0;
-							do {
-								// continue until the edge of triangle is found that is facing the other
-								// compared to the intial edge, so we are checking when the edges start going the other
-								// direction by doing the dot product between the last edge and next edge, when the dot is 
-								// negative it implies that the next edge is facing another direction than the previous ones.
-								curr_e = nxt(curr_e);
-								vec2 ab = point_positions[sym_edges[curr_e].vertex] - point_positions[sym_edges[prev(curr_e)].vertex];
-								vec2 bc = point_positions[sym_edges[nxt(curr_e)].vertex] - point_positions[sym_edges[curr_e].vertex];
-								dir = dot(ab, bc);
-							} while (dir > 0.0f);
-							// check if we are out of the degenerate triangulation
-							other_e = prev(sym(curr_e));
-							//p1 = point_positions[get_symedge(sym_edges[curr_e].nxt).vertex];
-							//p2 = point_positions[sym_edges[curr_e].vertex];
-							//not_valid_edge = point_ray_test(get_vertex(other_e.vertex), p1, p2);
-							not_valid_edge = check_for_sliver_tri(other_e);
-							curr_e = sym(curr_e);
-						}
-						// move to other triangle
-						curr_e = nxt(curr_e);
-						break;
-					}
-					else {
-						curr_e = sym(curr_e);
-						curr_e = nxt(curr_e);
-						//curr_e = nxt(sym_edges[sym_edges[curr_e].nxt].rot);
-						break;
-					}
-				}
-				curr_e = sym_edges[curr_e].nxt;
+					curr_e = sym(last_e);
+					last_e = nxt(last_e);
+				} while (curr_e < 0);
 			}
+			else
+			{
+				curr_e = nxt(curr_e);
+				// No degenerate triangles detected
+				tri_cent = get_face_center(sym_edges[curr_e].face);
 
+				for (int i = 0; i < 3; i++)
+				{
+					if (sym(curr_e) < 0)
+					{
+						curr_e = nxt(curr_e);
+						continue;
+					}
+					vec2 s1 = point_positions[sym_edges[curr_e].vertex];
+					vec2 s2 = point_positions[sym_edges[sym_edges[curr_e].nxt].vertex];
+
+
+					bool line_line_hit = point_line_test(goal_point, s1, s2) || line_line_test(
+						tri_cent,
+						goal_point,
+						s1,
+						s2);
+					if (line_line_hit)
+					{
+						curr_e = sym(curr_e);
+						break;
+					}
+					else
+					{
+						curr_e = nxt(curr_e);
+					}
+				}
+			}
 		}
 		return -1;
 	}
