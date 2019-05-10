@@ -3,7 +3,7 @@
 
 namespace GPU
 {
-	GPUMesh::GPUMesh(glm::ivec2 screen_res)
+	GPUMesh::GPUMesh()
 	{
 		setup_compute_shaders();
 	}
@@ -13,10 +13,87 @@ namespace GPU
 	{
 	}
 
+	GPUMesh& GPUMesh::operator=(GPUMesh other)
+	{
+		initiate_buffers(other.m_scale);
+
+		// copy point data
+
+		auto vec2_data = other.m_point_bufs.positions.get_buffer_data<glm::vec2>();
+		this->m_point_bufs.positions.append_to_buffer(vec2_data);
+		vec2_data.clear();
+
+		auto int_data = other.m_point_bufs.inserted.get_buffer_data<int>();
+		this->m_point_bufs.inserted.append_to_buffer(int_data);
+		int_data.clear();
+
+		int_data = other.m_point_bufs.tri_index.get_buffer_data<int>();
+		this->m_point_bufs.tri_index.append_to_buffer(int_data);
+		int_data.clear();
+
+		// copy edge data
+
+		int_data = other.m_edge_bufs.label.get_buffer_data<int>();
+		this->m_edge_bufs.label.append_to_buffer(int_data);
+		int_data.clear();
+
+		int_data = other.m_edge_bufs.is_constrained.get_buffer_data<int>();
+		this->m_edge_bufs.is_constrained.append_to_buffer(int_data);
+		int_data.clear();
+
+		// copy segment data
+
+		auto ivec2_data = other.m_segment_bufs.endpoint_indices.get_buffer_data<glm::ivec2>();
+		this->m_segment_bufs.endpoint_indices.append_to_buffer(ivec2_data);
+		ivec2_data.clear();
+
+		int_data = other.m_segment_bufs.inserted.get_buffer_data<int>();
+		this->m_segment_bufs.inserted.append_to_buffer(int_data);
+		int_data.clear();
+
+		// copy triangle data
+
+		auto ivec4_data = other.m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
+		this->m_triangle_bufs.symedge_indices.append_to_buffer(ivec4_data);
+		ivec4_data.clear();
+
+		int_data = other.m_triangle_bufs.ins_point_index.get_buffer_data<int>();
+		this->m_triangle_bufs.ins_point_index.append_to_buffer(int_data);
+		int_data.clear();
+
+		int_data = other.m_triangle_bufs.seg_inters_index.get_buffer_data<int>();
+		this->m_triangle_bufs.seg_inters_index.append_to_buffer(int_data);
+		int_data.clear();
+
+		int_data = other.m_triangle_bufs.edge_flip_index.get_buffer_data<int>();
+		this->m_triangle_bufs.edge_flip_index.append_to_buffer(int_data);
+		int_data.clear();
+
+		// copy misc data
+
+		auto sym_data = other.m_sym_edges.get_buffer_data<SymEdge>();
+		this->m_sym_edges.append_to_buffer(sym_data);
+		sym_data.clear();
+
+		vec2_data = other.m_new_points.get_buffer_data<glm::vec2>();
+		this->m_new_points.append_to_buffer(vec2_data);
+		vec2_data.clear();
+
+		auto new_point_data = other.m_refine_points.get_buffer_data<NewPoint>();
+		this->m_refine_points.append_to_buffer(new_point_data);
+		new_point_data.clear();
+
+		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
+		m_status.update_buffer<int>({ 0 });
+
+		return *this;
+	}
+
 	void GPUMesh::initiate_buffers(glm::vec2 scale)
 	{
-		// Creates a starting rectangle
+		m_scale = scale;
 
+		// Creates a starting rectangle
 		// Fill point buffers
 		std::vector<glm::vec2> starting_vertices = { {-1.f * scale.x, 1.f * scale.y}, {-1.f * scale.x, -1.f * scale.y}, {1.f * scale.x, -1.f * scale.y}, {1.f * scale.x, 1.f * scale.y} };
 		int type = GL_SHADER_STORAGE_BUFFER;
