@@ -163,7 +163,7 @@ int main()
 	int num_object_multi = 20;
 	glm::vec2 map_scaling = { scale, scale };
 	glm::ivec2 num_objects = { num_object_multi, num_object_multi };
-	GPU::GPUMesh g_mesh({ 1600, 800 });
+	GPU::GPUMesh g_mesh;
 	g_mesh.initiate_buffers(map_scaling);
 	//g_mesh.build_CDT({ { -0.25f, -0.25f }, { -0.25f, 0.25f }, { 0.25f, 0.25f }, { 0.25f, -0.25f } }, { {0, 1}, {1, 2}, {2, 3}, {3, 0}, {0, 2} });
 	//vec2 s1 = vec2(100.0f);
@@ -174,7 +174,7 @@ int main()
 	//LOG(std::to_string(line_line_test(s1, s2, s3, s4, 0.001f)));
 	renderer.set_camera_base_zoom(map_scaling, 2.3f);
 
-	GPU::GCMesh gc_mesh({ 1600, 800 });
+	GPU::GCMesh gc_mesh;
 	gc_mesh.initiate_buffers(map_scaling);
 
 	// testing function

@@ -15,7 +15,7 @@ namespace GPU
 	class GCMesh
 	{
 	public:
-		GCMesh(glm::ivec2 screen_res);
+		GCMesh();
 		~GCMesh();
 		void initiate_buffers(glm::vec2 scale = { 1.f, 1.f });
 		void add_frame_points(std::vector<glm::vec2> points);

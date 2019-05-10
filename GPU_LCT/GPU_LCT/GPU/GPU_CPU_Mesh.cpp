@@ -4,7 +4,7 @@
 
 namespace GPU
 {
-	GCMesh::GCMesh(glm::ivec2 screen_res)
+	GCMesh::GCMesh()
 	{
 		setup_compute_shaders();
 	}

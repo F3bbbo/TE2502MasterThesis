@@ -17,7 +17,7 @@ void generate_third_test_input(std::string filename_end, std::vector<std::pair<g
 			test_map.set_dynamic_quota(1.f); // We want all of the dynamic objects
 			test_map.set_map_size({ 45, 45 }, { -45, -45 });
 
-			GPU::GCMesh gc_mesh({ 1600, 800 });
+			GPU::GCMesh gc_mesh;
 			gc_mesh.initiate_buffers({ 45.f, 45.f });
 			auto static_obstacle_data = test_map.get_GPU_static_obstacles();
 			gc_mesh.build_CDT(static_obstacle_data.first, static_obstacle_data.second);
@@ -48,7 +48,7 @@ void generate_third_test_input(std::string filename_end, std::vector<std::pair<g
 	}
 }
 
-void test_range(glm::ivec2 start_resolution, int iterations, glm::ivec2 start_dims, glm::ivec2 dim_increase, glm::ivec2 start_obstacles, glm::ivec2 obstacle_increase, bool build_lct)
+void test_range(int iterations, glm::ivec2 start_dims, glm::ivec2 dim_increase, glm::ivec2 start_obstacles, glm::ivec2 obstacle_increase, bool build_lct)
 {
 	std::vector<long long> build_times;
 	std::vector<int> num_vertices;
@@ -61,7 +61,7 @@ void test_range(glm::ivec2 start_resolution, int iterations, glm::ivec2 start_di
 		test_map.set_map_size(dimensions, -dimensions);
 		test_map.set_num_obsticles(obstacles);
 
-		GPU::GCMesh gc_mesh(start_resolution);
+		GPU::GCMesh gc_mesh;
 		gc_mesh.initiate_buffers(dimensions);
 		auto data = test_map.get_GPU_obstacles();
 		
@@ -120,7 +120,7 @@ void first_test(glm::ivec2 obstacle_amount, int iterations)
 	int num_vertices[2];
 	for (int i = 0; i < iterations; i++)
 	{
-		GPU::GCMesh gc_mesh({ 1600, 800 });
+		GPU::GCMesh gc_mesh;
 		gc_mesh.initiate_buffers({ 45, 45 });
 		
 		build_times.push_back(gc_mesh.build_CDT(data.first, data.second));
@@ -148,7 +148,7 @@ void first_test(glm::ivec2 obstacle_amount, int iterations)
 	// test GPU solution
 	for (int i = 0; i < iterations; i++)
 	{
-		GPU::GPUMesh gc_mesh({ 1600, 900 });
+		GPU::GPUMesh gc_mesh;
 		gc_mesh.initiate_buffers({ 45, 45 });
 		gc_mesh.add_frame_points(gpu_frame.first);
 
@@ -196,7 +196,7 @@ void second_test(glm::ivec2 obstacles, int iterations)
 
 	for (int i = 0; i < iterations; i++)
 	{
-		GPU::GPUMesh mesh({1600, 800});
+		GPU::GPUMesh mesh;
 		mesh.initiate_buffers({ 45, 45 });
 
 		shader_times.push_back(mesh.measure_shaders(data.first, data.second));
@@ -275,7 +275,7 @@ void third_test(std::string input_file, bool test_CPUGPU, bool test_GPU)
 
 		if (test_CPUGPU)
 		{
-			GPU::GCMesh gc_mesh({ 1600, 800 });
+			GPU::GCMesh gc_mesh;
 			gc_mesh.load_from_file(mesh_name);
 			GPU::GCMesh gc_mesh_copy = gc_mesh;
 
@@ -293,7 +293,7 @@ void third_test(std::string input_file, bool test_CPUGPU, bool test_GPU)
 		
 		if (test_GPU)
 		{
-			GPU::GPUMesh g_mesh({ 1600, 800 });
+			GPU::GPUMesh g_mesh;
 			g_mesh.initiate_buffers({45.f, 45.f});
 			g_mesh.load_from_file(mesh_name);
 			GPU::GPUMesh g_mesh_copy = g_mesh;
