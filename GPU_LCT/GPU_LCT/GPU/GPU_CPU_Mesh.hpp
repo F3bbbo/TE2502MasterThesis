@@ -31,6 +31,7 @@ namespace GPU
 		int locate_face(glm::vec2 p);
 		std::string save_to_file(bool upload, int inserted_objects = -1);
 		void load_from_file(std::string filename);
+		int largest_stack = 0;
 	private:
 		void setup_compute_shaders();
 		void compile_cs(GLuint& program, const char* path, int work_group_size = 64);
@@ -57,6 +58,7 @@ namespace GPU
 		std::vector<SymEdge> sym_edges;
 		int symedge_buffer_size;
 		int status;
+		
 
 		// Access functions
 		int nxt(int edge);
@@ -143,7 +145,10 @@ namespace GPU
 		void flip_edge(SymEdge edge);
 		// LCT functions
 		// Locate refinements functions
+		// returns index to closest constraint
 		int find_closest_constraint(vec2 a, vec2 b, vec2 c);
+		// returns index to closest constraints symedge
+		int find_closest_constraint_v2(int ac_sym, vec2 a, vec2 b, vec2 c);
 		bool possible_disturbance(vec2 a, vec2 b, vec2 c, vec2 s[2]);
 		int find_segment_symedge(int start, int segment);
 		void oriented_walk_edge(int &curr_e, vec2 point, bool &on_edge);

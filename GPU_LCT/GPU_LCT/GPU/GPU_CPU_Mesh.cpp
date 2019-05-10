@@ -1361,14 +1361,16 @@ namespace GPU
 					ivec4 tri_symedge_i = tri_symedges[index];
 					std::array<vec2, 3> tri;
 					get_face(sym_edges[tri_symedge_i.x].face, tri);
+					int curr_ac = tri_symedge_i.x;
 					//			tri_insert_points[index].pos = tri[0];
 					for (int i = 0; i < 3; i++)
 					{
-						int cc = find_closest_constraint(tri[(i + 1) % 3], tri[(i + 2) % 3], tri[i]);
+						//int cc = find_closest_constraint(tri[(i + 1) % 3], tri[(i + 2) % 3], tri[i]);
+						int cc = find_closest_constraint_v2(curr_ac, tri[(i + 1) % 3], tri[(i + 2) % 3], tri[i]);
 						// Check if a segment was found
 						if (cc > -1)
 						{
-							cc = find_segment_symedge(tri_symedge_i[i], cc);
+							//cc = find_segment_symedge(tri_symedge_i[i], cc);
 							// Check if corresponding constraint to segment was found
 							if (cc > -1)
 							{
@@ -1377,7 +1379,7 @@ namespace GPU
 								num_constraints++;
 							}
 						}
-
+						curr_ac = nxt(curr_ac);
 					}
 				}
 
@@ -2295,19 +2297,80 @@ namespace GPU
 		return ret;
 	}
 
+	int GCMesh::find_closest_constraint_v2(int ac_sym, vec2 a, vec2 b, vec2 c)
+	{
+		float dist = FLT_MAX;
+		int ret = -1;
+		int sym_stack[12];
+		int top = 0;
+		sym_stack[top] = sym(ac_sym);
+		if (sym_stack[top] != -1)
+		{
+			while (top > -1)
+			{
+				//pop symedge from stack
+				int curr_e = sym_stack[top];
+				top--;
+				// explore curr_e
+				for (int i = 0; i < 2; i++)
+				{
+					curr_e = nxt(curr_e);
+					// first check if edge is a possible disturbance
+					vec2 s[2];
+					s[0] = point_positions[sym_edges[curr_e].vertex];
+					s[1] = point_positions[sym_edges[nxt(curr_e)].vertex];
+					if (possible_disturbance(a, b, c, s))
+					{
+						// check if edge is constrained
+						if (edge_is_constrained[sym_edges[curr_e].edge] > -1)
+						{
+							bool projectable;
+							vec2 b_prim = project_point_on_segment(b, s[0], s[1], projectable);
+							if (projectable)
+							{
+								float b_dist = length(b_prim - b);
+								if (b_dist < dist && !(point_equal(b_prim, a) || point_equal(b_prim, c)))
+								{
+									dist = b_dist;
+									ret = curr_e;
+								}
+							}
+						}
+						else // otherwise we check if we should continue exploring in the edges direction
+						{
+							int sym_e = sym(curr_e);
+							if (sym_e > -1)
+							{
+								top++;
+								largest_stack = max(top, largest_stack);
+								sym_stack[top] = sym_e;
+							}
+						}
+					}
+				}
+			}
+		}
+		return ret;
+	}
+
 	bool GCMesh::possible_disturbance(vec2 a, vec2 b, vec2 c, vec2 s[2])
 	{
-		vec2 sector_c = project_point_on_line(b, a, c);
-		float dist = 2.f * length(sector_c - a);
-		sector_c = a + normalize(c - a) * dist;
-		if (edge_intersects_sector(a, b, sector_c, s))
-			return true;
-		vec2 p = get_symmetrical_corner(a, b, c);
-		sector_c = c + normalize(a - c) * dist;
+		// first check if b is projectable on ac
+		bool projectable;
+		project_point_on_segment(b, a, c, projectable);
+		if (projectable)
+		{
+			vec2 sector_c = project_point_on_line(b, a, c);
+			float dist = 2.f * length(sector_c - a);
+			sector_c = a + normalize(c - a) * dist;
+			if (edge_intersects_sector(a, b, sector_c, s))
+				return true;
+			vec2 p = get_symmetrical_corner(a, b, c);
+			sector_c = c + normalize(a - c) * dist;
 
-		if (edge_intersects_sector(a, b, sector_c, s))
-			return true;
-
+			if (edge_intersects_sector(sector_c, p, c, s))
+				return true;
+		}
 		return false;
 	}
 

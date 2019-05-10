@@ -272,10 +272,6 @@ bool edge_intersects_sector(vec2 a, vec2 b, vec2 c, vec2 segment[2])
 	float center_prim_length = length(center_prim - b);
 	float sector_radius = min(length(a - b), length(c - b));
 
-	if (length(a - b) < length(c - b))
-		c = b + normalize(c - b) * sector_radius;
-	else
-		a = b + normalize(a - b) * sector_radius;
 
 	vec2 tri[3] = { a, b, c };
 	bool inside_triangle = point_triangle_test(center_prim, tri);
@@ -287,7 +283,7 @@ bool edge_intersects_sector(vec2 a, vec2 b, vec2 c, vec2 segment[2])
 		return false;
 
 	bool other_side_of_ac = dot(point - b, center_prim - b) > 0 && center_prim_length > length(point - b);
-	if (inside_triangle || (inside_circle && other_side_of_ac))
+	if (/*inside_triangle ||*/ (inside_circle && other_side_of_ac))
 		return true;
 	return false;
 }
