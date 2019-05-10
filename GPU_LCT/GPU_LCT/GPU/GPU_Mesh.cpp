@@ -71,10 +71,6 @@ namespace GPU
 
 		// copy misc data
 
-		auto sym_data = other.m_sym_edges.get_buffer_data<SymEdge>();
-		this->m_sym_edges.append_to_buffer(sym_data);
-		sym_data.clear();
-
 		vec2_data = other.m_new_points.get_buffer_data<glm::vec2>();
 		this->m_new_points.append_to_buffer(vec2_data);
 		vec2_data.clear();
@@ -82,6 +78,10 @@ namespace GPU
 		auto new_point_data = other.m_refine_points.get_buffer_data<NewPoint>();
 		this->m_refine_points.append_to_buffer(new_point_data);
 		new_point_data.clear();
+
+		auto sym_data = other.m_sym_edges.get_buffer_data<SymEdge>();
+		this->m_sym_edges.append_to_buffer(sym_data);
+		sym_data.clear();
 
 		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
 		m_status.update_buffer<int>({ 0 });
@@ -1052,16 +1052,21 @@ namespace GPU
 			m_new_points.clear();
 			m_refine_points.clear();
 
+			std::vector<glm::vec2> vec2_buff;
+			std::vector<int> int_buff;
+			std::vector<glm::ivec2> ivec2_buff;
+			std::vector<glm::ivec4> ivec4_buff;
+			std::vector<NewPoint> new_point_buff;
+			std::vector<SymEdge> symedge_buff;
+
 			// read points data
 			input.read((char*)&value, sizeof(int));
-			std::vector<glm::vec2> vec2_buff;
 			vec2_buff.resize(value / sizeof(glm::vec2));
 			input.read((char*)vec2_buff.data(), value);
 			m_point_bufs.positions.append_to_buffer(vec2_buff);
 			vec2_buff.clear();
 
 			input.read((char*)&value, sizeof(int));
-			std::vector<int> int_buff;
 			int_buff.resize(value / sizeof(int));
 			input.read((char*)int_buff.data(), value);
 			m_point_bufs.inserted.append_to_buffer(int_buff);
@@ -1088,7 +1093,6 @@ namespace GPU
 
 			// read segment data
 			input.read((char*)&value, sizeof(int));
-			std::vector<glm::ivec2> ivec2_buff;
 			ivec2_buff.resize(value / sizeof(glm::ivec2));
 			input.read((char*)ivec2_buff.data(), value);
 			m_segment_bufs.endpoint_indices.append_to_buffer(ivec2_buff);
@@ -1102,7 +1106,6 @@ namespace GPU
 
 			// read triangle data
 			input.read((char*)&value, sizeof(int));
-			std::vector<glm::ivec4> ivec4_buff;
 			ivec4_buff.resize(value / sizeof(glm::ivec4));
 			input.read((char*)ivec4_buff.data(), value);
 			m_triangle_bufs.symedge_indices.append_to_buffer(ivec4_buff);
@@ -1126,15 +1129,20 @@ namespace GPU
 			m_triangle_bufs.edge_flip_index.append_to_buffer(int_buff);
 			int_buff.clear();
 
+			// read misc data
 			input.read((char*)&value, sizeof(int));
-			std::vector<NewPoint> new_point_buff;
+			vec2_buff.resize(value / sizeof(glm::vec2));
+			input.read((char*)vec2_buff.data(), value);
+			m_new_points.append_to_buffer(vec2_buff);
+			vec2_buff.clear();
+
+			input.read((char*)&value, sizeof(int));
 			new_point_buff.resize(value / sizeof(NewPoint));
 			input.read((char*)new_point_buff.data(), value);
 			m_refine_points.append_to_buffer(new_point_buff);
 			new_point_buff.clear();
 
 			input.read((char*)&value, sizeof(int));
-			std::vector<SymEdge> symedge_buff;
 			symedge_buff.resize(value / sizeof(SymEdge));
 			input.read((char*)symedge_buff.data(), value);
 			m_sym_edges.append_to_buffer(symedge_buff);
