@@ -15,7 +15,8 @@ namespace GPU
 	public:
 		GPUMesh();
 		~GPUMesh();
-		GPUMesh& operator=(GPUMesh other);
+		GPUMesh& operator=(GPUMesh& other);
+		GPUMesh(const GPUMesh &other) = delete; 
 		void initiate_buffers(glm::vec2 scale = { 1.f, 1.f });
 		void add_frame_points(std::vector<glm::vec2> points);
 		long long build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
@@ -31,6 +32,7 @@ namespace GPU
 		void set_epsilon(float epsi);
 		void load_from_file(std::string filename);
 	private:
+		bool m_buffers_initated = false;
 		glm::ivec2 m_scale;
 		void setup_compute_shaders();
 		void compile_cs(GLuint& program, const char* path, int work_group_size = 64);

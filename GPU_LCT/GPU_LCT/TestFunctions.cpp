@@ -296,7 +296,8 @@ void third_test(std::string input_file, bool test_CPUGPU, bool test_GPU)
 			GPU::GPUMesh g_mesh;
 			g_mesh.initiate_buffers({45.f, 45.f});
 			g_mesh.load_from_file(mesh_name);
-			GPU::GPUMesh g_mesh_copy = g_mesh;
+			GPU::GPUMesh g_mesh_copy;
+			g_mesh_copy = g_mesh;
 
 			output_filename = "Output files/third_test_result_of_" + input_file + "_GPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size());
 			output.open(output_filename.c_str(), std::ifstream::out);

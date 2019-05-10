@@ -13,10 +13,29 @@ namespace GPU
 	{
 	}
 
-	GPUMesh& GPUMesh::operator=(GPUMesh other)
+	GPUMesh& GPUMesh::operator=(GPUMesh& other)
 	{
-		initiate_buffers(other.m_scale);
+		if (!m_buffers_initated)
+			initiate_buffers(other.m_scale);
+		
+		this->m_point_bufs.positions.clear();
+		this->m_point_bufs.inserted.clear();
+		this->m_point_bufs.tri_index.clear();
 
+		this->m_edge_bufs.label.clear();
+		this->m_edge_bufs.is_constrained.clear();
+
+		this->m_segment_bufs.endpoint_indices.clear();
+		this->m_segment_bufs.inserted.clear();
+
+		this->m_triangle_bufs.symedge_indices.clear();
+		this->m_triangle_bufs.ins_point_index.clear();
+		this->m_triangle_bufs.seg_inters_index.clear();
+		this->m_triangle_bufs.edge_flip_index.clear();
+
+		this->m_new_points.clear();
+		this->m_refine_points.clear();
+		this->m_sym_edges.clear();
 		// copy point data
 
 		auto vec2_data = other.m_point_bufs.positions.get_buffer_data<glm::vec2>();
@@ -92,7 +111,7 @@ namespace GPU
 	void GPUMesh::initiate_buffers(glm::vec2 scale)
 	{
 		m_scale = scale;
-
+		m_buffers_initated = true;
 		// Creates a starting rectangle
 		// Fill point buffers
 		std::vector<glm::vec2> starting_vertices = { {-1.f * scale.x, 1.f * scale.y}, {-1.f * scale.x, -1.f * scale.y}, {1.f * scale.x, -1.f * scale.y}, {1.f * scale.x, 1.f * scale.y} };
