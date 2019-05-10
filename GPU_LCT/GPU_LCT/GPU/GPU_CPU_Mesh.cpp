@@ -641,104 +641,72 @@ namespace GPU
 			tri_ins_point_index.clear();
 			tri_seg_inters_index.clear();
 			tri_edge_flip_index.clear();
-			refine_points.clear();
 
+			new_points.clear();
+			refine_points.clear();
 			sym_edges.clear();
 
 			// read points data
 			input.read((char*)&value, sizeof(int));
-			float* buff = new float[value];
-			input.read((char*)buff, value);
-			for (int i = 0; i < value / sizeof(float); i += 2)
-				point_positions.push_back({ buff[i], buff[i + 1] });
-			delete[] buff;
+			point_positions.resize(value / sizeof(glm::vec2));
+			input.read((char*)point_positions.data(), value);
 
 			input.read((char*)&value, sizeof(int));
-			int* ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				point_inserted.push_back(ibuff[i]);
-			delete[] ibuff;
+			point_inserted.resize(value / sizeof(int));
+			input.read((char*)point_inserted.data(), value);
 
 			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				point_tri_index.push_back(ibuff[i]);
-			delete[] ibuff;
+			point_tri_index.resize(value / sizeof(int));
+			input.read((char*)point_tri_index.data(), value);
 
 			// read edge data
 			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				edge_label.push_back(ibuff[i]);
-			delete[] ibuff;
+			edge_label.resize(value / sizeof(int));
+			input.read((char*)edge_label.data(), value);
 
 			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				edge_is_constrained.push_back(ibuff[i]);
-			delete[] ibuff;
+			edge_is_constrained.resize(value / sizeof(int));
+			input.read((char*)edge_is_constrained.data(), value);
 
 			// read segment data
 			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i += 2)
-				seg_endpoint_indices.push_back({ ibuff[i], ibuff[i + 1] });
-			delete[] ibuff;
+			seg_endpoint_indices.resize(value / sizeof(glm::ivec2));
+			input.read((char*)seg_endpoint_indices.data(), value);
 
 			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				seg_inserted.push_back(ibuff[i]);
-			delete[] ibuff;
+			seg_inserted.resize(value / sizeof(int));
+			input.read((char*)seg_inserted.data(), value);
 
 			// read triangle data
 			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i += 4)
-				tri_symedges.push_back({ ibuff[i], ibuff[i + 1], ibuff[i + 2], ibuff[i + 3] });
-			delete[] ibuff;
+			tri_symedges.resize(value / sizeof(glm::ivec4));
+			input.read((char*)tri_symedges.data(), value);
 
 			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				tri_ins_point_index.push_back(ibuff[i]);
-			delete[] ibuff;
+			tri_ins_point_index.resize(value / sizeof(int));
+			input.read((char*)tri_ins_point_index.data(), value);
 
 			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				tri_seg_inters_index.push_back(ibuff[i]);
-			delete[] ibuff;
+			tri_seg_inters_index.resize(value / sizeof(int));
+			input.read((char*)tri_seg_inters_index.data(), value);
 
 			input.read((char*)&value, sizeof(int));
-			ibuff = new int[value];
-			input.read((char*)ibuff, value);
-			for (int i = 0; i < value / sizeof(int); i++)
-				tri_edge_flip_index.push_back(ibuff[i]);
-			delete[] ibuff;
+			tri_edge_flip_index.resize(value / sizeof(int));
+			input.read((char*)tri_edge_flip_index.data(), value);
+
+			// read misc data
 
 			input.read((char*)&value, sizeof(int));
-			NewPoint* NPbuff = new NewPoint[value / sizeof(NewPoint)];
-			input.read((char*)NPbuff, value);
-			for (int i = 0; i < value / sizeof(NewPoint); i++)
-				refine_points.push_back(NPbuff[i]);
-			delete[] NPbuff;
+			new_points.resize(value / sizeof(glm::vec2));
+			input.read((char*)new_points.data(), value);
 
 			input.read((char*)&value, sizeof(int));
-			SymEdge* Sbuff = new SymEdge[value / sizeof(SymEdge)];
-			input.read((char*)Sbuff, value);
-			for (int i = 0; i < value / sizeof(SymEdge); i++)
-				sym_edges.push_back(Sbuff[i]);
-			delete[] Sbuff;
+			refine_points.resize(value / sizeof(NewPoint));
+			input.read((char*)refine_points.data(), value);
+
+			input.read((char*)&value, sizeof(int));
+			sym_edges.resize(value / sizeof(SymEdge));
+			input.read((char*)sym_edges.data(), value);
 
 			symedge_buffer_size = value / sizeof(SymEdge);
 			status = 0;
