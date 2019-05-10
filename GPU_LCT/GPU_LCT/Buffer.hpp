@@ -138,16 +138,23 @@ public:
 		if (new_size > m_buffer_size)
 		{
 			// Get the current data from the buffer
-			void* ptr = malloc(m_used_buffer_size);
-			void* mapped_data = glMapNamedBufferRange(m_buf, 0, m_used_buffer_size, GL_MAP_READ_BIT);
-			memcpy(ptr, mapped_data, m_used_buffer_size);
-			glUnmapNamedBuffer(m_buf);
+			void* ptr = nullptr;
+			if (m_used_buffer_size > 0)
+			{
+				ptr = malloc(m_used_buffer_size);
+				void* mapped_data = glMapNamedBufferRange(m_buf, 0, m_used_buffer_size, GL_MAP_READ_BIT);
+				memcpy(ptr, mapped_data, m_used_buffer_size);
+				glUnmapNamedBuffer(m_buf);
+			}
 
 			// Create a bigger buffer
 			m_buffer_size = new_size;
 			glNamedBufferData(m_buf, m_buffer_size, NULL, m_usage);
-			glNamedBufferSubData(m_buf, 0, m_used_buffer_size, ptr);
-			free(ptr);
+			if (m_used_buffer_size > 0)
+			{
+				glNamedBufferSubData(m_buf, 0, m_used_buffer_size, ptr);
+				free(ptr);
+			}
 			m_used_buffer_size = m_buffer_size;
 			m_num_elements = number;
 		}
