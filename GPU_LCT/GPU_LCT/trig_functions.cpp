@@ -268,13 +268,13 @@ bool point_inside_triangle(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 p)
 bool edge_intersects_sector(vec2 a, vec2 b, vec2 c, vec2 segment[2])
 {
 	// Assumes that b is the origin of the sector
-	vec2 center_prim = project_point_on_line(b, segment[0], segment[1]);
+	bool projectable;
+	vec2 center_prim = project_point_on_segment(b, segment[0], segment[1], projectable);
 	float center_prim_length = length(center_prim - b);
 	float sector_radius = min(length(a - b), length(c - b));
 
-
 	vec2 tri[3] = { a, b, c };
-	bool inside_triangle = point_triangle_test(center_prim, tri);
+	//bool inside_triangle = point_triangle_test(center_prim, tri);
 	bool inside_circle = center_prim_length <= sector_radius;
 	vec2 point;
 	bool deg_tri;
