@@ -2360,6 +2360,16 @@ namespace GPU
 		project_point_on_segment(b, a, c, projectable);
 		if (projectable)
 		{
+			float len_ab = distance(a, b);
+			float len_bc = distance(b, c);
+			// if edge bc is shorter than ab then swap a and b
+			if (len_ab > len_bc)
+			{
+				vec2 tmp = a;
+				a = c;
+				c = tmp;
+			}
+
 			vec2 sector_c = project_point_on_line(b, a, c);
 			float dist = 2.f * length(sector_c - a);
 			sector_c = a + normalize(c - a) * dist;
