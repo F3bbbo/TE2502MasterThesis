@@ -127,8 +127,6 @@ void first_test(glm::ivec2 obstacle_amount, int iterations)
 		num_vertices[0] = gc_mesh.get_num_vertices();
 		build_times.push_back(gc_mesh.refine_LCT());
 		num_vertices[1] = gc_mesh.get_num_vertices();
-		build_times.push_back(0);
-		build_times.push_back(0);
 		LOG_ND("First Test CPUGPU iteration: " + std::to_string(i + 1) + '\n');
 	}
 
@@ -137,11 +135,8 @@ void first_test(glm::ivec2 obstacle_amount, int iterations)
 
 	if (output.is_open())
 	{
-		for (int i = 0; i < iterations; i++)
-		{
-			std::string output_string = std::to_string(i) + ',' + std::to_string(build_times[i * 2]) + ',' + std::to_string(build_times[i * 2 + 1]) + '\n';
-			output << output_string;
-		}
+		output << "n, CDT build time, LCT build time \n";		for (int i = 0; i < iterations; i++)
+			output << std::to_string(i) + ',' + std::to_string(build_times[i * 2]) + ',' + std::to_string(build_times[i * 2 + 1]) + '\n';
 	}
 	output.close();
 	build_times.clear();
@@ -164,11 +159,9 @@ void first_test(glm::ivec2 obstacle_amount, int iterations)
 
 	if (output.is_open())
 	{
+		output << "n, CDT build time, LCT build time \n";
 		for (int i = 0; i < iterations; i++)
-		{
-			std::string output_string = std::to_string(i) + ',' + std::to_string(build_times[i * 2]) + ',' + std::to_string(build_times[i * 2 + 1]) + '\n';
-			output << output_string;
-		}
+			output << std::to_string(i) + ',' + std::to_string(build_times[i * 2]) + ',' + std::to_string(build_times[i * 2 + 1]) + '\n';
 	}
 	output.close();
 }
@@ -203,21 +196,23 @@ void second_test(glm::ivec2 obstacles, int iterations)
 		LOG_ND("Second Test iteration: " + std::to_string(i + 1) + '\n');
 	}
 
+	output << "n, time taken for each shader in ms to complete \n";
+
 	int num_shaders = 17;
 	std::vector<long long> total_times;
 	total_times.resize(num_shaders, 0);
 
 	for (int i = 0; i < iterations; i++)
 	{
+		std::string output_string = std::to_string(i) + ',';
 		for (int j = 0; j < num_shaders; j++)
-			total_times[j] += shader_times[i][j];
-	}
-
-	for (int i = 0; i < total_times.size(); i++)
-	{
-		output << std::to_string(total_times[i] / iterations);
-		if (i < num_shaders - 1)
-			output << ',';
+		{
+			output_string += std::to_string(shader_times[i][j]);
+			if (j < num_shaders - 1)
+				output_string += ',';
+		}
+		output_string += '\n';
+		output << output_string;
 	}
 
 	output.close();
@@ -280,6 +275,7 @@ void third_test(std::string input_file, bool test_CPUGPU, bool test_GPU)
 			gc_mesh.load_from_file(mesh_name);
 			GPU::GCMesh gc_mesh_copy = gc_mesh;
 
+			output << "n, CDT build time, LCT build time, nr of LCT refinement points \n";
 			for (int j = 0; j < 10; j++)
 			{
 				build_times.push_back(gc_mesh.build_CDT(dynamic_vertices, dynamic_vertex_indices));
@@ -309,6 +305,7 @@ void third_test(std::string input_file, bool test_CPUGPU, bool test_GPU)
 				continue;
 			}
 
+			output << "n, CDT build time, LCT build time, nr of LCT refinement points \n";
 			for (int j = 0; j < 10; j++)
 			{
 				build_times.push_back(g_mesh.build_CDT(dynamic_vertices, dynamic_vertex_indices));
@@ -316,7 +313,7 @@ void third_test(std::string input_file, bool test_CPUGPU, bool test_GPU)
 
 				output << std::to_string(j) + ',' + std::to_string(build_times[j * 2]) + ',' + std::to_string(build_times[j * 2 + 1]) + ',' + std::to_string((int)g_mesh.get_num_vertices() - num_static_vertices - (int)dynamic_vertices.size()) + '\n';
 				g_mesh = g_mesh_copy;
-				LOG("Second Test GPU iteration: " + std::to_string(i + 1));
+				LOG("Third Test GPU iteration: " + std::to_string(j + 1));
 			}
 			output.close();
 		}
