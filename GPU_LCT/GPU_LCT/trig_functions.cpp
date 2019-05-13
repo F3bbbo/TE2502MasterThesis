@@ -139,7 +139,7 @@ bool point_triangle_test(glm::vec2 p1, glm::vec2 t1, glm::vec2 t2, glm::vec2 t3,
 
 bool segment_triangle_test(glm::vec2 p1, glm::vec2 p2, glm::vec2 t1, glm::vec2 t2, glm::vec2 t3)
 {
-	if (point_triangle_test(p1, t1, t2, t3) && point_triangle_test(p2, t1, t2, t3)) {
+	if (point_triangle_test(p1, t1, t2, t3) || point_triangle_test(p2, t1, t2, t3)) {
 		// If triangle contains both points of segment return true
 		return true;
 	}

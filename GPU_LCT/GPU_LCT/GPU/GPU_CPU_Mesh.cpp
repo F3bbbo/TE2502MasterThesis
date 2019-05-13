@@ -1389,7 +1389,7 @@ namespace GPU
 					if (c_edge_i[i] > -1)
 					{
 						// test right side
-						int disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], true);
+						int disturb = find_constraint_disturbance_v2(c_edge_i[i], tri_edge_i[i], true);
 						if (disturb >= 0)
 						{
 							bool success;
@@ -1405,7 +1405,7 @@ namespace GPU
 							}
 						}
 						// test left side
-						disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], false);
+						disturb = find_constraint_disturbance_v2(c_edge_i[i], tri_edge_i[i], false);
 						if (disturb >= 0)
 						{
 							bool success;
@@ -1461,6 +1461,7 @@ namespace GPU
 					vec2 tmp = new_points[j];
 					new_points[j] = new_points[--num_valid_points];
 					new_points[num_valid_points] = tmp;
+					j--;
 				}
 				j++;
 			}
@@ -2453,7 +2454,7 @@ namespace GPU
 		}
 	}
 
-	int GCMesh::find_constraint_disturbance(int constraint, int edge_ac, bool right)
+	int GCMesh::find_constraint_disturbance(int constraint_sym_e, int edge_ac, bool right)
 	{
 		vec2 R[3];
 		vec2 a;
@@ -2492,8 +2493,8 @@ namespace GPU
 				if (point_equal_tri_vert(point, tri) > -1)
 					continue;
 				// TODO: Change oriented walk to start from last point instead of the constraint
-				int v_edge = oriented_walk_point(constraint, i);
-				float dist = is_disturbed(constraint, prev(edge_ac), v_edge);
+				int v_edge = oriented_walk_point(constraint_sym_e, i);
+				float dist = is_disturbed(constraint_sym_e, prev(edge_ac), v_edge);
 				if (dist > 0.0f)
 				{
 					if (dist < best_dist)
@@ -2521,6 +2522,102 @@ namespace GPU
 			}
 		}
 
+		return first_disturb;
+	}
+
+	int GCMesh::find_constraint_disturbance_v2(int constraint_sym_e, int edge_ac, bool right)
+	{
+		vec2 R[3];
+		vec2 a;
+		int first_edge;
+		int edge_bc = prev(edge_ac);
+		// Set variables needed to calculate R
+		if (right)
+		{
+			R[0] = point_positions[sym_edges[edge_ac].vertex];
+			R[1] = point_positions[sym_edges[prev(edge_ac)].vertex];
+			a = point_positions[sym_edges[nxt(edge_ac)].vertex];
+			first_edge = sym(prev(edge_ac));
+		}
+		else {
+			R[0] = point_positions[sym_edges[nxt(edge_ac)].vertex];
+			R[1] = point_positions[sym_edges[prev(edge_ac)].vertex];
+			a = point_positions[sym_edges[edge_ac].vertex];
+			first_edge = sym(nxt(edge_ac));
+		}
+		// Calculate R
+		vec2 ac = R[0] - a;
+		vec2 dir = normalize(ac);
+		vec2 ab = R[1] - a;
+		float b_prim = dot(dir, ab);
+		R[2] = R[1] + (dir * (length(ac) - b_prim));
+		// Loop through points trying to find disturbance to current traversal
+		float best_dist = FLT_MAX;
+		int first_disturb = -1;
+		float best_dist_b = 0.0f;
+		std::array<vec2, 3> tri;
+		get_face(sym_edges[edge_ac].face, tri);
+		// find disturbance points
+		int sym_stack[12];
+		int top = 0;
+		sym_stack[top] = first_edge;
+		if (sym_stack[top] != -1)
+		{
+			while (top > -1)
+			{
+				//pop symedge from stack
+				int curr_e = sym_stack[top];
+				top--;
+				// check if next point is a disturbance.
+				int v_edge = prev(curr_e);
+				if (point_triangle_test(point_positions[sym_edges[v_edge].vertex], R[0], R[1], R[2]))
+				{
+					float dist = is_disturbed(constraint_sym_e, edge_bc, v_edge);
+					if (dist > 0.0f)
+					{
+						if (dist < best_dist)
+						{
+							first_disturb = v_edge;
+							best_dist = dist;
+							best_dist_b = distance(point_positions[sym_edges[v_edge].vertex],
+								point_positions[sym_edges[prev(edge_ac)].vertex]);
+						}
+						else if (dist < (best_dist + EPSILON))
+						{
+							// if new point has the same distance as the previous one
+							// check if it is closer to b
+							float dist_b = distance(point_positions[sym_edges[v_edge].vertex],
+								point_positions[sym_edges[prev(edge_ac)].vertex]);
+							if (dist_b < best_dist_b)
+							{
+								first_disturb = v_edge;
+								best_dist = dist;
+								best_dist_b = dist_b;
+							}
+						}
+					}
+				}
+				// explore which of the edges 
+				for (int i = 0; i < 2; i++)
+				{
+					curr_e = nxt(curr_e);
+					// first check if edge is a possible disturbance
+					vec2 s[2];
+					s[0] = point_positions[sym_edges[curr_e].vertex];
+					s[1] = point_positions[sym_edges[nxt(curr_e)].vertex];
+					if (edge_is_constrained[sym_edges[curr_e].edge] < 0 && segment_triangle_test(s[0], s[1], R[0], R[1], R[2]))
+					{
+						int sym_e = sym(curr_e);
+						if (sym_e > -1)
+						{
+							top++;
+							largest_stack = max(top, largest_stack);
+							sym_stack[top] = sym_e;
+						}
+					}
+				}
+			}
+		}
 		return first_disturb;
 	}
 

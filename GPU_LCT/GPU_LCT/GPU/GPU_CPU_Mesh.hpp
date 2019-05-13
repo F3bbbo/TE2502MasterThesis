@@ -152,7 +152,8 @@ namespace GPU
 		bool possible_disturbance(vec2 a, vec2 b, vec2 c, vec2 s[2]);
 		int find_segment_symedge(int start, int segment);
 		void oriented_walk_edge(int &curr_e, vec2 point, bool &on_edge);
-		int find_constraint_disturbance(int constraint, int edge_ac, bool right);
+		int find_constraint_disturbance(int constraint_sym_e, int edge_ac, bool right);
+		int find_constraint_disturbance_v2(int constraint_sym_e, int edge_ac, bool right);
 		float is_disturbed(int constraint, int b_sym, int& v_sym);
 		bool no_collinear_constraints(int v);
 		int find_next_rot(int start, int curr, bool &reverse);
