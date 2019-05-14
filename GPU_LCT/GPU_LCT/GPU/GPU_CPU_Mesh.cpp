@@ -2528,6 +2528,7 @@ namespace GPU
 	int GCMesh::find_constraint_disturbance_v2(int constraint_sym_e, int edge_ac, bool right)
 	{
 		vec2 R[3];
+		std::array<vec2, 2> s = get_edge(constraint_sym_e);
 		vec2 a;
 		int first_edge;
 		int edge_bc = prev(edge_ac);
@@ -2546,11 +2547,13 @@ namespace GPU
 			first_edge = sym(nxt(edge_ac));
 		}
 		// Calculate R
-		vec2 ac = R[0] - a;
-		vec2 dir = normalize(ac);
-		vec2 ab = R[1] - a;
-		float b_prim = dot(dir, ab);
-		R[2] = R[1] + (dir * (length(ac) - b_prim));
+		vec2 dir = normalize(s[0] - s[1]);
+		//vec2 ac = R[0] - a;
+		//vec2 dir = normalize(ac);
+		//vec2 ab = R[1] - a;
+		float c_prim = dot(dir, R[0]);
+		float b_prim = dot(dir, R[1]);
+		R[2] = R[1] + (dir * (c_prim - b_prim));
 		// Loop through points trying to find disturbance to current traversal
 		float best_dist = FLT_MAX;
 		int first_disturb = -1;
