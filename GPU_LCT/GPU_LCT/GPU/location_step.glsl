@@ -73,6 +73,10 @@ layout(std430, binding = 12) buffer status_buff
 {
 	int status;
 };
+layout(std430, binding = 15) buffer atomic_buff
+{
+	int semaphores[];
+};
 //-----------------------------------------------------------
 // Uniforms
 //-----------------------------------------------------------
@@ -165,6 +169,52 @@ bool line_seg_intersection_ccw(vec2 p1, vec2 q1, vec2 p2, vec2 q2)
 //-----------------------------------------------------------
 // Functions
 //-----------------------------------------------------------
+bool check_for_sliver_tri(int sym_edge)
+{
+	// first find the longest edge
+	float best_dist = 0.0f;
+	int best_i = -1;
+	vec2 tri[3];
+	get_face(sym_edges[sym_edge].face, tri);
+	for (int i = 0; i < 3; i++)
+	{
+		float dist = distance(tri[i], tri[(i + 1) % 3]);
+		if (dist > best_dist)
+		{
+			best_i = i;
+			best_dist = dist;
+		}
+	}
+	// then check if the third point is on the ray of that line.
+	vec2 p1 = tri[(best_i + 2) % 3];
+	vec2 s1 = tri[best_i];
+	vec2 s2 = tri[(best_i + 1) % 3];
+	return point_ray_test(p1, s1, s2);
+}
+
+bool valid_point_into_face(int face, vec2 p)
+{
+	int curr_e = tri_symedges[face].x;
+	for (int i = 0; i < 3; i++)
+	{
+		SymEdge curr_sym = sym_edges[curr_e];
+		vec2 s1 = point_positions[curr_sym.vertex];
+		vec2 s2 = point_positions[sym_edges[nxt(curr_e)].vertex];
+		if (point_line_test(p, s1, s2))
+		{
+			int e_sym = sym(curr_e);
+			if (e_sym > -1)
+			{
+				if (check_for_sliver_tri(e_sym))
+				{
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
 void oriented_walk(inout int curr_e, int point_i, out bool on_edge)
 {
 	bool done = false;
@@ -233,7 +283,7 @@ void main(void)
 		{
 			bool on_edge;
 			// find out which triangle the point is now
-			int curr_e = tri_symedges[point_tri_index[index]].x;;
+			int curr_e = tri_symedges[point_tri_index[index]].x;
 			oriented_walk(
 				curr_e,
 				index,
@@ -251,7 +301,42 @@ void main(void)
 					}
 				}
 			}
-			point_tri_index[index] = sym_edges[curr_e].face;
+			
+			int face = sym_edges[curr_e].face;
+			vec2 tri_points[3];
+			get_face(face, tri_points);
+			vec2 triangle_center = (tri_points[0] + tri_points[1] + tri_points[2]) / 3.f;
+			float len = length(point_positions[index] - triangle_center);
+
+			// https://en.wikipedia.org/wiki/Spinlock
+			// Thread is busy waiting, since wikipedia says that it is efficient for threads it must be true
+
+			if ((!point_ray_test(tri_points[0], tri_points[1], tri_points[2]) && valid_point_into_face(face, point_positions[index])) &&
+				(tri_ins_point_index[face] == -1 || len < length(point_positions[tri_ins_point_index[face]] - triangle_center)))
+			{
+				int counter = 0;
+				bool loop = true;
+				while (loop == true)
+				{
+					if (counter > 100000)
+						break;
+					counter++;
+					if (atomicCompSwap(semaphores[face], 0, 1) == 0)
+					{
+						if (tri_ins_point_index[face] == -1 ||
+							len < length(point_positions[tri_ins_point_index[face]] - triangle_center))
+						{
+							tri_ins_point_index[face] = index;
+						}
+						// release spinlock and exit shader
+						semaphores[face] = 0;
+						loop = false;
+					}
+				}
+			}
+
+			// Old solution
+			//point_tri_index[index] = sym_edges[curr_e].face;
 		}
 		index += num_threads;
 		
