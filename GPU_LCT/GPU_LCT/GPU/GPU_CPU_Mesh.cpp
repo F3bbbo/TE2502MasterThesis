@@ -344,7 +344,8 @@ namespace GPU
 			num_new_points = status;
 			if (num_new_points > 0)
 			{
-				new_points.resize(num_new_points);
+				new_points.clear();
+				new_points.resize(num_new_points, vec2(FLT_MAX));
 				// add new points to the new_points buffer
 				add_new_points_program();
 				// remove duplicate points
@@ -1452,10 +1453,17 @@ namespace GPU
 		int num_valid_points = new_points.size();
 		while (i < num_valid_points)
 		{
+			if (point_equal(new_points[i], vec2(FLT_MAX)))
+			{
+				vec2 tmp = new_points[i];
+				new_points[i] = new_points[--num_valid_points];
+				new_points[num_valid_points] = tmp;
+				continue;
+			}
 			int j = i + 1;
 			while (j < num_valid_points)
 			{
-				if (point_equal(new_points[i], new_points[j]))
+				if (point_equal(new_points[i], new_points[j]) )
 				{
 					// swap away point behind the valid pointsto be removed later.
 					vec2 tmp = new_points[j];
