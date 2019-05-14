@@ -51,6 +51,7 @@ namespace GPU
 		Buffer m_find_dist_status;
 		Buffer m_epsilon_buff;
 		Buffer m_version_buff;
+		Buffer m_semaphores;
 		float m_epsilon = 0.0001f;
 		int version = 2;
 

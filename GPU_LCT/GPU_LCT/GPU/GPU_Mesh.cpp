@@ -180,6 +180,8 @@ namespace GPU
 		m_find_dist_status.create_buffer(type, std::vector<Find_Disturbance_Status>(1, { 0,0,0,0 }), GL_DYNAMIC_DRAW, 15, 1);
 
 		m_version_buff.create_uniform_buffer<int>({ version }, usage, 2);
+
+		m_semaphores.create_buffer(type, std::vector<int>(2, 0), usage, 15);
 	}
 
 	void GPUMesh::add_frame_points(std::vector<glm::vec2> points)
@@ -229,6 +231,7 @@ namespace GPU
 		// resize new points array
 
 		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
+		m_semaphores.append_to_buffer(std::vector<int>(num_new_tri, 0));
 
 		// then rebind the buffers that has been changed
 		m_point_bufs.positions.bind_buffer();
@@ -251,6 +254,7 @@ namespace GPU
 		m_sym_edges.bind_buffer();
 		m_nr_of_symedges.bind_buffer();
 		m_epsilon_buff.bind_buffer();
+		m_semaphores.bind_buffer();
 		m_status.bind_buffer();
 		m_version_buff.bind_buffer();
 
@@ -336,6 +340,8 @@ namespace GPU
 
 		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
 
+		m_semaphores.append_to_buffer(std::vector<int>(num_new_tri, 0));
+		
 		// Bind all ssbo's
 		m_point_bufs.positions.bind_buffer();
 		m_point_bufs.inserted.bind_buffer();
@@ -356,6 +362,7 @@ namespace GPU
 		m_sym_edges.bind_buffer();
 		m_nr_of_symedges.bind_buffer();
 		m_epsilon_buff.bind_buffer();
+		m_semaphores.bind_buffer();
 
 		m_status.bind_buffer();
 		int counter = 0;
@@ -372,11 +379,11 @@ namespace GPU
 			glUseProgram(m_location_program);
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-			glUseProgram(m_location_tri_program);
+			
+			/*glUseProgram(m_location_tri_program);
 			glDispatchCompute((GLuint)256, 1, 1);
-			glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);*/
+
 			// Insert Step
 			glUseProgram(m_insertion_program);
 			glDispatchCompute((GLuint)256, 1, 1);
