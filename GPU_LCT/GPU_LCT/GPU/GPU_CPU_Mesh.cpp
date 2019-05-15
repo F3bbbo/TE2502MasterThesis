@@ -1341,7 +1341,7 @@ namespace GPU
 			if (tri_symedges[index].x > -1)
 			{
 				int num_constraints = 0;
-				int c_edge_i[3] = { -1.0f,-1.0f,-1.0f };
+				int c_edge_i[3] = { -1, -1, -1 };
 				int tri_edge_i[3];
 				// loop checking for constraints in triangle
 				for (int i = 0; i < 3; i++)
@@ -2562,68 +2562,78 @@ namespace GPU
 		float c_prim = dot(dir, R[0]);
 		float b_prim = dot(dir, R[1]);
 		R[2] = R[1] + (dir * (c_prim - b_prim));
-		// Loop through points trying to find disturbance to current traversal
-		float best_dist = FLT_MAX;
 		int first_disturb = -1;
-		float best_dist_b = 0.0f;
-		std::array<vec2, 3> tri;
-		get_face(sym_edges[edge_ac].face, tri);
-		// find disturbance points
-		int sym_stack[12];
-		int top = 0;
-		sym_stack[top] = first_edge;
-		if (sym_stack[top] != -1)
+		if (!point_equal(R[2], R[0]))
 		{
-			while (top > -1)
+			// Loop through points trying to find disturbance to current traversal
+			float best_dist = FLT_MAX;
+			float best_dist_b = 0.0f;
+			std::array<vec2, 3> tri;
+			get_face(sym_edges[edge_ac].face, tri);
+			// find disturbance points
+			int sym_stack[CONSTRAINT_STACK_SIZE];
+			int top = 0;
+			sym_stack[top] = first_edge;
+			if (sym_stack[top] != -1)
 			{
-				//pop symedge from stack
-				int curr_e = sym_stack[top];
-				top--;
-				// check if next point is a disturbance.
-				int v_edge = prev(curr_e);
-				if (point_triangle_test(point_positions[sym_edges[v_edge].vertex], R[0], R[1], R[2]))
+				while (top > -1)
 				{
-					float dist = is_disturbed(constraint_sym_e, edge_bc, v_edge);
-					if (dist > 0.0f)
+					//pop symedge from stack
+					int curr_e = sym_stack[top];
+					top--;
+					// check if next point is a disturbance.
+					int v_edge = prev(curr_e);
+					if (point_triangle_test(point_positions[sym_edges[v_edge].vertex], R[0], R[1], R[2]))
 					{
-						if (dist < best_dist)
+						float dist = is_disturbed(constraint_sym_e, edge_bc, v_edge);
+						if (dist > 0.0f)
 						{
-							first_disturb = v_edge;
-							best_dist = dist;
-							best_dist_b = distance(point_positions[sym_edges[v_edge].vertex],
-								point_positions[sym_edges[prev(edge_ac)].vertex]);
-						}
-						else if (dist < (best_dist + EPSILON))
-						{
-							// if new point has the same distance as the previous one
-							// check if it is closer to b
-							float dist_b = distance(point_positions[sym_edges[v_edge].vertex],
-								point_positions[sym_edges[prev(edge_ac)].vertex]);
-							if (dist_b < best_dist_b)
+							if (dist < best_dist)
 							{
 								first_disturb = v_edge;
 								best_dist = dist;
-								best_dist_b = dist_b;
+								best_dist_b = distance(point_positions[sym_edges[v_edge].vertex],
+									point_positions[sym_edges[prev(edge_ac)].vertex]);
+							}
+							else if (dist < (best_dist + EPSILON))
+							{
+								// if new point has the same distance as the previous one
+								// check if it is closer to b
+								float dist_b = distance(point_positions[sym_edges[v_edge].vertex],
+									point_positions[sym_edges[prev(edge_ac)].vertex]);
+								if (dist_b < best_dist_b)
+								{
+									first_disturb = v_edge;
+									best_dist = dist;
+									best_dist_b = dist_b;
+								}
 							}
 						}
 					}
-				}
-				// explore which of the edges 
-				for (int i = 0; i < 2; i++)
-				{
-					curr_e = nxt(curr_e);
-					// first check if edge is a possible disturbance
-					vec2 s[2];
-					s[0] = point_positions[sym_edges[curr_e].vertex];
-					s[1] = point_positions[sym_edges[nxt(curr_e)].vertex];
-					if (edge_is_constrained[sym_edges[curr_e].edge] < 0 && segment_triangle_test(s[0], s[1], R[0], R[1], R[2]))
+					// explore which of the edges 
+					for (int i = 0; i < 2; i++)
 					{
-						int sym_e = sym(curr_e);
-						if (sym_e > -1)
+						curr_e = nxt(curr_e);
+						// first check if edge is a possible disturbance
+						vec2 s[2];
+						s[0] = point_positions[sym_edges[curr_e].vertex];
+						s[1] = point_positions[sym_edges[nxt(curr_e)].vertex];
+						if (edge_is_constrained[sym_edges[curr_e].edge] < 0 && segment_triangle_test(s[0], s[1], R[0], R[1], R[2]))
 						{
-							top++;
-							largest_stack = max(top, largest_stack);
-							sym_stack[top] = sym_e;
+							int sym_e = sym(curr_e);
+							if (sym_e > -1)
+							{
+								top++;
+								if (top < CONSTRAINT_STACK_SIZE)
+								{
+									largest_stack = max(top, largest_stack);
+									sym_stack[top] = sym_e;
+								}
+								else
+								{
+									return -1;
+								}
+							}
 						}
 					}
 				}

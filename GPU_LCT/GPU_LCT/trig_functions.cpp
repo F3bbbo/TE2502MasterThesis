@@ -143,9 +143,9 @@ bool segment_triangle_test(glm::vec2 p1, glm::vec2 p2, glm::vec2 t1, glm::vec2 t
 		// If triangle contains both points of segment return true
 		return true;
 	}
-	if (line_seg_intersection_ccw(p1, p2, t1, t2) ||
-		line_seg_intersection_ccw(p1, p2, t2, t3) ||
-		line_seg_intersection_ccw(p1, p2, t3, t1)) {
+	if (line_line_test(p1, p2, t1, t2) ||
+		line_line_test(p1, p2, t2, t3) ||
+		line_line_test(p1, p2, t3, t1)) {
 		// If segment intersects any of the edges of the triangle return true
 		return true;
 	}
