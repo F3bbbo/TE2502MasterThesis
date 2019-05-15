@@ -515,7 +515,9 @@ namespace GPU
 			num_new_points = status.front();
 			if (num_new_points > 0)
 			{
-				m_new_points.set_used_element_count<glm::vec2>(num_new_points);
+				m_new_points.set_used_element_count<vec2>(num_new_points);
+				m_new_points.update_buffer(std::vector<vec2>(num_new_points, vec2(FLT_MAX)));
+				//m_new_points.set_used_element_count<glm::vec2>(num_new_points);
 				m_new_points.bind_buffer();
 				// add new points to the point buffers
 				glUseProgram(m_add_new_points_program);
@@ -1252,6 +1254,13 @@ namespace GPU
 		int num_valid_points = list.size();
 		while (i < num_valid_points)
 		{
+			if (point_equal(list[i], vec2(FLT_MAX)))
+			{
+				vec2 tmp = list[i];
+				list[i] = list[--num_valid_points];
+				list[num_valid_points] = tmp;
+				continue;
+			}
 			int j = i + 1;
 			while (j < num_valid_points)
 			{
