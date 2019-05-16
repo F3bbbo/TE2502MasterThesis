@@ -53,7 +53,7 @@ layout(std430, binding = 7) buffer Tri_buff_0
 {
 	ivec4 tri_symedges[];
 };
-layout(std430, binding = 8) buffer Tri_buff_1
+layout(std430, binding = 8) coherent buffer Tri_buff_1
 {
 	int tri_ins_point_index[];
 };
@@ -73,7 +73,7 @@ layout(std430, binding = 12) buffer status_buff
 {
 	int status;
 };
-layout(std430, binding = 15) buffer atomic_buff
+layout(std430, binding = 15) coherent buffer atomic_buff
 {
 	int semaphores[];
 };
@@ -87,12 +87,12 @@ layout (std140, binding = 1) uniform epsilon_buff
 //-----------------------------------------------------------
 // Access Functions
 //-----------------------------------------------------------
-	void get_face(int face_i, out vec2 face_v[3])
-	{
-		face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
-		face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
-		face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
-	}
+void get_face(int face_i, out vec2 face_v[3])
+{
+	face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
+	face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
+	face_v[2] = point_positions[sym_edges[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].nxt].vertex];
+}
 
 //-----------------------------------------------------------
 // Symedge functions
@@ -301,38 +301,36 @@ void main(void)
 					}
 				}
 			}
-			
+
+			// new solution
+			// https://en.wikipedia.org/wiki/Spinlock
+
 			int face = sym_edges[curr_e].face;
 			vec2 tri_points[3];
 			get_face(face, tri_points);
-			vec2 triangle_center = (tri_points[0] + tri_points[1] + tri_points[2]) / 3.f;
-			float len = length(point_positions[index] - triangle_center);
-
-			// https://en.wikipedia.org/wiki/Spinlock
-			// Thread is busy waiting, since wikipedia says that it is efficient for threads it must be true
-
+			vec2 triangle_center = (tri_points[0] + tri_points[1] + tri_points[2]) / 3.0f;
+			float len = distance(point_positions[index], triangle_center);
+			
+			// The purpose of the first of the first if statement is to let in all threads who might be able to be closest.
+			// If the triangle is not degenerate, if the point can be inserted in the triangle and if the current point is closer to the point currently assigned to the triangle.
 			if ((!point_ray_test(tri_points[0], tri_points[1], tri_points[2]) && valid_point_into_face(face, point_positions[index])) &&
-				(tri_ins_point_index[face] == -1 || len < length(point_positions[tri_ins_point_index[face]] - triangle_center)))
+				(tri_ins_point_index[face] == -1 || len < distance(point_positions[tri_ins_point_index[face]], triangle_center)))
 			{
-				int counter = 0;
-				bool loop = true;
-				while (loop == true)
+				bool has_written = false;
+				do
 				{
-					if (counter > 100000)
-						break;
-					counter++;
 					if (atomicCompSwap(semaphores[face], 0, 1) == 0)
 					{
-						if (tri_ins_point_index[face] == -1 ||
-							len < length(point_positions[tri_ins_point_index[face]] - triangle_center))
+						has_written = true;
+						if (tri_ins_point_index[face] == -1 || len < distance(point_positions[tri_ins_point_index[face]], triangle_center))
 						{
-							tri_ins_point_index[face] = index;
+							atomicExchange(tri_ins_point_index[face], index);
 						}
 						// release spinlock and exit shader
-						semaphores[face] = 0;
-						loop = false;
+						atomicExchange(semaphores[face], 0);
+						memoryBarrier();
 					}
-				}
+				} while (has_written == false);
 			}
 
 			// Old solution
