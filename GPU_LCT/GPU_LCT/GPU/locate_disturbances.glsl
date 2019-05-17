@@ -602,7 +602,16 @@ int find_closest_constraint_v2(int ac_sym, vec2 a, vec2 b, vec2 c)
 						if (sym_e > -1)
 						{
 							top++;
-							sym_stack[top] = sym_e;
+							if(top < CONSTRAINT_STACK_SIZE)
+							{ 
+								sym_stack[top] = sym_e;
+							}
+							else
+							{
+								return -1;
+							}
+
+							
 						}
 					}
 				}
@@ -1068,7 +1077,7 @@ int find_constraint_disturbance_v2(int constraint_sym_e, int edge_ac, bool right
 		vec2 tri[3];
 		get_face(sym_edges[edge_ac].face, tri);
 		// find disturbance points
-		int sym_stack[12];
+		int sym_stack[DISTURBANCE_STACK_SIZE];
 		int top = 0;
 		sym_stack[top] = first_edge;
 		if (sym_stack[top] != -1)
@@ -1121,7 +1130,15 @@ int find_constraint_disturbance_v2(int constraint_sym_e, int edge_ac, bool right
 						if (sym_e > -1)
 						{
 							top++;
-							sym_stack[top] = sym_e;
+							if(top < DISTURBANCE_STACK_SIZE)
+							{
+								sym_stack[top] = sym_e;
+							}
+							else
+							{
+								return first_disturb;
+							}
+							
 						}
 					}
 				}
