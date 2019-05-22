@@ -53,9 +53,9 @@ layout(std430, binding = 7) buffer Tri_buff_0
 {
 	ivec4 tri_symedges[];
 };
-layout(std430, binding = 8) coherent buffer Tri_buff_1
+layout(std430, binding = 8) coherent volatile buffer Tri_buff_1
 {
-	int tri_ins_point_index[];
+	coherent volatile int tri_ins_point_index[];
 };
 layout(std430, binding = 9) buffer Tri_buff_2
 {
@@ -73,9 +73,9 @@ layout(std430, binding = 12) buffer status_buff
 {
 	int status;
 };
-layout(std430, binding = 15) coherent buffer atomic_buff
+layout(std430, binding = 15) coherent volatile buffer atomic_buff
 {
-	int semaphores[];
+	coherent volatile int semaphores[];
 };
 //-----------------------------------------------------------
 // Uniforms
@@ -327,8 +327,8 @@ void main(void)
 							atomicExchange(tri_ins_point_index[face], index);
 						}
 						// release spinlock and exit shader
+						memoryBarrierBuffer();
 						atomicExchange(semaphores[face], 0);
-						memoryBarrier();
 					}
 				} while (has_written == false);
 			}
