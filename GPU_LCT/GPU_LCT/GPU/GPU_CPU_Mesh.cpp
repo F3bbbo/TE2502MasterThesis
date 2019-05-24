@@ -238,7 +238,7 @@ namespace GPU
 			//glDispatchCompute((GLuint)256, 1, 1);
 			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-			location_tri_program();
+			//location_tri_program();
 			//glUseProgram(m_location_tri_program);
 			//glDispatchCompute((GLuint)256, 1, 1);
 			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -982,7 +982,23 @@ namespace GPU
 						}
 					}
 				}
-				point_tri_index[index] = sym_edges[curr_e].face;
+
+				int face = sym_edges[curr_e].face;
+				std::array<glm::vec2, 3> tri_points;
+				get_face(face, tri_points);
+				vec2 triangle_center = (tri_points[0] + tri_points[1] + tri_points[2]) / 3.0f;
+				float len = line_length(point_positions[index] - triangle_center);
+
+				if (!point_ray_test(tri_points[0], tri_points[1], tri_points[2]) && valid_point_into_face(face, point_positions[index]))
+				{
+					if (tri_ins_point_index[face] == -1 || len < line_length(point_positions[tri_ins_point_index[face]] - triangle_center))
+					{
+						tri_ins_point_index[face] = index;
+					}
+				}
+
+				// old solution
+				//point_tri_index[index] = sym_edges[curr_e].face;
 			}
 		}
 	}
