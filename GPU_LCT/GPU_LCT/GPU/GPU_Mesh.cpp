@@ -411,6 +411,7 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
+			glFinish();
 			cont = m_status.get_buffer_data<int>()[0];
 		}
 		// TODO: remove this creation of lct

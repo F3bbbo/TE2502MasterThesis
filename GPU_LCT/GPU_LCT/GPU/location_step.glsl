@@ -313,23 +313,26 @@ void main(void)
 			
 			// The purpose of the first of the first if statement is to let in all threads who might be able to be closest.
 			// If the triangle is not degenerate, if the point can be inserted in the triangle and if the current point is closer to the point currently assigned to the triangle.
-			if ((!point_ray_test(tri_points[0], tri_points[1], tri_points[2]) && valid_point_into_face(face, point_positions[index])) &&
-				(tri_ins_point_index[face] == -1 || len < distance(point_positions[tri_ins_point_index[face]], triangle_center)))
+			memoryBarrierBuffer();
+			if (!point_ray_test(tri_points[0], tri_points[1], tri_points[2]) && valid_point_into_face(face, point_positions[index]))
 			{
 				bool has_written = false;
 				do
 				{
+					memoryBarrierBuffer();
 					if (atomicCompSwap(semaphores[face], 0, 1) == 0)
 					{
 						has_written = true;
+						memoryBarrierBuffer();
 						if (tri_ins_point_index[face] == -1 || len < distance(point_positions[tri_ins_point_index[face]], triangle_center))
 						{
 							atomicExchange(tri_ins_point_index[face], index);
 						}
 						// release spinlock and exit shader
-						memoryBarrierBuffer();
 						atomicExchange(semaphores[face], 0);
+						memoryBarrierBuffer();
 					}
+					barrier();
 				} while (has_written == false);
 			}
 
