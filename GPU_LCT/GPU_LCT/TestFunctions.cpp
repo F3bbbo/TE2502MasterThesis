@@ -100,70 +100,100 @@ void test_range(int iterations, glm::ivec2 start_dims, glm::ivec2 dim_increase, 
 	}
 }
 
-void first_test(glm::ivec2 obstacle_amount, int iterations)
+void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int increase_iterations, int iterations, bool test_CPUGPU, bool test_GPU)
 {
 	// Record building of empty map with static objects only, save:
 	// Filename:[Algorithm]-[CDT-vertice-amount]-[number of added refinement vertices]
 	// [1-10],[time taken to build CDT],[time taken to build LCT]
 
-	std::vector<long long> build_times;
+	std::vector<std::vector<long long>> build_times;
+	build_times.resize(increase_iterations);
 
-	TestMap test_map;
-	test_map.set_map_size({ 45, 45 }, { -45, -45 });
-	test_map.set_num_obsticles(obstacle_amount);
-	test_map.set_static_quota(1.f);
-	auto gpu_frame = test_map.get_GPU_frame();
-
-	std::pair<std::vector<glm::vec2>,std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
-
-	// test CPUGPU solution
-	int num_vertices[2];
-	for (int i = 0; i < iterations; i++)
+	if (test_CPUGPU)
 	{
-		GPU::GCMesh gc_mesh;
-		gc_mesh.initiate_buffers({ 45, 45 });
-		
-		build_times.push_back(gc_mesh.build_CDT(data.first, data.second));
-		num_vertices[0] = gc_mesh.get_num_vertices();
-		build_times.push_back(gc_mesh.refine_LCT());
-		num_vertices[1] = gc_mesh.get_num_vertices();
-		LOG_ND("First Test CPUGPU iteration: " + std::to_string(i + 1) + '\n');
+		for (int iter = 0; iter < increase_iterations; iter++)
+		{
+			TestMap test_map;
+			test_map.set_map_size({ 45, 45 }, { -45, -45 });
+			test_map.set_num_obsticles(obstacle_amount + obstacle_increase * iter);
+			test_map.set_static_quota(1.f);
+			auto gpu_frame = test_map.get_GPU_frame();
+
+			std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
+
+			// test CPUGPU solution
+			for (int i = 0; i < iterations; i++)
+			{
+				GPU::GCMesh gc_mesh;
+				gc_mesh.initiate_buffers({ 45, 45 });
+
+				build_times[iter].push_back(gc_mesh.build_CDT(data.first, data.second));
+				build_times[iter].push_back(gc_mesh.refine_LCT());
+				LOG_ND("First Test CPUGPU iteration: " + std::to_string(i + 1) + '\n');
+			}
+		}
+
+		unsigned int total_obstacles = obstacle_amount.x * obstacle_amount.y;
+		std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(total_obstacles) + '-' + std::to_string(total_obstacles + obstacle_increase.x * obstacle_increase.y * (increase_iterations - 1)) + ".txt";
+		std::ofstream output(filename.c_str(), std::ofstream::out);
+
+		if (output.is_open())
+		{
+			output << "n, CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations) << '\n';
+			for (int iter = 0; iter < increase_iterations; iter++)
+			{
+				output << std::to_string(total_obstacles + (obstacle_increase.x * obstacle_increase.y * iter)) << '\n';
+				for (int i = 0; i < iterations; i++)
+					output << std::to_string(i + 1) + ',' + std::to_string(build_times[iter][i * 2]) + ',' + std::to_string(build_times[iter][i * 2 + 1]) + '\n';
+				output << '\n';
+			}
+		}
+		output.close();
+		build_times.clear();
+		build_times.resize(increase_iterations);
 	}
-
-	std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(num_vertices[0]) + '-' + std::to_string(num_vertices[1]) + ".txt";
-	std::ofstream output(filename.c_str(), std::ofstream::out);
-
-	if (output.is_open())
+	if (test_GPU)
 	{
-		output << "n, CDT build time, LCT build time \n";		for (int i = 0; i < iterations; i++)
-			output << std::to_string(i) + ',' + std::to_string(build_times[i * 2]) + ',' + std::to_string(build_times[i * 2 + 1]) + '\n';
-	}
-	output.close();
-	build_times.clear();
-	// test GPU solution
-	for (int i = 0; i < iterations; i++)
-	{
-		GPU::GPUMesh gc_mesh;
-		gc_mesh.initiate_buffers({ 45, 45 });
-		gc_mesh.add_frame_points(gpu_frame.first);
+		for (int iter = 0; iter < increase_iterations; iter++)
+		{
+			TestMap test_map;
+			test_map.set_map_size({ 45, 45 }, { -45, -45 });
+			test_map.set_num_obsticles(obstacle_amount + obstacle_increase * iter);
+			test_map.set_static_quota(1.f);
+			auto gpu_frame = test_map.get_GPU_frame();
 
-		build_times.push_back(gc_mesh.build_CDT(data.first, data.second));
-		num_vertices[0] = gc_mesh.get_num_vertices();
-		build_times.push_back(gc_mesh.refine_LCT());
-		num_vertices[1] = gc_mesh.get_num_vertices();
-		LOG_ND("First Test GPU iteration: " + std::to_string(i + 1) + '\n');
-	}
+			std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
 
-	filename = "Output files/first_test_GPU-" + std::to_string(num_vertices[0]) + '-' + std::to_string(num_vertices[1]) + ".txt";
-	output.open(filename.c_str(), std::ofstream::out);
+			// test GPU solution
+			for (int i = 0; i < iterations; i++)
+			{
+				GPU::GPUMesh gc_mesh;
+				gc_mesh.initiate_buffers({ 45, 45 });
+				gc_mesh.add_frame_points(gpu_frame.first);
 
-	if (output.is_open())
-	{
-		output << "n, CDT build time, LCT build time \n";
-		for (int i = 0; i < iterations; i++)
-			output << std::to_string(i) + ',' + std::to_string(build_times[i * 2]) + ',' + std::to_string(build_times[i * 2 + 1]) + '\n';
+				build_times[iter].push_back(gc_mesh.build_CDT(data.first, data.second));
+				build_times[iter].push_back(gc_mesh.refine_LCT());
+				LOG_ND("First Test GPU iteration: " + std::to_string(i + 1) + '\n');
+			}
+		}
+
+		unsigned int total_obstacles = obstacle_amount.x * obstacle_amount.y;
+		std::string filename = "Output files/first_test_GPU-" + std::to_string(total_obstacles) + '-' + std::to_string(total_obstacles + obstacle_increase.x * obstacle_increase.y * (increase_iterations - 1)) + ".txt";
+		std::ofstream output(filename.c_str(), std::ofstream::out);
+
+		if (output.is_open())
+		{
+			output << "n, CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations) << '\n';
+			for (int iter = 0; iter < increase_iterations; iter++)
+			{
+				output << std::to_string(total_obstacles + (obstacle_increase.x * obstacle_increase.y * iter)) << '\n';
+				for (int i = 0; i < iterations; i++)
+					output << std::to_string(i + 1) + ',' + std::to_string(build_times[iter][i * 2]) + ',' + std::to_string(build_times[iter][i * 2 + 1]) + '\n';
+				output << '\n';
+			}
+		}
+		output.close();
 	}
-	output.close();
 }
 
 void second_test(glm::ivec2 obstacles, int iterations)
