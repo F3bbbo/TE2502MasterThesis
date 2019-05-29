@@ -196,54 +196,56 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 	}
 }
 
-void second_test(glm::ivec2 obstacles, int iterations)
+void second_test(glm::ivec2 obstacle_amount, int iterations)
 {
+	int num_shaders = 17;
+	std::vector<std::vector<long long>> total_times;
+	total_times.resize(iterations);
+	for (auto& iteration : total_times)
+		iteration.resize(num_shaders);
+
+	
 	// Record performance of each shader stage
 	TestMap test_map;
 	test_map.set_map_size({ 45, 45 }, { -45, -45 });
-	test_map.set_num_obsticles(obstacles);
+	test_map.set_num_obsticles(obstacle_amount);
 	test_map.set_static_quota(1.f);
 	test_map.set_dynamic_quota(1.f);
 
-	std::pair<std::vector<glm::vec2>,std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
-	std::vector<std::vector<long long>> shader_times;
-
-	std::string filename = "Output files/second_test-" + std::to_string(obstacles.x * obstacles.y) + ".txt";
-	std::ofstream output(filename.c_str(), std::ofstream::out);
-
-	if (!output.is_open())
-	{
-		LOG_T(WARNING, "Can not open output file: " + filename + '\n');
-		return;
-	}
+	std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
 
 	for (int i = 0; i < iterations; i++)
 	{
 		GPU::GPUMesh mesh;
 		mesh.initiate_buffers({ 45, 45 });
 
-		shader_times.push_back(mesh.measure_shaders(data.first, data.second));
-		LOG_ND("Second Test iteration: " + std::to_string(i + 1) + '\n');
+		total_times[i] = mesh.measure_shaders(data.first, data.second);
 	}
 
-	output << "n, time taken for each shader in ms to complete \n";
-
-	int num_shaders = 17;
-	std::vector<long long> total_times;
-	total_times.resize(num_shaders, 0);
-
-	for (int i = 0; i < iterations; i++)
+	unsigned int total_obstacles = obstacle_amount.x * obstacle_amount.y;
+	std::string filename = "Output files/second_test-" + std::to_string(total_obstacles) + ".txt";
+	std::ofstream output(filename.c_str(), std::ofstream::out);
+	if (!output.is_open())
 	{
-		std::string output_string = std::to_string(i) + ',';
-		for (int j = 0; j < num_shaders; j++)
-		{
-			output_string += std::to_string(shader_times[i][j]);
-			if (j < num_shaders - 1)
-				output_string += ',';
-		}
-		output_string += '\n';
-		output << output_string;
+		LOG_T(WARNING, "Can not open output file: " + filename + '\n');
+		return;
 	}
+
+	output << "time taken for each shader in ms to complete \n" << std::to_string(iterations) << '\n';
+	
+	output << std::to_string(total_obstacles) << '\n';
+	for (auto& iteration : total_times)
+	{
+		for (int i = 0; i < num_shaders; i++)
+		{
+			output << std::to_string(iteration[i]);
+			if (i < num_shaders - 1)
+				output << ',';
+			else
+				output << '\n';
+		}
+	}
+	output << '\n';
 
 	output.close();
 }
