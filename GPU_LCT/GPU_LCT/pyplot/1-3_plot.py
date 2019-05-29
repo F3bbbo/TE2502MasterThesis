@@ -4,38 +4,59 @@ import math
 import sys
 
 # process input arguments
-if (len(sys.argv) != 4):
-    print("provide three arguments [G,C] [START_NUM] [END_NUM]")
+if (len(sys.argv) != 5):
+    print("provide three arguments [1,3] [G,C] [START_NUM] [END_NUM]")
     sys.exit(1)
 
-filename = "first_test_";
+# first parameter
+try:
+    int(sys.argv[1])
+except ValueError:
+    print("First argument has to be an integer")
+    sys.exit(1)
 
-if (sys.argv[1] == "G" or sys.argv[1] == "g"):
+if (not (sys.argv[1] == "1" or sys.argv[1] == "3")):
+    print("First argument has to be 1 or 3")
+    sys.exit(1)
+
+filename = None
+type = int(sys.argv[1])
+if (type == 1):
+    filename = "first_test_";
+else:
+    filename = "third_test_";
+
+# second parameter
+if (sys.argv[2] == "G" or sys.argv[2] == "g"):
     filename += "GPU-";
-elif (sys.argv[1] == "C" or sys.argv[1] == "c"):
+elif (sys.argv[2] == "C" or sys.argv[2] == "c"):
     filename += "CPUGPU-";
 else:
-    print("First argument has to be [Gg] or [Cc]]")
+    print("Second argument has to be [Gg] or [Cc]]")
     sys.exit(1)
 
-try:
-    int(sys.argv[2])
-except ValueError:
-    print("Second argument has to be an integer")
-    sys.exit(1)
-
+# third parameter
 try:
     int(sys.argv[3])
 except ValueError:
-    print("third argument has to be an integer")
+    print("Third argument has to be an integer")
     sys.exit(1)
-# end processing of input
 
-CDT = int(sys.argv[2])
-LCT = int(sys.argv[3])
+CDT = int(sys.argv[3])
+
+# fourth parameter
+try:
+    int(sys.argv[4])
+except ValueError:
+    print("fourth argument has to be an integer")
+    sys.exit(1)
+
+LCT = int(sys.argv[4])
+# end processing of input
 filename += str(CDT) + '-' + str(LCT) + ".txt"
 
 Matrix = None
+xlabels = None
 iterations = 0;
 increase_iterations = 0;
 
@@ -46,14 +67,16 @@ with open(filename, 'r') as file:
     iterations = int(metadata[0])
     increase_iterations = int(metadata[1])
 
-    Matrix = [[0 for x in range(increase_iterations)] for y in range(5)]
+    Matrix = [[0 for x in range(increase_iterations)] for y in range(4)]
     results = [[0 for x in range(iterations)] for y in range(2)]
+    xlabels = [""] * increase_iterations
     counter = 0
     completed_iter = 0
     for line in file:
         if (counter == 0):
-            num_obstacles = int(line)
+            num_obstacles = line
             counter += 1
+
         elif (counter > iterations):
             # compute CDT mean
             for result in results[0]:
@@ -75,14 +98,14 @@ with open(filename, 'r') as file:
                 Matrix[3][completed_iter] += (result - Matrix[2][completed_iter]) ** 2
             Matrix[3][completed_iter] = math.sqrt(Matrix[3][completed_iter] / iterations)
 
-            Matrix[4][completed_iter] = num_obstacles
+            xlabels[completed_iter] = num_obstacles
             counter = 0
             results = [[0 for x in range(iterations)] for y in range(2)]
             completed_iter += 1
         else:
             l = line.split(',')
-            results[0][counter - 1] += int(l[1])
-            results[1][counter - 1] += int(l[2][:-1])
+            results[0][counter - 1] += int(l[0])
+            results[1][counter - 1] += int(l[1][:-1])
             counter += 1
 
 # plotting starts here
@@ -95,7 +118,7 @@ p2 = ax.bar(ind + width, Matrix[2], width, bottom=0, yerr=Matrix[3])
 
 ax.set_title('Time to build CDT and LCT')
 ax.set_xticks(ind + width / 2)
-ax.set_xticklabels(Matrix[4])
+ax.set_xticklabels(xlabels)
 
 ax.legend((p1[0], p2[0]), ('CDT', 'LCT'))
 ax.set_ylabel('milliseconds')
