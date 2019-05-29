@@ -144,7 +144,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 			{
 				output << std::to_string(total_obstacles + (obstacle_increase.x * obstacle_increase.y * iter)) << '\n';
 				for (int i = 0; i < iterations; i++)
-					output << std::to_string(i + 1) + ',' + std::to_string(build_times[iter][i * 2]) + ',' + std::to_string(build_times[iter][i * 2 + 1]) + '\n';
+					output << std::to_string(build_times[iter][i * 2]) + ',' + std::to_string(build_times[iter][i * 2 + 1]) + '\n';
 				output << '\n';
 			}
 		}
@@ -188,7 +188,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 			{
 				output << std::to_string(total_obstacles + (obstacle_increase.x * obstacle_increase.y * iter)) << '\n';
 				for (int i = 0; i < iterations; i++)
-					output << std::to_string(i + 1) + ',' + std::to_string(build_times[iter][i * 2]) + ',' + std::to_string(build_times[iter][i * 2 + 1]) + '\n';
+					output << std::to_string(build_times[iter][i * 2]) + ',' + std::to_string(build_times[iter][i * 2 + 1]) + '\n';
 				output << '\n';
 			}
 		}
@@ -248,11 +248,21 @@ void second_test(glm::ivec2 obstacles, int iterations)
 	output.close();
 }
 
-void third_test(std::string input_file, bool test_CPUGPU, bool test_GPU)
+void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool test_GPU)
 {
 	// Test: 3
 	// Filename:[Algorithm]-[number of static vertices]-[number of dynamic obstacle vertices]
 	// [1-10],[time taken to build CDT],[time taken to build LCT]-[number of added refinement vertices]
+
+	struct InputMapData
+	{
+		std::string filename;
+		int static_vertices;
+		std::vector<glm::vec2> dynamic_vertices;
+		std::vector<glm::ivec2> dynamic_vertice_indices;
+	};
+	// Read input data
+	std::vector<InputMapData> input_data_maps;
 	std::string input_filename = "Output files/third_test_input-" + input_file;
 	std::ifstream input(input_filename.c_str(), std::ios::in | std::ios::binary);
 	int maps;
@@ -261,92 +271,91 @@ void third_test(std::string input_file, bool test_CPUGPU, bool test_GPU)
 		LOG_T(WARNING, "can not open file:" + input_filename);
 		return;
 	}
-
 	input.read((char*)&maps, sizeof(int));
+	input_data_maps.resize(maps);
 	int size;
-
 	for (int i = 0; i < maps; i++)
 	{
 		input.read((char*)&size, sizeof(int));
-		char* mesh_name_c = new char[size];
-		input.read(mesh_name_c, size);
-		std::string mesh_name(mesh_name_c, size);
-		
-		int num_static_vertices;
-		input.read((char*)&num_static_vertices, sizeof(int)); // get number of static object vertices
+		input_data_maps[i].filename.resize(size);
+		input.read((char*)input_data_maps[i].filename.c_str(), size);
 
-		input.read((char*)&size, sizeof(int)); // get size of vertive data in bytes
-		std::vector<glm::vec2> dynamic_vertices;
-		dynamic_vertices.resize(size / sizeof(glm::vec2));
-		input.read((char*)dynamic_vertices.data(), size); // get vertice data
+		input.read((char*)&input_data_maps[i].static_vertices, sizeof(int)); // get number of static object vertices
+
+		input.read((char*)&size, sizeof(int)); // get size of vertice data in bytes
+		input_data_maps[i].dynamic_vertices.resize(size / sizeof(glm::vec2));
+		input.read((char*)input_data_maps[i].dynamic_vertices.data(), size); // get vertice data
 
 		input.read((char*)&size, sizeof(int)); // get size of vertice indices size
-		std::vector<glm::ivec2> dynamic_vertex_indices;
-		dynamic_vertex_indices.resize(size / sizeof(glm::ivec2));
-		input.read((char*)dynamic_vertex_indices.data(), size); // get indices data
+		input_data_maps[i].dynamic_vertice_indices.resize(size / sizeof(glm::ivec2));
+		input.read((char*)input_data_maps[i].dynamic_vertice_indices.data(), size); // get indices data
+	}
+	input.close();
+	// done reading input data
+	
+	std::string output_filename = "Output files/third_test_";
+	if (test_CPUGPU)
+	{
+		output_filename += input_file + "_CPUGPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
+		std::ofstream output(output_filename.c_str(), std::ifstream::out);
 
-		// All input data has been loaded
-		// GPU CPU
-		
-		std::vector<long long> build_times;
-
-		if (test_CPUGPU)
+		if (!output.is_open())
 		{
-			std::string output_filename = "Output files/third_test_result_of_" + input_file + "_CPUGPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size()) + ".txt";
-			std::ofstream output(output_filename.c_str(), std::ifstream::out);
+			LOG_T(WARNING, "can not open file:" + output_filename);
+			return;
+		}
 
-			if (!output.is_open())
-			{
-				LOG_T(WARNING, "can not open file:" + output_filename);
-				continue;
-			}
+		output << "CDT build time, LCT build time \n" + std::to_string(iterations) + ',' + std::to_string(maps) + '\n';
+		
+		for (int map_i = 0; map_i < maps; map_i++)
+		{
+			output << std::to_string(input_data_maps[map_i].static_vertices) + ',' + std::to_string(input_data_maps[map_i].dynamic_vertices.size()) + '\n';
 
 			GPU::GCMesh gc_mesh;
-			gc_mesh.load_from_file(mesh_name);
+			gc_mesh.load_from_file(input_data_maps[map_i].filename);
 			GPU::GCMesh gc_mesh_copy = gc_mesh;
 
-			output << "n, CDT build time, LCT build time, nr of LCT refinement points \n";
-			for (int j = 0; j < 10; j++)
+			for (int j = 0; j < iterations; j++)
 			{
-				build_times.push_back(gc_mesh.build_CDT(dynamic_vertices, dynamic_vertex_indices));
-				build_times.push_back(gc_mesh.refine_LCT());
-				output << std::to_string(j) + ',' + std::to_string(build_times[j * 2]) + ',' + std::to_string(build_times[j * 2 + 1]) + ',' + std::to_string((int)gc_mesh.get_num_vertices() - num_static_vertices - (int)dynamic_vertices.size()) + '\n';
+				output << std::to_string(gc_mesh.build_CDT(input_data_maps[map_i].dynamic_vertices, input_data_maps[map_i].dynamic_vertice_indices)) << ',';
+				output << std::to_string(gc_mesh.refine_LCT()) << '\n';
 				gc_mesh = gc_mesh_copy;
-				LOG("Third Test CPUGPU iteration: " + std::to_string(i + 1));
 			}
-			output.close();
-			build_times.clear();
+			output << '\n';
 		}
-		
-		if (test_GPU)
+		output.close();
+	}
+
+	if (test_GPU)
+	{
+		output_filename += input_file + "_GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
+		std::ofstream output(output_filename.c_str(), std::ifstream::out);
+
+		if (!output.is_open())
 		{
+			LOG_T(WARNING, "can not open file:" + output_filename);
+			return;
+		}
+
+		output << "CDT build time, LCT build time \n" + std::to_string(iterations) + ',' + std::to_string(maps) + '\n';
+		
+		for (int map_i = 0; map_i < maps; map_i++)
+		{
+			output << std::to_string(input_data_maps[map_i].static_vertices) + ',' + std::to_string(input_data_maps[map_i].dynamic_vertices.size()) + '\n';
 			GPU::GPUMesh g_mesh;
 			g_mesh.initiate_buffers({45.f, 45.f});
-			g_mesh.load_from_file(mesh_name);
+			g_mesh.load_from_file(input_data_maps[map_i].filename);
 			GPU::GPUMesh g_mesh_copy;
 			g_mesh_copy = g_mesh;
 
-			std::string output_filename = "Output files/third_test_result_of_" + input_file + "_GPU-" + std::to_string(num_static_vertices) + '-' + std::to_string(dynamic_vertices.size()) + ".txt";
-			std::ofstream output(output_filename.c_str(), std::ifstream::out);
-
-			if (!output.is_open())
+			for (int j = 0; j < iterations; j++)
 			{
-				LOG_T(WARNING, "can not open file:" + output_filename);
-				continue;
-			}
-
-			output << "n, CDT build time, LCT build time, nr of LCT refinement points \n";
-			for (int j = 0; j < 10; j++)
-			{
-				build_times.push_back(g_mesh.build_CDT(dynamic_vertices, dynamic_vertex_indices));
-				build_times.push_back(g_mesh.refine_LCT());
-
-				output << std::to_string(j) + ',' + std::to_string(build_times[j * 2]) + ',' + std::to_string(build_times[j * 2 + 1]) + ',' + std::to_string((int)g_mesh.get_num_vertices() - num_static_vertices - (int)dynamic_vertices.size()) + '\n';
+				output << std::to_string(g_mesh.build_CDT(input_data_maps[map_i].dynamic_vertices, input_data_maps[map_i].dynamic_vertice_indices)) << ',';
+				output << std::to_string(g_mesh.refine_LCT()) << '\n';
 				g_mesh = g_mesh_copy;
-				LOG("Third Test GPU iteration: " + std::to_string(j + 1));
 			}
-			output.close();
+			output << '\n';
 		}
+		output.close();
 	}
-	input.close();
 }
