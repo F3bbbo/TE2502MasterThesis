@@ -103,8 +103,12 @@ void test_range(int iterations, glm::ivec2 start_dims, glm::ivec2 dim_increase, 
 void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int increase_iterations, int iterations, bool test_CPUGPU, bool test_GPU)
 {
 	// Record building of empty map with static objects only, save:
-	// Filename:[Algorithm]-[CDT-vertice-amount]-[number of added refinement vertices]
-	// [1-10],[time taken to build CDT],[time taken to build LCT]
+	// Filename:[Version]-[lowest obstacle count]-[highest obstacle count]
+	// File content: 
+	// [num iterations, num obstacle increase iterations]
+
+	// [vertices]
+	// Results
 
 	std::vector<std::vector<long long>> build_times;
 	build_times.resize(increase_iterations);
@@ -204,6 +208,13 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 
 void second_test(glm::ivec2 obstacle_amount, int iterations)
 {
+	// Record building of empty map, save:
+	// Filename:[obstacle count]
+	// File content: 
+	// [num iterations]
+
+	// [vertices]
+	// Results
 	int num_shaders = 17;
 	std::vector<std::vector<long long>> total_times;
 	total_times.resize(iterations);
@@ -259,8 +270,13 @@ void second_test(glm::ivec2 obstacle_amount, int iterations)
 void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool test_GPU)
 {
 	// Test: 3
-	// Filename:[Algorithm]-[number of static vertices]-[number of dynamic obstacle vertices]
-	// [1-10],[time taken to build CDT],[time taken to build LCT]-[number of added refinement vertices]
+	// Record building from prebuilt map with dynamic objects, save:
+	// Filename:[Version]-[lowest vertex count]-[highest vertex count]
+	// File content: 
+	// [num iterations, num obstacle increase iterations]
+
+	// [static vertices, dynamic vertices]
+	// Results
 
 	struct InputMapData
 	{
@@ -303,7 +319,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 	
 	if (test_CPUGPU)
 	{
-		std::string output_filename = "Output files/third_test_" + input_file + "_CPUGPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
+		std::string output_filename = "Output files/third_test_CPUGPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
 		std::ofstream output(output_filename.c_str(), std::ifstream::out);
 
 		if (!output.is_open())
@@ -335,7 +351,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 
 	if (test_GPU)
 	{
-		std::string output_filename = "Output files/third_test_" + input_file + "_GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
+		std::string output_filename = "Output files/third_test_GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
 		std::ofstream output(output_filename.c_str(), std::ifstream::out);
 
 		if (!output.is_open())
