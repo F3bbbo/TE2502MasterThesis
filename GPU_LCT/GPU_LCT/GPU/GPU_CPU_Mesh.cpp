@@ -2310,7 +2310,7 @@ namespace GPU
 	{
 		float dist = FLT_MAX;
 		int ret = -1;
-		int sym_stack[12];
+		int sym_stack[CONSTRAINT_STACK_SIZE];
 		int top = 0;
 		sym_stack[top] = sym(ac_sym);
 		if (sym_stack[top] != -1)
@@ -2351,8 +2351,15 @@ namespace GPU
 							if (sym_e > -1)
 							{
 								top++;
-								largest_stack = max(top, largest_stack);
-								sym_stack[top] = sym_e;
+								if(top < CONSTRAINT_STACK_SIZE)
+								{ 
+									largest_stack = max(top, largest_stack);
+									sym_stack[top] = sym_e;
+								}
+								else
+								{
+									return -1;
+								}
 							}
 						}
 					}
@@ -2571,7 +2578,7 @@ namespace GPU
 			std::array<vec2, 3> tri;
 			get_face(sym_edges[edge_ac].face, tri);
 			// find disturbance points
-			int sym_stack[CONSTRAINT_STACK_SIZE];
+			int sym_stack[DISTURBANCE_STACK_SIZE];
 			int top = 0;
 			sym_stack[top] = first_edge;
 			if (sym_stack[top] != -1)
@@ -2631,7 +2638,7 @@ namespace GPU
 								}
 								else
 								{
-									return -1;
+									return first_disturb;
 								}
 							}
 						}
