@@ -113,8 +113,8 @@ fig, ax = plt.subplots()
 
 ind = np.arange(len(Matrix[0]))    # the x locations for the groups
 width = 0.35         # the width of the bars
-p1 = ax.bar(ind, Matrix[0], width, bottom=0, yerr=Matrix[1])
-p2 = ax.bar(ind + width, Matrix[2], width, bottom=0, yerr=Matrix[3])
+p1 = ax.bar(ind, Matrix[0], width, bottom=0, yerr=Matrix[1], edgecolor="blue")
+p2 = ax.bar(ind + width, Matrix[2], width, bottom=0, yerr=Matrix[3], edgecolor="orange")
 
 ax.set_title('Time to build CDT and LCT')
 ax.set_xticks(ind + width / 2)
