@@ -175,15 +175,28 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 
 			vertice_counts[iter] = data.first.size();
 			// test GPU solution
-			for (int i = 0; i < iterations; i++)
+			for (int i = 0; i < iterations + 1; i++)
 			{
-				GPU::GPUMesh gc_mesh;
-				gc_mesh.initiate_buffers({ 45, 45 });
-				gc_mesh.add_frame_points(gpu_frame.first);
+				if (i == 0)
+				{
+					// The GPU needs to be "warmed up" or else the first result will be very slow
+					GPU::GPUMesh gc_mesh;
+					gc_mesh.initiate_buffers({ 45, 45 });
+					gc_mesh.add_frame_points(gpu_frame.first);
 
-				build_times[iter].push_back(gc_mesh.build_CDT(data.first, data.second));
-				build_times[iter].push_back(gc_mesh.refine_LCT());
-				LOG_ND("First Test GPU iteration: " + std::to_string(i + 1) + '\n');
+					gc_mesh.build_CDT(data.first, data.second);
+					gc_mesh.refine_LCT();
+				}
+				else
+				{
+					GPU::GPUMesh gc_mesh;
+					gc_mesh.initiate_buffers({ 45, 45 });
+					gc_mesh.add_frame_points(gpu_frame.first);
+
+					build_times[iter].push_back(gc_mesh.build_CDT(data.first, data.second));
+					build_times[iter].push_back(gc_mesh.refine_LCT());
+					LOG_ND("First Test GPU iteration: " + std::to_string(i) + '\n');
+				}
 			}
 		}
 
@@ -231,12 +244,22 @@ void second_test(glm::ivec2 obstacle_amount, int iterations)
 
 	std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
 
-	for (int i = 0; i < iterations; i++)
+	for (int i = 0; i < iterations + 1; i++)
 	{
-		GPU::GPUMesh mesh;
-		mesh.initiate_buffers({ 45, 45 });
+		if (i == 0)
+		{
+			// The GPU needs to be "warmed up" or else the first result will be very slow
+			GPU::GPUMesh mesh;
+			mesh.initiate_buffers({ 45, 45 });
+			mesh.measure_shaders(data.first, data.second);
+		}
+		else
+		{
+			GPU::GPUMesh mesh;
+			mesh.initiate_buffers({ 45, 45 });
 
-		total_times[i] = mesh.measure_shaders(data.first, data.second);
+			total_times[i - 1] = mesh.measure_shaders(data.first, data.second);
+		}
 	}
 
 	unsigned int total_obstacles = obstacle_amount.x * obstacle_amount.y;
@@ -371,11 +394,21 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 			GPU::GPUMesh g_mesh_copy;
 			g_mesh_copy = g_mesh;
 
-			for (int j = 0; j < iterations; j++)
+			for (int j = 0; j < iterations + 1; j++)
 			{
-				output << std::to_string(g_mesh.build_CDT(input_data_maps[map_i].dynamic_vertices, input_data_maps[map_i].dynamic_vertice_indices)) << ',';
-				output << std::to_string(g_mesh.refine_LCT()) << '\n';
-				g_mesh = g_mesh_copy;
+				if (j == 0)
+				{
+					// The GPU needs to be "warmed up" or else the first result will be very slow
+					g_mesh.build_CDT(input_data_maps[map_i].dynamic_vertices, input_data_maps[map_i].dynamic_vertice_indices);
+					g_mesh.refine_LCT();
+					g_mesh = g_mesh_copy;
+				}
+				else
+				{
+					output << std::to_string(g_mesh.build_CDT(input_data_maps[map_i].dynamic_vertices, input_data_maps[map_i].dynamic_vertice_indices)) << ',';
+					output << std::to_string(g_mesh.refine_LCT()) << '\n';
+					g_mesh = g_mesh_copy;
+				}
 			}
 			output << '\n';
 		}
