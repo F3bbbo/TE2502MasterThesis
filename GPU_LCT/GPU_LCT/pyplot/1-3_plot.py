@@ -74,7 +74,7 @@ with open(filename, 'r') as file:
     completed_iter = 0
     for line in file:
         if (counter == 0):
-            num_obstacles = line
+            num_vertices = line
             counter += 1
 
         elif (counter > iterations):
@@ -98,7 +98,7 @@ with open(filename, 'r') as file:
                 Matrix[3][completed_iter] += (result - Matrix[2][completed_iter]) ** 2
             Matrix[3][completed_iter] = math.sqrt(Matrix[3][completed_iter] / iterations)
 
-            xlabels[completed_iter] = num_obstacles
+            xlabels[completed_iter] = num_vertices
             counter = 0
             results = [[0 for x in range(iterations)] for y in range(2)]
             completed_iter += 1
@@ -119,6 +119,10 @@ p2 = ax.bar(ind + width, Matrix[2], width, bottom=0, yerr=Matrix[3])
 ax.set_title('Time to build CDT and LCT')
 ax.set_xticks(ind + width / 2)
 ax.set_xticklabels(xlabels)
+if (type == 1):
+    ax.set_xlabel('Number of inserted vertices')
+else:
+    ax.set_xlabel('number of already inserted vertices, number of additional vertices inserted')
 
 ax.legend((p1[0], p2[0]), ('CDT', 'LCT'))
 ax.set_ylabel('milliseconds')

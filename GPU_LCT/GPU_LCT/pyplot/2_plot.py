@@ -17,7 +17,7 @@ except ValueError:
 filename = "second_test-" + str(sys.argv[1]) + ".txt"
 
 iterations = None
-num_obstacles = None
+num_vertices = None
 num_CDT_shaders = 8
 num_LCT_shaders = 9
 input_data = None
@@ -25,7 +25,7 @@ results = [[0 for x in range(num_CDT_shaders + num_LCT_shaders)] for y in range(
 with open(filename, 'r') as file:
     file.readline()
     iterations = int(file.readline()[:-1])
-    num_obstacles = file.readline()[:-1]
+    num_vertices = file.readline()[:-1]
     input_data = [[0 for x in range(iterations)] for y in range(num_CDT_shaders + num_LCT_shaders)]
     for i in range(iterations):
         shader_times = file.readline().split(",")
@@ -52,7 +52,7 @@ for shader in range(num_CDT_shaders + num_LCT_shaders):
 # plotting starts here
 fig, axs = plt.subplots(1, 2)
 
-plt.suptitle('Construction of LCT with ' + str(num_obstacles) + ' vertices')
+plt.suptitle('Construction of LCT with ' + str(num_vertices) + ' vertices')
 # CDT plotting
 ind = np.arange(num_CDT_shaders)    # the x locations for the groups
 width = 0.75         # the width of the bars

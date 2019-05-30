@@ -111,6 +111,8 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 
 	if (test_CPUGPU)
 	{
+		std::vector<int> vertice_counts;
+		vertice_counts.resize(increase_iterations);
 		for (int iter = 0; iter < increase_iterations; iter++)
 		{
 			TestMap test_map;
@@ -121,6 +123,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 
 			std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
 
+			vertice_counts[iter] = data.first.size();
 			// test CPUGPU solution
 			for (int i = 0; i < iterations; i++)
 			{
@@ -133,16 +136,16 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 			}
 		}
 
-		unsigned int total_obstacles = obstacle_amount.x * obstacle_amount.y;
-		std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(total_obstacles) + '-' + std::to_string(total_obstacles + obstacle_increase.x * obstacle_increase.y * (increase_iterations - 1)) + ".txt";
+		int total_obstacles = (int)obstacle_amount.x * (int)obstacle_amount.y;
+		std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(total_obstacles) + '-' + std::to_string(total_obstacles + (int)obstacle_increase.x * (int)obstacle_increase.y * (increase_iterations - 1)) + ".txt";
 		std::ofstream output(filename.c_str(), std::ofstream::out);
 
 		if (output.is_open())
 		{
-			output << "n, CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations) << '\n';
+			output << "CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations) << '\n';
 			for (int iter = 0; iter < increase_iterations; iter++)
 			{
-				output << std::to_string(total_obstacles + (obstacle_increase.x * obstacle_increase.y * iter)) << '\n';
+				output << std::to_string(vertice_counts[iter]) << '\n';
 				for (int i = 0; i < iterations; i++)
 					output << std::to_string(build_times[iter][i * 2]) + ',' + std::to_string(build_times[iter][i * 2 + 1]) + '\n';
 				output << '\n';
@@ -154,6 +157,8 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 	}
 	if (test_GPU)
 	{
+		std::vector<int> vertice_counts;
+		vertice_counts.resize(increase_iterations);
 		for (int iter = 0; iter < increase_iterations; iter++)
 		{
 			TestMap test_map;
@@ -164,6 +169,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 
 			std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
 
+			vertice_counts[iter] = data.first.size();
 			// test GPU solution
 			for (int i = 0; i < iterations; i++)
 			{
@@ -183,10 +189,10 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 
 		if (output.is_open())
 		{
-			output << "n, CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations) << '\n';
+			output << "CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations) << '\n';
 			for (int iter = 0; iter < increase_iterations; iter++)
 			{
-				output << std::to_string(total_obstacles + (obstacle_increase.x * obstacle_increase.y * iter)) << '\n';
+				output << std::to_string(vertice_counts[iter]) << '\n';
 				for (int i = 0; i < iterations; i++)
 					output << std::to_string(build_times[iter][i * 2]) + ',' + std::to_string(build_times[iter][i * 2 + 1]) + '\n';
 				output << '\n';
@@ -233,7 +239,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations)
 
 	output << "time taken for each shader in ms to complete \n" << std::to_string(iterations) << '\n';
 	
-	output << std::to_string(total_obstacles) << '\n';
+	output << std::to_string(data.first.size()) << '\n';
 	for (auto& iteration : total_times)
 	{
 		for (int i = 0; i < num_shaders; i++)
@@ -295,10 +301,9 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 	input.close();
 	// done reading input data
 	
-	std::string output_filename = "Output files/third_test_";
 	if (test_CPUGPU)
 	{
-		output_filename += input_file + "_CPUGPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
+		std::string output_filename = "Output files/third_test_" + input_file + "_CPUGPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
 		std::ofstream output(output_filename.c_str(), std::ifstream::out);
 
 		if (!output.is_open())
@@ -330,7 +335,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 
 	if (test_GPU)
 	{
-		output_filename += input_file + "_GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
+		std::string output_filename = "Output files/third_test_" + input_file + "_GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
 		std::ofstream output(output_filename.c_str(), std::ifstream::out);
 
 		if (!output.is_open())
