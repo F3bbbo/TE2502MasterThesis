@@ -213,8 +213,8 @@ std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> TestMap::generate_GPU
 std::vector<std::vector<glm::vec2>> TestMap::generate_CPU_segments(std::vector<Shape*>& shapes)
 {
 	std::vector<std::vector<glm::vec2>> ret_list;
-	ret_list.reserve(m_shapes.size());
-	for (auto shape : m_shapes)
+	ret_list.reserve(shapes.size());
+	for (auto shape : shapes)
 	{
 		ret_list.push_back(shape->get_segments());
 	}
