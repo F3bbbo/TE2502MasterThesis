@@ -98,7 +98,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		LOG_ND("First Test completed map: " + std::to_string(iter + 1) + '\n');
 	}
 
-	int new_obstacle_amount = (obstacle_amount.x + (int)obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + (int)obstacle_increase.y * (increase_iterations - 1));
+	int new_obstacle_amount = (obstacle_amount.x + obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + obstacle_increase.y * (increase_iterations - 1));
 
 	std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt";
 	std::ofstream output(filename.c_str(), std::ofstream::out);

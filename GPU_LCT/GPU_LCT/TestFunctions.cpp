@@ -140,8 +140,8 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 			}
 		}
 
-		int total_obstacles = (int)obstacle_amount.x * (int)obstacle_amount.y;
-		std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(total_obstacles) + '-' + std::to_string(total_obstacles + (int)obstacle_increase.x * (int)obstacle_increase.y * (increase_iterations - 1)) + ".txt";
+		int new_obstacle_amount = (obstacle_amount.x + obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + obstacle_increase.y * (increase_iterations - 1));
+		std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt";
 		std::ofstream output(filename.c_str(), std::ofstream::out);
 
 		if (output.is_open())
@@ -200,8 +200,8 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 			}
 		}
 
-		unsigned int total_obstacles = obstacle_amount.x * obstacle_amount.y;
-		std::string filename = "Output files/first_test_GPU-" + std::to_string(total_obstacles) + '-' + std::to_string(total_obstacles + obstacle_increase.x * obstacle_increase.y * (increase_iterations - 1)) + ".txt";
+		int new_obstacle_amount = (obstacle_amount.x + obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + obstacle_increase.y * (increase_iterations - 1));
+		std::string filename = "Output files/first_test_GPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt";
 		std::ofstream output(filename.c_str(), std::ofstream::out);
 
 		if (output.is_open())
