@@ -55,33 +55,52 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 
 		vertice_counts[iter] = data.first.size();
 		// test Kallmanns solution
-		for (int i = 0; i < iterations; i++)
+		for (int i = 0; i < iterations + 1; i++)
 		{
-			tpLct* lct = tp_lct_newref(0.001f);
-			tp_lct_init(lct, -45, -45, 45, 45, 0);
+			if (i == 0)
+			{
+				// Warmup run, otherwise the first result will be significantly slower than the rest.
+				tpLct* lct = tp_lct_newref(0.001f);
+				tp_lct_init(lct, -45, -45, 45, 45, 0);
 
-			// Only build CDT
-			tp_lct_mode(lct, TpRefMode::TpRefGlobal, TpRemMode::TpRemFull);
-			Timer timer;
+				// Only build CDT
+				tp_lct_mode(lct, TpRefMode::TpRefGlobal, TpRemMode::TpRemFull);
 
-			timer.start();
-			for (std::vector<glm::vec2>& polygon : polygons)
-				tp_lct_insert_polygonfv(lct, (float*)polygon.data(), polygon.size(), TpClosedPolygon);
-			timer.stop();
-			build_times[iter].push_back(timer.elapsed_time());
+				for (std::vector<glm::vec2>& polygon : polygons)
+					tp_lct_insert_polygonfv(lct, (float*)polygon.data(), polygon.size(), TpClosedPolygon);
 
-			timer.start();
-			tp_lct_refine(lct);
-			timer.stop();
-			build_times[iter].push_back(timer.elapsed_time());
+				tp_lct_refine(lct);
+				tp_lct_unref(lct);
+			}
+			else
+			{
+				tpLct* lct = tp_lct_newref(0.001f);
+				tp_lct_init(lct, -45, -45, 45, 45, 0);
 
-			tp_lct_unref(lct);
-			LOG_ND("First Test iteration: " + std::to_string(i + 1) + '\n');
+				// Only build CDT
+				tp_lct_mode(lct, TpRefMode::TpRefGlobal, TpRemMode::TpRemFull);
+				Timer timer;
+
+				timer.start();
+				for (std::vector<glm::vec2>& polygon : polygons)
+					tp_lct_insert_polygonfv(lct, (float*)polygon.data(), polygon.size(), TpClosedPolygon);
+				timer.stop();
+				build_times[iter].push_back(timer.elapsed_time());
+
+				timer.start();
+				tp_lct_refine(lct);
+				timer.stop();
+				build_times[iter].push_back(timer.elapsed_time());
+
+				tp_lct_unref(lct);
+			}
 		}
+		LOG_ND("First Test completed map: " + std::to_string(iter + 1) + '\n');
 	}
 
-	int total_obstacles = (int)obstacle_amount.x * (int)obstacle_amount.y;
-	std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(total_obstacles) + '-' + std::to_string(total_obstacles + (int)obstacle_increase.x * (int)obstacle_increase.y * (increase_iterations - 1)) + ".txt";
+	int new_obstacle_amount = (obstacle_amount.x + (int)obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + (int)obstacle_increase.y * (increase_iterations - 1));
+
+	std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt";
 	std::ofstream output(filename.c_str(), std::ofstream::out);
 
 	if (output.is_open())
@@ -108,7 +127,6 @@ void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float 
 
 	for (int iter = 0; iter < increase_iterations; iter++)
 	{
-
 		tpLct* lct = tp_lct_newref(0.001f);
 		tp_lct_init(lct, -45, -45, 45, 45, 0);
 
@@ -130,23 +148,36 @@ void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float 
 
 		tpLct* lct_copy = lct;
 
-		for (int j = 0; j < iterations; j++)
+		for (int j = 0; j < iterations + 1; j++)
 		{
-			Timer timer;
+			if (j == 0)
+			{
+				// Warmup run, otherwise the first result will be significantly slower than the rest.
+				for (std::vector<glm::vec2>& polygon : dynamic_polygons)
+					tp_lct_insert_polygonfv(lct, (float*)polygon.data(), polygon.size(), TpClosedPolygon);
 
-			timer.start();
-			for (std::vector<glm::vec2>& polygon : dynamic_polygons)
-				tp_lct_insert_polygonfv(lct, (float*)polygon.data(), polygon.size(), TpClosedPolygon);
-			timer.stop();
-			build_times[iter].push_back(timer.elapsed_time());
-			
-			timer.start();
-			tp_lct_refine(lct);
-			timer.stop();
-			build_times[iter].push_back(timer.elapsed_time());
+				tp_lct_refine(lct);
+				lct = lct_copy;
+			}
+			else
+			{
+				Timer timer;
 
-			lct = lct_copy;
+				timer.start();
+				for (std::vector<glm::vec2>& polygon : dynamic_polygons)
+					tp_lct_insert_polygonfv(lct, (float*)polygon.data(), polygon.size(), TpClosedPolygon);
+				timer.stop();
+				build_times[iter].push_back(timer.elapsed_time());
+
+				timer.start();
+				tp_lct_refine(lct);
+				timer.stop();
+				build_times[iter].push_back(timer.elapsed_time());
+
+				lct = lct_copy;
+			}
 		}
+		LOG_ND("Third Test completed map: " + std::to_string(iter + 1) + '\n');
 	}
 
 	std::string output_filename = "Output files/third_test_CPUGPU-" + std::to_string(vertice_counts.front().first + (int)vertice_counts.front().second) + '-' + std::to_string(vertice_counts.back().first + (int)vertice_counts.back().second) + ".txt";
