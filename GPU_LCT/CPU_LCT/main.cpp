@@ -11,12 +11,14 @@
 #include <iostream>
 #include <vector>
 #include <glm/glm.hpp>
+#include <fstream>
 
 #include "../GPU_LCT/Timer.hpp"
 #include "../GPU_LCT/TestMap.hpp"
 #include "../GPU_LCT/Log.hpp"
 
 void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int increase_iterations, int iterations);
+void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float static_percentage, int increase_iterations, int iterations);
 
 int main()
 {
@@ -25,8 +27,10 @@ int main()
 	tp_verify_license_file(licfile); // first check if license file is there
 	tp_activate(licfile); // ok, load and activate
 	
-	//first_test();
+	first_test({ 45, 45 }, {5, 5}, 2, 10);
+	third_test({ 45, 45 }, {5, 5}, 60, 2, 10);
 
+	LOG_ND("Finished testing");
 	getchar();
 	return 0;
 }
@@ -44,7 +48,6 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		test_map.set_map_size({ 45, 45 }, { -45, -45 });
 		test_map.set_num_obsticles(obstacle_amount + obstacle_increase * iter);
 		test_map.set_static_quota(1.f);
-		auto gpu_frame = test_map.get_GPU_frame();
 
 		auto polygons = test_map.get_CPU_static_obstacles();
 
@@ -77,5 +80,95 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		}
 	}
 
-	build_times;
+	int total_obstacles = (int)obstacle_amount.x * (int)obstacle_amount.y;
+	std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(total_obstacles) + '-' + std::to_string(total_obstacles + (int)obstacle_increase.x * (int)obstacle_increase.y * (increase_iterations - 1)) + ".txt";
+	std::ofstream output(filename.c_str(), std::ofstream::out);
+
+	if (output.is_open())
+	{
+		output << "CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations) << '\n';
+		for (int iter = 0; iter < increase_iterations; iter++)
+		{
+			output << std::to_string(vertice_counts[iter]) << '\n';
+			for (int i = 0; i < iterations; i++)
+				output << std::to_string(build_times[iter][i * 2]) + ',' + std::to_string(build_times[iter][i * 2 + 1]) + '\n';
+			output << '\n';
+		}
+	}
+	output.close();
+}
+
+void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float static_percentage, int increase_iterations, int iterations)
+{
+	std::vector<std::vector<long long>> build_times;
+	build_times.resize(increase_iterations);
+
+	std::vector<std::pair<int,int>> vertice_counts;
+	vertice_counts.resize(increase_iterations);
+
+	for (int iter = 0; iter < increase_iterations; iter++)
+	{
+
+		tpLct* lct = tp_lct_newref(0.001f);
+		tp_lct_init(lct, -45, -45, 45, 45, 0);
+
+		TestMap test_map;
+		test_map.set_map_size({ 45, 45 }, { -45, -45 });
+		test_map.set_num_obsticles(obstacle_amount + obstacle_increase * iter);
+		test_map.set_static_quota(static_percentage);
+		test_map.set_dynamic_quota(1.f);
+
+		auto static_polygons = test_map.get_CPU_static_obstacles();
+		auto dynamic_polygons = test_map.get_CPU_dynamic_obstacles();
+
+		vertice_counts[iter] = { static_polygons.size(), dynamic_polygons.size() };
+		// insert all the static obstacles and create the LCT
+		for (auto& polygon : static_polygons)
+			tp_lct_insert_polygonfv(lct, (float*)polygon.data(), polygon.size(), TpClosedPolygon);
+
+		tp_lct_mode(lct, TpRefMode::TpRefGlobal, TpRemMode::TpRemFull);
+
+		tpLct* lct_copy = lct;
+
+		for (int j = 0; j < iterations; j++)
+		{
+			Timer timer;
+
+			timer.start();
+			for (std::vector<glm::vec2>& polygon : dynamic_polygons)
+				tp_lct_insert_polygonfv(lct, (float*)polygon.data(), polygon.size(), TpClosedPolygon);
+			timer.stop();
+			build_times[iter].push_back(timer.elapsed_time());
+			
+			timer.start();
+			tp_lct_refine(lct);
+			timer.stop();
+			build_times[iter].push_back(timer.elapsed_time());
+
+			lct = lct_copy;
+		}
+	}
+
+	std::string output_filename = "Output files/third_test_CPUGPU-" + std::to_string(vertice_counts.front().first + (int)vertice_counts.front().second) + '-' + std::to_string(vertice_counts.back().first + (int)vertice_counts.back().second) + ".txt";
+	std::ofstream output(output_filename.c_str(), std::ifstream::out);
+
+	if (!output.is_open())
+	{
+		LOG_T(WARNING, "can not open file:" + output_filename);
+		return;
+	}
+
+	output << "CDT build time, LCT build time \n" + std::to_string(iterations) + ',' + std::to_string(increase_iterations) + '\n';
+
+	for (int iter = 0; iter < increase_iterations; iter++)
+	{
+		output << std::to_string(vertice_counts[iter].first) + ',' + std::to_string(vertice_counts[iter].second) + '\n';
+		for (int i = 0; i < iterations; i++)
+		{
+			output << std::to_string(build_times[iter][2 * i    ]) << ',';
+			output << std::to_string(build_times[iter][2 * i + 1]) << '\n';
+		}
+		output << '\n';
+	}
+	output.close();
 }
