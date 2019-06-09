@@ -28,7 +28,7 @@ int main()
 	tp_activate(licfile); // ok, load and activate
 	
 	first_test({ 45, 45 }, {5, 5}, 2, 10);
-	third_test({ 45, 45 }, {5, 5}, 60, 2, 10);
+	third_test({ 45, 45 }, {5, 5}, 0.6, 2, 10);
 
 	LOG_ND("Finished testing");
 	getchar();
