@@ -2578,6 +2578,9 @@ namespace GPU
 			std::array<vec2, 3> tri;
 			get_face(sym_edges[edge_ac].face, tri);
 			// find disturbance points
+			int face_list[DISTURBANCE_TRI_LIST_SIZE];
+			face_list[0] = sym_edges[edge_ac].face;
+			int face_list_size = 1;
 			int sym_stack[DISTURBANCE_STACK_SIZE];
 			int top = 0;
 			sym_stack[top] = first_edge;
@@ -2630,15 +2633,39 @@ namespace GPU
 							int sym_e = sym(curr_e);
 							if (sym_e > -1)
 							{
-								top++;
-								if (top < CONSTRAINT_STACK_SIZE)
+								bool new_triangle = true;
+								int face_e = sym_edges[sym_e].face;
+								// first check if face has been explored before
+								for (int j = 0; j < face_list_size; j++)
 								{
-									largest_stack = max(top, largest_stack);
-									sym_stack[top] = sym_e;
+									if (face_list[j] == face_e)
+										new_triangle = false;
 								}
-								else
+
+								if (new_triangle)
 								{
-									return first_disturb;
+									// check so list still has room.
+									
+									if (face_list_size < DISTURBANCE_TRI_LIST_SIZE)
+									{
+										face_list[face_list_size] = face_e;
+										face_list_size++;
+									}
+									else 
+									{
+										return first_disturb;
+									}
+									// check so the stack still has empty room left
+									top++;
+									if (top < DISTURBANCE_STACK_SIZE)
+									{
+										largest_stack = max(top, largest_stack);
+										sym_stack[top] = sym_e;
+									}
+									else
+									{
+										return first_disturb;
+									}
 								}
 							}
 						}

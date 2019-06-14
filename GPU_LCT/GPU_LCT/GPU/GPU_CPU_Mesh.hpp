@@ -13,7 +13,9 @@ using namespace glm;
 namespace GPU
 {
 	#define CONSTRAINT_STACK_SIZE 12
+	#define CONSTRAINT_TRI_LIST_SIZE 12
 	#define DISTURBANCE_STACK_SIZE 12
+	#define DISTURBANCE_TRI_LIST_SIZE 12
 	class GCMesh
 	{
 	public:
