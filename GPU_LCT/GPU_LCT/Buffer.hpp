@@ -66,7 +66,7 @@ public:
 		bind_buffer();
 		glBufferData(m_type, sizeof(Data), &data, usage);
 		unbind_buffer();
-		glBindBufferRange(m_type, 0, m_buf, 0, sizeof(Data));
+		glBindBufferRange(m_type, m_loc, m_buf, 0, sizeof(Data));
 	}
 
 	void set_unitform_buffer_block(GLuint program, const char* buffer_name);
