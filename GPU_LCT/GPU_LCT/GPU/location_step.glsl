@@ -87,7 +87,7 @@ layout (std140, binding = 1) uniform epsilon_buff
 //-----------------------------------------------------------
 // Access Functions
 //-----------------------------------------------------------
-void get_face(int face_i, out vec2 face_v[3])
+void get_face(in int face_i, out vec2 face_v[3])
 {
 	face_v[0] = point_positions[sym_edges[tri_symedges[face_i].x].vertex];
 	face_v[1] = point_positions[sym_edges[sym_edges[tri_symedges[face_i].x].nxt].vertex];
@@ -302,6 +302,8 @@ void main(void)
 				}
 			}
 
+			point_tri_index[index] = sym_edges[curr_e].face;
+
 			// new solution
 			// https://en.wikipedia.org/wiki/Spinlock
 
@@ -332,12 +334,8 @@ void main(void)
 						atomicExchange(semaphores[face], 0);
 						memoryBarrierBuffer();
 					}
-					barrier();
 				} while (has_written == false);
 			}
-
-			// Old solution
-			//point_tri_index[index] = sym_edges[curr_e].face;
 		}
 		index += num_threads;
 		
