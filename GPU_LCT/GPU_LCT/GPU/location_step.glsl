@@ -1,4 +1,4 @@
-#version 430
+#version 460
 layout(local_size_x = 1, local_size_y= 1) in;
 
 struct SymEdge{
@@ -53,9 +53,9 @@ layout(std430, binding = 7) buffer Tri_buff_0
 {
 	ivec4 tri_symedges[];
 };
-layout(std430, binding = 8) coherent volatile buffer Tri_buff_1
+layout(std430, binding = 8) coherent buffer Tri_buff_1
 {
-	coherent volatile int tri_ins_point_index[];
+	coherent int tri_ins_point_index[];
 };
 layout(std430, binding = 9) buffer Tri_buff_2
 {
@@ -73,9 +73,9 @@ layout(std430, binding = 12) buffer status_buff
 {
 	int status;
 };
-layout(std430, binding = 15) coherent volatile buffer atomic_buff
+layout(std430, binding = 15) coherent buffer atomic_buff
 {
-	coherent volatile int semaphores[];
+	coherent uint semaphores[];
 };
 //-----------------------------------------------------------
 // Uniforms
@@ -276,10 +276,10 @@ void main(void)
 	uint gid = gl_GlobalInvocationID.x;
 	int index = int(gid);
 	int num_threads = int(gl_NumWorkGroups.x * gl_WorkGroupSize.x);
-	while(index < point_positions.length())
+	int addition_iterations = max(int((point_positions.length()) - 1) / num_threads, 0);
+	for (int it = 0; it < addition_iterations + 1; it++)
 	{
-		
-		if (point_inserted[index] == 0)
+		if (index < point_positions.length() && point_inserted[index] == 0)
 		{
 			bool on_edge;
 			// find out which triangle the point is now
@@ -321,18 +321,16 @@ void main(void)
 				bool has_written = false;
 				do
 				{
-					memoryBarrierBuffer();
 					if (atomicCompSwap(semaphores[face], 0, 1) == 0)
 					{
 						has_written = true;
-						memoryBarrierBuffer();
 						if (tri_ins_point_index[face] == -1 || len < distance(point_positions[tri_ins_point_index[face]], triangle_center))
 						{
 							atomicExchange(tri_ins_point_index[face], index);
 						}
 						// release spinlock and exit shader
-						atomicExchange(semaphores[face], 0);
 						memoryBarrierBuffer();
+						atomicExchange(semaphores[face], 0);
 					}
 				} while (has_written == false);
 			}
