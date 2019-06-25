@@ -2310,6 +2310,11 @@ namespace GPU
 	{
 		float dist = FLT_MAX;
 		int ret = -1;
+		// list containing visited triangles
+		int face_list[CONSTRAINT_TRI_LIST_SIZE];
+		face_list[0] = sym_edges[ac_sym].face;
+		int face_list_size = 1;
+		// create stack needed for traversal
 		int sym_stack[CONSTRAINT_STACK_SIZE];
 		int top = 0;
 		sym_stack[top] = sym(ac_sym);
@@ -2350,6 +2355,25 @@ namespace GPU
 							int sym_e = sym(curr_e);
 							if (sym_e > -1)
 							{
+								int face_e = sym_edges[sym_e].face;
+								// first check so face is not in the face list
+								bool new_triangle = true;
+								for (int j = 0; j < face_list_size; j++)
+								{
+									if (face_list[j] == face_e)
+										new_triangle = false;
+								}
+								// check so list still has room.
+								if (face_list_size < CONSTRAINT_TRI_LIST_SIZE)
+								{
+									face_list[face_list_size] = face_e;
+									face_list_size++;
+								}
+								else 
+								{
+									return -1;
+								}
+								// check so the triangle on other side of edge has not yet been explored.
 								top++;
 								if(top < CONSTRAINT_STACK_SIZE)
 								{ 
