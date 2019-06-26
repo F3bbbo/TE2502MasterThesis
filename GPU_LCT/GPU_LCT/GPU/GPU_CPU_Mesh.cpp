@@ -327,6 +327,10 @@ namespace GPU
 
 	long long GCMesh::refine_LCT()
 	{
+		//reset find disturbance status
+		find_dist_status = { 0,0,0,0 };
+
+		//reset timer
 		Timer timer;
 		timer.start();
 
@@ -445,6 +449,11 @@ namespace GPU
 			}
 		} while (true);
 		timer.stop();
+		LOG(std::string("Find_dist.const_list_status: ") + std::to_string(find_dist_status.const_list_status));
+		LOG(std::string("Find_dist.const_queue_status: ") + std::to_string(find_dist_status.const_queue_status));
+		LOG(std::string("Find_dist.dist_list_status: ") + std::to_string(find_dist_status.dist_list_status));
+		LOG(std::string("Find_dist.dist_queue_status: ") + std::to_string(find_dist_status.dist_queue_status));
+
 		return timer.elapsed_time();
 	}
 
@@ -929,6 +938,11 @@ namespace GPU
 		edge[0] = point_positions[sym_edges[s_edge].vertex];
 		edge[1] = point_positions[sym_edges[nxt(s_edge)].vertex];
 		return edge;
+	}
+
+	Find_Disturbance_Status GCMesh::get_find_dist_status()
+	{
+		return find_dist_status;
 	}
 
 
@@ -2371,6 +2385,7 @@ namespace GPU
 								}
 								else 
 								{
+									find_dist_status.const_list_status = 1;
 									return -1;
 								}
 								// check so the triangle on other side of edge has not yet been explored.
@@ -2382,6 +2397,7 @@ namespace GPU
 								}
 								else
 								{
+									find_dist_status.const_queue_status = 1;
 									return -1;
 								}
 							}
@@ -2677,6 +2693,7 @@ namespace GPU
 									}
 									else 
 									{
+										find_dist_status.dist_list_status = 1;
 										return first_disturb;
 									}
 									// check so the stack still has empty room left
@@ -2688,6 +2705,7 @@ namespace GPU
 									}
 									else
 									{
+										find_dist_status.dist_queue_status = 1;
 										return first_disturb;
 									}
 								}

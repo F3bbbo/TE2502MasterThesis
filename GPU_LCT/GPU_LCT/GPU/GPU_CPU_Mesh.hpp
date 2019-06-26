@@ -15,7 +15,7 @@ namespace GPU
 	#define CONSTRAINT_STACK_SIZE 12
 	#define CONSTRAINT_TRI_LIST_SIZE 12
 	#define DISTURBANCE_STACK_SIZE 12
-	#define DISTURBANCE_TRI_LIST_SIZE 12
+	#define DISTURBANCE_TRI_LIST_SIZE 24
 	class GCMesh
 	{
 	public:
@@ -62,6 +62,9 @@ namespace GPU
 		std::vector<SymEdge> sym_edges;
 		int symedge_buffer_size;
 		int status;
+		// Stability status variables
+		Find_Disturbance_Status find_dist_status = {0, 0, 0, 0};
+
 		
 
 		// Access functions
@@ -88,7 +91,7 @@ namespace GPU
 		bool face_contains_vertex(int vert, SymEdge s_triangle);
 		std::array<vec2, 2> get_segment(int index);
 		std::array<vec2, 2>  get_edge(int s_edge);
-
+		Find_Disturbance_Status get_find_dist_status();
 
 		// CDT shaders
 		//GLuint m_location_program;

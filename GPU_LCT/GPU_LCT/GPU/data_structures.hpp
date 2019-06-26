@@ -112,6 +112,13 @@ namespace GPU
 		goal.insert(goal.end(), data.begin(), data.end());
 	};
 
+	struct Find_Disturbance_Status
+	{
+		int const_list_status;
+		int const_queue_status;
+		int dist_list_status;
+		int dist_queue_status;
+	};
 }
 
 #endif
