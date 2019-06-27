@@ -25,6 +25,7 @@ namespace GPU
 		void add_frame_points(std::vector<glm::vec2> points);
 		long long build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
 		long long refine_LCT();
+		Find_Disturbance_Status get_find_dist_status();
 		std::vector<glm::vec2> get_vertices();
 		size_t get_num_vertices();
 		glm::vec2 get_vertex(int index);
@@ -91,7 +92,7 @@ namespace GPU
 		bool face_contains_vertex(int vert, SymEdge s_triangle);
 		std::array<vec2, 2> get_segment(int index);
 		std::array<vec2, 2>  get_edge(int s_edge);
-		Find_Disturbance_Status get_find_dist_status();
+		
 
 		// CDT shaders
 		//GLuint m_location_program;
