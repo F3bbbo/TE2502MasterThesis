@@ -2,7 +2,9 @@
 #define FLT_MAX 3.402823466e+38
 layout(local_size_x = 1, local_size_y= 1) in;
 #define CONSTRAINT_STACK_SIZE 12
+#define CONSTRAINT_TRI_LIST_SIZE 12
 #define DISTURBANCE_STACK_SIZE 12
+#define DISTURBANCE_TRI_LIST_SIZE 24
 
 struct SymEdge{
 	int nxt;
@@ -18,6 +20,14 @@ struct NewPoint
 	vec2 pos;
 	int index;
 	int face_i;
+};
+
+struct Find_Disturbance_Status
+{
+	int const_list_status;
+	int const_queue_status;
+	int dist_list_status;
+	int dist_queue_status;
 };
 
 //-----------------------------------------------------------
@@ -90,6 +100,10 @@ layout(std430, binding = 13) buffer ref_buff
 layout(std430, binding = 14) buffer new_points_buff
 {
 	vec2 new_points[];
+};
+layout(std430, binding = 15) buffer dist_status
+{
+	Find_Disturbance_Status find_dist_status;
 };
 //-----------------------------------------------------------
 // Declare precision
@@ -561,6 +575,11 @@ int find_closest_constraint_v2(int ac_sym, vec2 a, vec2 b, vec2 c)
 {
 	float dist = FLT_MAX;
 	int ret = -1;
+	// list containing visited triangles
+	int face_list[CONSTRAINT_TRI_LIST_SIZE];
+	face_list[0] = sym_edges[ac_sym].face;
+	int face_list_size = 1;
+	// create stack needed for traversal
 	int sym_stack[CONSTRAINT_STACK_SIZE];
 	int top = 0;
 	sym_stack[top] = sym(ac_sym);
@@ -601,6 +620,26 @@ int find_closest_constraint_v2(int ac_sym, vec2 a, vec2 b, vec2 c)
 						int sym_e = sym(curr_e);
 						if (sym_e > -1)
 						{
+							int face_e = sym_edges[sym_e].face;
+							// first check so face is not in the face list
+							bool new_triangle = true;
+							for (int j = 0; j < face_list_size; j++)
+							{
+								if (face_list[j] == face_e)
+									new_triangle = false;
+							}
+							// check so list still has room.
+							if (face_list_size < CONSTRAINT_TRI_LIST_SIZE)
+							{
+								face_list[face_list_size] = face_e;
+								face_list_size++;
+							}
+							else 
+							{
+								find_dist_status.const_list_status = 1;
+								return -1;
+							}
+							// check so the triangle on other side of edge has not yet been explored.
 							top++;
 							if(top < CONSTRAINT_STACK_SIZE)
 							{ 
@@ -608,10 +647,9 @@ int find_closest_constraint_v2(int ac_sym, vec2 a, vec2 b, vec2 c)
 							}
 							else
 							{
+								find_dist_status.const_queue_status = 1;
 								return -1;
 							}
-
-							
 						}
 					}
 				}
@@ -1077,6 +1115,9 @@ int find_constraint_disturbance_v2(int constraint_sym_e, int edge_ac, bool right
 		vec2 tri[3];
 		get_face(sym_edges[edge_ac].face, tri);
 		// find disturbance points
+		int face_list[DISTURBANCE_TRI_LIST_SIZE];
+		face_list[0] = sym_edges[edge_ac].face;
+		int face_list_size = 1;
 		int sym_stack[DISTURBANCE_STACK_SIZE];
 		int top = 0;
 		sym_stack[top] = first_edge;
@@ -1129,14 +1170,44 @@ int find_constraint_disturbance_v2(int constraint_sym_e, int edge_ac, bool right
 						int sym_e = sym(curr_e);
 						if (sym_e > -1)
 						{
-							top++;
-							if(top < DISTURBANCE_STACK_SIZE)
+							int sym_e = sym(curr_e);
+							if (sym_e > -1)
 							{
-								sym_stack[top] = sym_e;
-							}
-							else
-							{
-								return first_disturb;
+								bool new_triangle = true;
+								int face_e = sym_edges[sym_e].face;
+								// first check if face has been explored before
+								for (int j = 0; j < face_list_size; j++)
+								{
+									if (face_list[j] == face_e)
+										new_triangle = false;
+								}
+
+								if (new_triangle)
+								{
+									// check so list still has room.
+									
+									if (face_list_size < DISTURBANCE_TRI_LIST_SIZE)
+									{
+										face_list[face_list_size] = face_e;
+										face_list_size++;
+									}
+									else 
+									{
+										find_dist_status.dist_list_status = 1;
+										return first_disturb;
+									}
+									// check so the stack still has empty room left
+									top++;
+									if (top < DISTURBANCE_STACK_SIZE)
+									{
+										sym_stack[top] = sym_e;
+									}
+									else
+									{
+										find_dist_status.dist_queue_status = 1;
+										return first_disturb;
+									}
+								}
 							}
 							
 						}

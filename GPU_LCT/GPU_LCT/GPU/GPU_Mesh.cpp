@@ -176,6 +176,8 @@ namespace GPU
 		m_epsilon_buff.create_uniform_buffer<float>({ m_epsilon }, usage, 1);
 
 		m_status.create_buffer(type, std::vector<int>(1, 1), GL_DYNAMIC_DRAW, 12, 1);
+
+		m_find_dist_status.create_buffer(type, std::vector<Find_Disturbance_Status>(1, { 0,0,0,0 }), GL_DYNAMIC_DRAW, 15, 1);
 	}
 
 	void GPUMesh::add_frame_points(std::vector<glm::vec2> points)
@@ -500,6 +502,9 @@ namespace GPU
 		m_epsilon_buff.bind_buffer();
 
 		m_status.bind_buffer();
+		// reset m_find_dist_status buffer and then bind it
+		m_find_dist_status.update_buffer<Find_Disturbance_Status>({ Find_Disturbance_Status({0,0,0,0}) });
+		m_find_dist_status.bind_buffer();
 
 		Timer timer;
 		timer.start();
@@ -1176,6 +1181,12 @@ namespace GPU
 		}
 		else
 			LOG_T(WARNING, "can not open file:" + filename);
+	}
+
+	Find_Disturbance_Status GPUMesh::get_find_dist_status()
+	{
+		auto tmp_list = m_find_dist_status.get_buffer_data<Find_Disturbance_Status>();
+		return tmp_list.front();
 	}
 
 	void GPUMesh::setup_compute_shaders()

@@ -31,6 +31,7 @@ namespace GPU
 		int locate_face(glm::vec2 p);
 		void set_epsilon(float epsi);
 		void load_from_file(std::string filename);
+		Find_Disturbance_Status get_find_dist_status();
 	private:
 		bool m_buffers_initated = false;
 		glm::ivec2 m_scale;
@@ -46,6 +47,7 @@ namespace GPU
 		Buffer m_refine_points;
 		Buffer m_nr_of_symedges;
 		Buffer m_status;
+		Buffer m_find_dist_status;
 		Buffer m_epsilon_buff;
 		float m_epsilon = 0.0001f;
 
