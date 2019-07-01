@@ -181,7 +181,7 @@ namespace GPU
 
 		m_version_buff.create_uniform_buffer<int>({ version }, usage, 2);
 
-		m_semaphores.create_buffer(type, std::vector<int>(2, 0), usage, 15);
+		m_semaphores.create_buffer(type, std::vector<GLuint>(2, 0), usage, 15);
 	}
 
 	void GPUMesh::add_frame_points(std::vector<glm::vec2> points)
@@ -231,7 +231,7 @@ namespace GPU
 		// resize new points array
 
 		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
-		m_semaphores.append_to_buffer(std::vector<int>(num_new_tri, 0));
+		m_semaphores.append_to_buffer(std::vector<GLuint>(num_new_tri, 0));
 
 		// then rebind the buffers that has been changed
 		m_point_bufs.positions.bind_buffer();
@@ -340,7 +340,7 @@ namespace GPU
 
 		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
 
-		m_semaphores.append_to_buffer(std::vector<int>(num_new_tri, 0));
+		m_semaphores.append_to_buffer(std::vector<GLuint>(num_new_tri, 0));
 		
 		// Bind all ssbo's
 		m_point_bufs.positions.bind_buffer();
@@ -411,7 +411,6 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-			glFinish();
 			cont = m_status.get_buffer_data<int>()[0];
 		}
 		// TODO: remove this creation of lct
