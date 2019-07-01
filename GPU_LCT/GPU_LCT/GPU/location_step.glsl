@@ -324,7 +324,7 @@ void main(void)
 					if (atomicCompSwap(semaphores[face], 0, 1) == 0)
 					{
 						has_written = true;
-						if (tri_ins_point_index[face] == -1 || len < distance(point_positions[tri_ins_point_index[face]], triangle_center))
+						if (tri_ins_point_index[face] == -1 || len < distance(point_positions[atomicAdd(tri_ins_point_index[face], 0)], triangle_center))
 						{
 							atomicExchange(tri_ins_point_index[face], index);
 						}
