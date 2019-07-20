@@ -1013,6 +1013,7 @@ float is_disturbed(int constraint, int b_sym, inout int v_sym)
 int find_constraint_disturbance(int constraint, int edge_ac, bool right)
 {
 	vec2 R[3];
+	vec2 s[2] = get_edge(constraint);
 	vec2 a;
 	// Set variables needed to calculate R
 	if (right)
@@ -1027,11 +1028,13 @@ int find_constraint_disturbance(int constraint, int edge_ac, bool right)
 		a = point_positions[sym_edges[edge_ac].vertex];
 	}
 	// Calculate R
-	vec2 ac = R[0] - a;
-	vec2 dir = normalize(ac);
-	vec2 ab = R[1] - a;
-	float b_prim = dot(dir, ab);
-	R[2] = R[1] + (dir * (length(ac) - b_prim));
+	vec2 dir = normalize(s[0] - s[1]);
+	//vec2 ac = R[0] - a;
+	//vec2 dir = normalize(ac);
+	//vec2 ab = R[1] - a;
+	float c_prim = dot(dir, R[0]);
+	float b_prim = dot(dir, R[1]);
+	R[2] = R[1] + (dir * (c_prim - b_prim));
 	if (point_equal(R[2], R[0]))
 		return -1;
 	// Loop through points trying to find disturbance to current traversal
