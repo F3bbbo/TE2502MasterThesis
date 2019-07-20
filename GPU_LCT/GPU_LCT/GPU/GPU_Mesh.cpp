@@ -179,7 +179,7 @@ namespace GPU
 
 		m_find_dist_status.create_buffer(type, std::vector<Find_Disturbance_Status>(1, { 0,0,0,0 }), GL_DYNAMIC_DRAW, 15, 1);
 
-		m_find_dist_status.create_uniform_buffer<int>({ version }, usage, 2);
+		m_version_buff.create_uniform_buffer<int>({ version }, usage, 2);
 	}
 
 	void GPUMesh::add_frame_points(std::vector<glm::vec2> points)
