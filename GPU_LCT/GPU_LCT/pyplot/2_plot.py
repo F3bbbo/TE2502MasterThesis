@@ -18,7 +18,7 @@ filename = "second_test-" + str(sys.argv[1]) + ".txt"
 
 iterations = None
 num_vertices = None
-num_CDT_shaders = 8
+num_CDT_shaders = 7
 num_LCT_shaders = 9
 input_data = None
 results = [[0 for x in range(num_CDT_shaders + num_LCT_shaders)] for y in range(2)]
@@ -56,15 +56,15 @@ plt.suptitle('Construction of LCT with ' + str(num_vertices) + ' vertices')
 # CDT plotting
 ind = np.arange(num_CDT_shaders)    # the x locations for the groups
 width = 0.75         # the width of the bars
-colors = ["green", "green", "yellow", "blue", "blue", "red", "red", "red"]
+colors = ["green", "yellow", "blue", "blue", "red", "red", "red"]
 p1 = axs[0].bar(ind, results[0][:num_CDT_shaders], width, bottom=0, yerr=results[1][:num_CDT_shaders], edgecolor=colors, color=colors)
 
 axs[0].set_title('Mean run time of CDT construction parts')
 axs[0].set_xticks(ind)
-axs[0].set_xticklabels([1, 2, 1, 1, 2, 1, 2, 3])
+axs[0].set_xticklabels([1, 1, 1, 2, 1, 2, 3])
 axs[0].set_xlabel('index to shader kernel in each part')
 
-axs[0].legend((p1[0], p1[2], p1[3], p1[5]), ('Locate step', 'insertion step', 'marking step', 'flipping step'))
+axs[0].legend((p1[0], p1[1], p1[3], p1[4]), ('Locate step', 'insertion step', 'marking step', 'flipping step'))
 axs[0].set_ylabel('milliseconds')
 axs[0].autoscale_view()
 
@@ -72,7 +72,7 @@ axs[0].autoscale_view()
 ind = np.arange(num_LCT_shaders)    # the x locations for the groups
 width = 0.75         # the width of the bars
 colors = ["purple", "purple", "green", "green", "yellow", "red", "red", "red", "red"]
-p1 = axs[1].bar(ind, results[0][-(num_CDT_shaders+1):], width, bottom=0, yerr=results[1][-(num_CDT_shaders+1):], edgecolor=colors, color=colors)
+p1 = axs[1].bar(ind, results[0][-(num_LCT_shaders):], width, bottom=0, yerr=results[1][-(num_LCT_shaders):], edgecolor=colors, color=colors)
 
 axs[1].set_title('Mean run time of LCT construction parts')
 axs[1].set_xticks(ind)

@@ -709,7 +709,7 @@ namespace GPU
 		Timer timer;
 
 		std::vector<long long> build_times;
-		build_times.resize(17, 0);
+		build_times.resize(16, 0);
 
 		int cont = 1;
 		while (cont)
@@ -724,20 +724,13 @@ namespace GPU
 			timer.stop();
 			build_times[0] += timer.elapsed_time();
 
-			glUseProgram(m_location_tri_program);
-			timer.start();
-			glDispatchCompute((GLuint)256, 1, 1);
-			glFinish();
-			timer.stop();
-			build_times[1] += timer.elapsed_time();
-
 			// Insert Step
 			glUseProgram(m_insertion_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
 			glFinish();
 			timer.stop();
-			build_times[2] += timer.elapsed_time();
+			build_times[1] += timer.elapsed_time();
 
 			// Marking Step
 			glUseProgram(m_marking_part_one_program);
@@ -745,14 +738,14 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glFinish();
 			timer.stop();
-			build_times[3] += timer.elapsed_time();
+			build_times[2] += timer.elapsed_time();
 
 			glUseProgram(m_marking_part_two_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
 			glFinish();
 			timer.stop();
-			build_times[4] += timer.elapsed_time();
+			build_times[3] += timer.elapsed_time();
 
 			// Flipping Step
 			glUseProgram(m_flip_edges_part_one_program);
@@ -760,21 +753,21 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glFinish();
 			timer.stop();
-			build_times[5] += timer.elapsed_time();
+			build_times[4] += timer.elapsed_time();
 
 			glUseProgram(m_flip_edges_part_two_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
 			glFinish();
 			timer.stop();
-			build_times[6] += timer.elapsed_time();
+			build_times[5] += timer.elapsed_time();
 
 			glUseProgram(m_flip_edges_part_three_program);
 			timer.start();
 			glDispatchCompute((GLuint)256, 1, 1);
 			glFinish();
 			timer.stop();
-			build_times[7] += timer.elapsed_time();
+			build_times[6] += timer.elapsed_time();
 
 			cont = m_status.get_buffer_data<int>()[0];
 		}
@@ -814,7 +807,7 @@ namespace GPU
 			glDispatchCompute((GLuint)256, 1, 1);
 			glFinish();
 			timer.stop();
-			build_times[8] += timer.elapsed_time();
+			build_times[7] += timer.elapsed_time();
 			// Check how many new points are going to get inserted
 			auto status = m_status.get_buffer_data<int>();
 			num_new_points = status.front();
@@ -828,7 +821,7 @@ namespace GPU
 				glDispatchCompute((GLuint)256, 1, 1);
 				glFinish();
 				timer.stop();
-				build_times[9] += timer.elapsed_time();
+				build_times[8] += timer.elapsed_time();
 
 				// get new points from GPU and remove duplicates
 				auto new_points = m_new_points.get_buffer_data<vec2>();
@@ -901,14 +894,14 @@ namespace GPU
 					glDispatchCompute((GLuint)256, 1, 1);
 					glFinish();
 					timer.stop();
-					build_times[10] += timer.elapsed_time();
+					build_times[9] += timer.elapsed_time();
 
 					glUseProgram(m_validate_edges_program);
 					timer.start();
 					glDispatchCompute((GLuint)256, 1, 1);
 					glFinish();
 					timer.stop();
-					build_times[11] += timer.elapsed_time();
+					build_times[10] += timer.elapsed_time();
 
 					// Insert point into the edge
 					glUseProgram(m_insert_in_edge_program);
@@ -916,7 +909,7 @@ namespace GPU
 					glDispatchCompute((GLuint)256, 1, 1);
 					glFinish();
 					timer.stop();
-					build_times[12] += timer.elapsed_time();
+					build_times[11] += timer.elapsed_time();
 
 					// Perform marking
 					glUseProgram(m_marking_part_two_program);
@@ -924,7 +917,7 @@ namespace GPU
 					glDispatchCompute((GLuint)256, 1, 1);
 					glFinish();
 					timer.stop();
-					build_times[13] += timer.elapsed_time();
+					build_times[12] += timer.elapsed_time();
 
 					//Perform flipping to ensure that mesh is CDT
 					glUseProgram(m_flip_edges_part_one_program);
@@ -932,21 +925,21 @@ namespace GPU
 					glDispatchCompute((GLuint)256, 1, 1);
 					glFinish();
 					timer.stop();
-					build_times[14] += timer.elapsed_time();
+					build_times[13] += timer.elapsed_time();
 
 					glUseProgram(m_flip_edges_part_two_program);
 					timer.start();
 					glDispatchCompute((GLuint)256, 1, 1);
 					glFinish();
 					timer.stop();
-					build_times[15] += timer.elapsed_time();
+					build_times[14] += timer.elapsed_time();
 
 					glUseProgram(m_flip_edges_part_three_program);
 					timer.start();
 					glDispatchCompute((GLuint)256, 1, 1);
 					glFinish();
 					timer.stop();
-					build_times[16] += timer.elapsed_time();
+					build_times[15] += timer.elapsed_time();
 
 					cont = m_status.get_buffer_data<int>()[0];
 				} while (cont == 1);

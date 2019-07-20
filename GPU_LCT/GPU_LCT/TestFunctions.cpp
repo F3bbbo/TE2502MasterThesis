@@ -228,7 +228,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations)
 
 	// [vertices]
 	// Results
-	int num_shaders = 17;
+	int num_shaders = 16;
 	std::vector<std::vector<long long>> total_times;
 	total_times.resize(iterations);
 	for (auto& iteration : total_times)
