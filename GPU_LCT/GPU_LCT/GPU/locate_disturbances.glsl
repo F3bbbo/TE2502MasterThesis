@@ -118,6 +118,12 @@ layout (std140, binding = 1) uniform epsilon_buff
 {
 	float EPSILON;
 };
+
+layout (std140, binding = 2) uniform version_buff
+{
+	int version;
+};
+
 //-----------------------------------------------------------
 // Math funcitons
 //-----------------------------------------------------------
@@ -1273,12 +1279,16 @@ void main(void)
 				//			tri_insert_points[index].pos = tri[0];
 				for (int i = 0; i < 3; i++)
 				{
-					//int cc = find_closest_constraint(tri[(i + 1) % 3], tri[(i + 2) % 3], tri[i]);
-					int cc = find_closest_constraint_v2(curr_ac, tri[(i + 1) % 3], tri[(i + 2) % 3], tri[i]);
+					int cc;
+					if(version == 1)
+						cc = find_closest_constraint(tri[(i + 1) % 3], tri[(i + 2) % 3], tri[i]);
+					else
+						cc = find_closest_constraint_v2(curr_ac, tri[(i + 1) % 3], tri[(i + 2) % 3], tri[i]);
 					// Check if a segment was found
 					if (cc > -1)
 					{
-						//cc = find_segment_symedge(tri_symedge_i[i], cc);
+						if(version == 1)
+							cc = find_segment_symedge(tri_symedge_i[i], cc);
 						// Check if corresponding constraint to segment was found
 						if (cc > -1)
 						{
@@ -1297,7 +1307,13 @@ void main(void)
 				if (c_edge_i[i] > -1)
 				{
 					// test right side
-					int disturb = find_constraint_disturbance_v2(c_edge_i[i], tri_edge_i[i], true);
+					//int disturb = find_constraint_disturbance_v2(c_edge_i[i], tri_edge_i[i], true);
+					int disturb;
+					if(version == 1)
+						disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], true);
+					else 
+						disturb = find_constraint_disturbance_v2(c_edge_i[i], tri_edge_i[i], true);
+
 					if (disturb >= 0)
 					{
 						bool success;
@@ -1313,7 +1329,12 @@ void main(void)
 						}
 					}
 					// test left side
-					disturb = find_constraint_disturbance_v2(c_edge_i[i], tri_edge_i[i], false);
+					//disturb = find_constraint_disturbance_v2(c_edge_i[i], tri_edge_i[i], false);
+					if(version == 1)
+						disturb = find_constraint_disturbance(c_edge_i[i], tri_edge_i[i], false);
+					else
+						disturb = find_constraint_disturbance_v2(c_edge_i[i], tri_edge_i[i], false);
+
 					if (disturb >= 0)
 					{
 						bool success;

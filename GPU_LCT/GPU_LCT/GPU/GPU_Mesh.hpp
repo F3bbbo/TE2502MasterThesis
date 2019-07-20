@@ -30,6 +30,7 @@ namespace GPU
 		std::vector<glm::ivec3> get_faces();
 		int locate_face(glm::vec2 p);
 		void set_epsilon(float epsi);
+		void set_version(int vers);
 		void load_from_file(std::string filename);
 		Find_Disturbance_Status get_find_dist_status();
 	private:
@@ -49,7 +50,9 @@ namespace GPU
 		Buffer m_status;
 		Buffer m_find_dist_status;
 		Buffer m_epsilon_buff;
+		Buffer m_version_buff;
 		float m_epsilon = 0.0001f;
+		int version = 2;
 
 		// CDT shaders
 		GLuint m_location_program;

@@ -178,6 +178,8 @@ namespace GPU
 		m_status.create_buffer(type, std::vector<int>(1, 1), GL_DYNAMIC_DRAW, 12, 1);
 
 		m_find_dist_status.create_buffer(type, std::vector<Find_Disturbance_Status>(1, { 0,0,0,0 }), GL_DYNAMIC_DRAW, 15, 1);
+
+		m_find_dist_status.create_uniform_buffer<int>({ version }, usage, 2);
 	}
 
 	void GPUMesh::add_frame_points(std::vector<glm::vec2> points)
@@ -250,6 +252,7 @@ namespace GPU
 		m_nr_of_symedges.bind_buffer();
 		m_epsilon_buff.bind_buffer();
 		m_status.bind_buffer();
+		m_version_buff.bind_buffer();
 
 		// Perform insertion of points untill all has been inserted 
 		// and triangulation is CDT
@@ -505,6 +508,7 @@ namespace GPU
 		// reset m_find_dist_status buffer and then bind it
 		m_find_dist_status.update_buffer<Find_Disturbance_Status>({ Find_Disturbance_Status({0,0,0,0}) });
 		m_find_dist_status.bind_buffer();
+		m_version_buff.bind_buffer();
 
 		Timer timer;
 		timer.start();
@@ -1054,6 +1058,12 @@ namespace GPU
 	{
 		m_epsilon = epsi;
 		m_epsilon_buff.update_buffer<float>({ m_epsilon });
+	}
+
+	void GPUMesh::set_version(int vers)
+	{
+		version = vers;
+		m_version_buff.update_buffer<int>({ version });
 	}
 
 	void GPUMesh::load_from_file(std::string filename)
