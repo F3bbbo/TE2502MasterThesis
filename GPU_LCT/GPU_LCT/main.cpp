@@ -123,6 +123,8 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	auto dynamic_obj = test_map.get_GPU_dynamic_obstacles();
 	//m.build_CDT(gpu_map.first, gpu_map.second);
 	//m.refine_LCT();
+	int vers = 2;
+	g_m.set_version(vers);
 	g_m.add_frame_points(gpu_frame.first);
 	g_m.build_CDT(gpu_map.first, gpu_map.second);
 	g_m.refine_LCT();
@@ -131,7 +133,7 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	LOG("GPU const_queue_status: " + std::to_string(stat.const_queue_status));
 	LOG("GPU dist_list_status: " + std::to_string(stat.dist_list_status));
 	LOG("GPU dist_queue_status: " + std::to_string(stat.dist_queue_status));
-
+	m.set_version(vers);
 	m.add_frame_points(gpu_frame.first);
 	m.build_CDT(gpu_map.first, gpu_map.second);
 	m.refine_LCT();

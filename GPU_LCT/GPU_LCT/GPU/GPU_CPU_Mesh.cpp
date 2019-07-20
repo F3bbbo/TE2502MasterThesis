@@ -883,6 +883,11 @@ namespace GPU
 		return edge_label[index];
 	}
 
+	void GCMesh::set_version(int vers)
+	{
+		version = vers;
+	}
+
 	vec2 GCMesh::get_face_center(int face_i)
 	{
 		vec2 face_v[3];

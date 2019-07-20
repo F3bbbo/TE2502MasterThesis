@@ -31,6 +31,7 @@ namespace GPU
 		glm::vec2 get_vertex(int index);
 		SymEdge get_symedge(int index);
 		int get_label(int index);
+		void set_version(int vers);
 		std::vector<std::pair<glm::ivec2, bool>> get_edges();
 		std::vector<glm::ivec3> get_faces();
 		int locate_face(glm::vec2 p);
