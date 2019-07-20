@@ -65,6 +65,8 @@ namespace GPU
 		int status;
 		// Stability status variables
 		Find_Disturbance_Status find_dist_status = {0, 0, 0, 0};
+		// Version var
+		int  version = 2;
 
 		
 
