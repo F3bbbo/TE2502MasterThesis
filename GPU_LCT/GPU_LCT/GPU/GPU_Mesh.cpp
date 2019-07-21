@@ -181,7 +181,7 @@ namespace GPU
 
 		m_version_buff.create_uniform_buffer<int>({ version }, usage, 2);
 
-		m_semaphores.create_buffer(type, std::vector<GLuint>(2, 0), usage, 15);
+		m_semaphores.create_buffer(type, std::vector<GLuint>(2, 0), usage, 16);
 	}
 
 	void GPUMesh::add_frame_points(std::vector<glm::vec2> points)

@@ -73,7 +73,7 @@ layout(std430, binding = 12) buffer status_buff
 {
 	int status;
 };
-layout(std430, binding = 15) coherent buffer atomic_buff
+layout(std430, binding = 16) coherent buffer atomic_buff
 {
 	coherent uint semaphores[];
 };
