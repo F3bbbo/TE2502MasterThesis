@@ -76,7 +76,7 @@ p1 = axs[1].bar(ind, results[0][-(num_LCT_shaders):], width, bottom=0, yerr=resu
 
 axs[1].set_title('Mean run time of LCT construction parts')
 axs[1].set_xticks(ind)
-axs[1].set_xticklabels([1, 2, 1, 2, 1, 1, 1, 2, 3])
+axs[1].set_xticklabels([1, 2, 1, 2, 1, 1, 2, 3, 4])
 axs[1].set_xlabel('index to shader kernel in each part')
 
 axs[1].legend((p1[0], p1[2], p1[4], p1[6]), ('Locate disturbances step', 'selection step', 'insertion step', 'flipping step'))
