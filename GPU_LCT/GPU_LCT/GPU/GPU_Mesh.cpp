@@ -798,7 +798,11 @@ namespace GPU
 		m_epsilon_buff.bind_buffer();
 
 		m_status.bind_buffer();
-		
+		// reset m_find_dist_status buffer and then bind it
+		m_find_dist_status.update_buffer<Find_Disturbance_Status>({ Find_Disturbance_Status({0,0,0,0}) });
+		m_find_dist_status.bind_buffer();
+		m_version_buff.bind_buffer();
+
 		do
 		{
 			// Locate disturbances
