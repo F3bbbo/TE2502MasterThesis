@@ -17,14 +17,14 @@ void generate_third_test_input(std::string filename_end, std::vector<std::pair<g
 			test_map.set_dynamic_quota(1.f); // We want all of the dynamic objects
 			test_map.set_map_size({ 45, 45 }, { -45, -45 });
 
-			GPU::GCMesh gc_mesh;
-			gc_mesh.initiate_buffers({ 45.f, 45.f });
+			GPU::GPUMesh g_mesh;
+			g_mesh.initiate_buffers({ 45.f, 45.f });
 			auto static_obstacle_data = test_map.get_GPU_static_obstacles();
-			gc_mesh.build_CDT(static_obstacle_data.first, static_obstacle_data.second);
-			gc_mesh.refine_LCT();
+			g_mesh.build_CDT(static_obstacle_data.first, static_obstacle_data.second);
+			g_mesh.refine_LCT();
 
 			auto dynamic_obstacle_data = test_map.get_GPU_dynamic_obstacles();
-			std::string mesh_filename = gc_mesh.save_to_file(false, static_obstacle_data.first.size());
+			std::string mesh_filename = g_mesh.save_to_file(false, static_obstacle_data.first.size());
 			
 			// save filename of mesh
 			num = sizeof(char) * mesh_filename.size();
@@ -32,7 +32,7 @@ void generate_third_test_input(std::string filename_end, std::vector<std::pair<g
 			output.write(mesh_filename.c_str(), num);
 			
 			// save number of static obstacle vertices
-			num = gc_mesh.get_num_vertices();
+			num = g_mesh.get_num_vertices();
 			output.write((char*)&num, sizeof(int));
 
 			// save dynamic vertices 

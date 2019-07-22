@@ -31,6 +31,7 @@ namespace GPU
 		int locate_face(glm::vec2 p);
 		void set_epsilon(float epsi);
 		void set_version(int vers);
+		std::string save_to_file(bool upload, int inserted_objects = -1);
 		void load_from_file(std::string filename);
 		Find_Disturbance_Status get_find_dist_status();
 	private:

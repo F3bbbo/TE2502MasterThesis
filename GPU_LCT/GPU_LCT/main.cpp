@@ -198,8 +198,8 @@ int main()
 	//second_test({ 5, 5 }, 10);
 	//generate_third_test_input("test", { {{5, 5}, 0.25f}, {{10, 10}, {0.5f}} });
 	//third_test("test", 10, true, true);
-	//gc_mesh.save_to_file("test.txt", false);
-	//gc_mesh.load_from_file("test.txt");
+	//gc_mesh.load_from_file("Output files/throwGC_150_155");
+	//g_mesh.load_from_file("Output files/throwGC_150_155");
 
 	//m.transform_into_LCT();
 

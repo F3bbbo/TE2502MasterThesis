@@ -1063,6 +1063,119 @@ namespace GPU
 		m_version_buff.update_buffer<int>({ version });
 	}
 
+	std::string GPUMesh::save_to_file(bool upload, int inserted_objects)
+	{
+		std::string filename;
+
+		if (upload)
+			filename = "Output files/GC";
+		else
+			filename = "Output files/throwGC";
+
+		filename += '_' + std::to_string(inserted_objects) + '_' + std::to_string(get_num_vertices());
+
+		std::string str = "";
+		std::ofstream output(filename.c_str(), std::ofstream::out | std::ofstream::binary);
+		int size;
+		if (output.is_open())
+		{
+			std::vector<glm::vec2> v2vec;
+			std::vector<int> ivec;
+			std::vector<glm::ivec2> iv2vec;
+			std::vector<glm::ivec4> iv4vec;
+
+			// save point data
+			v2vec = m_point_bufs.positions.get_buffer_data<glm::vec2>();
+			size = (int)v2vec.size() * (int)sizeof(glm::vec2);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)v2vec.data(), size);
+			v2vec.clear();
+
+			ivec =  m_point_bufs.inserted.get_buffer_data<int>();
+			size = (int)ivec.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)ivec.data(), size);
+			ivec.clear();
+
+			ivec =  m_point_bufs.tri_index.get_buffer_data<int>();
+			size = (int)ivec.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)ivec.data(), size);
+			ivec.clear();
+
+			// save edge data
+			ivec =  m_edge_bufs.label.get_buffer_data<int>();
+			size = (int)ivec.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)ivec.data(), size);
+			ivec.clear();
+
+			ivec =  m_edge_bufs.is_constrained.get_buffer_data<int>();
+			size = (int)ivec.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)ivec.data(), size);
+			ivec.clear();
+
+			// save segment data
+			iv2vec = m_segment_bufs.endpoint_indices.get_buffer_data<glm::ivec2>();
+			size = (int)iv2vec.size() * (int)sizeof(glm::ivec2);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)iv2vec.data(), size);
+			iv2vec.clear();
+
+			ivec = m_segment_bufs.inserted.get_buffer_data<int>();
+			size = (int)ivec.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)ivec.data(), size);
+			ivec.clear();
+			// save triangle data
+
+			iv4vec = m_triangle_bufs.symedge_indices.get_buffer_data<glm::ivec4>();
+			size = (int)iv4vec.size() * (int)sizeof(glm::ivec4);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)iv4vec.data(), size);
+			iv4vec.clear();
+
+			ivec = m_triangle_bufs.ins_point_index.get_buffer_data<int>();
+			size = (int)ivec.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)ivec.data(), size);
+			ivec.clear();
+
+			ivec = m_triangle_bufs.seg_inters_index.get_buffer_data<int>();
+			size = (int)ivec.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)ivec.data(), size);
+			ivec.clear();
+
+			ivec = m_triangle_bufs.edge_flip_index.get_buffer_data<int>();
+			size = (int)ivec.size() * (int)sizeof(int);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)ivec.data(), size);
+			ivec.clear();
+			// save misc data
+
+			auto npvec = m_new_points.get_buffer_data<glm::vec2>();
+			size = (int)npvec.size() * (int)sizeof(glm::vec2);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)npvec.data(), size);
+
+			auto refpvec = m_refine_points.get_buffer_data<NewPoint>();
+			size = (int)refpvec.size() * (int)sizeof(NewPoint);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)refpvec.data(), size);
+
+			auto symvec = m_sym_edges.get_buffer_data<SymEdge>();
+			size = (int)symvec.size() * (int)sizeof(SymEdge);
+			output.write((char*)&size, sizeof(int));
+			output.write((char*)symvec.data(), size);
+
+			output.close();
+		}
+
+		return filename;
+	}
+
 	void GPUMesh::load_from_file(std::string filename)
 	{
 		std::ifstream input(filename.c_str(), std::ifstream::in | std::ifstream::binary);
