@@ -441,7 +441,7 @@ namespace GPU
 					//glMemoryBarrier(GL_ALL_BARRIER_BITS);
 					//cont = m_status[0];
 				} while (status == 1);
-				LOG(std::string("LCT Number of iterations: ") + std::to_string(counter));
+				//LOG(std::string("LCT Number of iterations: ") + std::to_string(counter));
 			}
 			else
 			{
