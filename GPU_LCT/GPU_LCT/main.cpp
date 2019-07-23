@@ -196,8 +196,8 @@ int main()
 
 	//first_test({ 5, 5 }, {10, 10}, 3, 10, true, true );
 	//second_test({ 5, 5 }, 10);
-	//generate_third_test_input("test", { {{5, 5}, 0.25f}, {{10, 10}, {0.5f}} });
-	//third_test("test", 10, true, true);
+	//generate_third_test_input("test", { {{5, 5}, 0.25f}, {{100, 100}, 0.25f}, {{10, 10}, 0.25f} });
+	//third_test("test", 10, false, true);
 	//gc_mesh.load_from_file("Output files/throwGC_150_155");
 	//g_mesh.load_from_file("Output files/throwGC_150_155");
 
