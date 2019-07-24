@@ -139,8 +139,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 	// [vertices]
 	// Results
 
-	std::vector<std::vector<long long>> build_times;
-	build_times.resize(increase_iterations);
+	std::vector<std::string> build_times(increase_iterations, "");
 
 	if (test_CPUGPU)
 	{
@@ -164,8 +163,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 				gc_mesh.set_version(version);
 				gc_mesh.initiate_buffers({ 45, 45 });
 
-				build_times[iter].push_back(gc_mesh.build_CDT(data.first, data.second));
-				build_times[iter].push_back(gc_mesh.refine_LCT());
+				build_times[iter] += std::to_string(gc_mesh.build_CDT(data.first, data.second)) + ',' + std::to_string(gc_mesh.refine_LCT()) + '\n';
 				LOG_ND("First Test CPUGPU iteration: " + std::to_string(i + 1) + '\n');
 			}
 		}
@@ -178,12 +176,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		{
 			output << "CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations) << '\n';
 			for (int iter = 0; iter < increase_iterations; iter++)
-			{
-				output << std::to_string(vertice_counts[iter]) << '\n';
-				for (int i = 0; i < iterations; i++)
-					output << std::to_string(build_times[iter][i * 2]) + ',' + std::to_string(build_times[iter][i * 2 + 1]) + '\n';
-				output << '\n';
-			}
+				output << std::to_string(vertice_counts[iter]) << '\n' << build_times[iter] << '\n';
 		}
 		output.close();
 		build_times.clear();
@@ -192,7 +185,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 	if (test_GPU)
 	{
 		std::vector<int> vertice_counts;
-		std::vector<bool> iteration_failed(increase_iterations, false);
+		std::vector<std::pair<bool, std::string>> iteration_failed(increase_iterations, {false, ""});
 		int failed_count = 0;
 		vertice_counts.resize(increase_iterations);
 		for (int iter = 0; iter < increase_iterations; iter++)
@@ -220,9 +213,9 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					gc_mesh.build_CDT(data.first, data.second);
 					gc_mesh.refine_LCT();
 					auto status = gc_mesh.get_find_dist_status();
-					if (status.const_list_status == 1 || status.const_queue_status == 1 || status.dist_list_status == 1 || status.dist_queue_status == 1)
+					if (lct_failed(status))
 					{
-						iteration_failed[i] = true;
+						iteration_failed[iter] = {true, get_lct_status_string(status)};
 						failed_count++;
 						break;
 					}
@@ -234,13 +227,12 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					gc_mesh.set_version(version);
 					gc_mesh.add_frame_points(gpu_frame.first);
 
-					build_times[iter].push_back(gc_mesh.build_CDT(data.first, data.second));
-					build_times[iter].push_back(gc_mesh.refine_LCT());
+					build_times[iter] += std::to_string(gc_mesh.build_CDT(data.first, data.second)) + ',' + std::to_string(gc_mesh.refine_LCT()) + '\n';
 
 					auto status = gc_mesh.get_find_dist_status();
-					if (status.const_list_status == 1 || status.const_queue_status == 1 || status.dist_list_status == 1 || status.dist_queue_status == 1)
+					if (lct_failed(status))
 					{
-						iteration_failed[i] = true;
+						iteration_failed[iter] = {true, get_lct_status_string(status)};
 						failed_count++;
 						break;
 					}
@@ -253,22 +245,19 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		int new_obstacle_amount = (obstacle_amount.x + obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + obstacle_increase.y * (increase_iterations - 1));
 		std::string filename = "Output files/first_test_GPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) +  "-v" + std::to_string(version) + ".txt";
 		std::ofstream output(filename.c_str(), std::ofstream::out);
-		std::ofstream error_file("Output files/Error_file-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt");
+		std::ofstream error_file("Output files/Error_file_first_test-GPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt");
 
 		if (output.is_open())
 		{
 			output << "CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations - failed_count) << '\n';
 			for (int iter = 0; iter < increase_iterations; iter++)
 			{
-				if (iteration_failed[iter] == false)
+				if (iteration_failed[iter].first == true)
 				{
-					error_file << std::to_string((obstacle_amount.x + obstacle_increase.x * iter) * (obstacle_amount.y + obstacle_increase.y * iter)) << '\n';
+					error_file << std::to_string((obstacle_amount.x + obstacle_increase.x * iter) * (obstacle_amount.y + obstacle_increase.y * iter)) << " error: " << iteration_failed[iter].second << '\n';
 					continue;
 				}
-				output << std::to_string(vertice_counts[iter]) << '\n';
-				for (int i = 0; i < iterations; i++)
-					output << std::to_string(build_times[iter][i * 2]) + ',' + std::to_string(build_times[iter][i * 2 + 1]) + '\n';
-				output << '\n';
+				output << std::to_string(vertice_counts[iter]) << '\n' << build_times[iter] << '\n';
 			}
 		}
 		output.close();
@@ -497,7 +486,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 			map_output[map_i] = output_string + '\n';
 		}
 
-		std::ofstream error_file("Output files/Error_file-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt");
+		std::ofstream error_file("Output files/Error_file_third_test-GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt");
 		output << "CDT build time, LCT build time \n" + std::to_string(iterations) + ',' + std::to_string(maps- failed_count) + '\n';
 		for (int i = 0; i < maps; i++)
 		{
@@ -528,4 +517,11 @@ std::string get_lct_status_string(GPU::Find_Disturbance_Status & status)
 		ret +="dist_queue ";
 
 	return ret + "overflow";
+}
+
+bool lct_failed(GPU::Find_Disturbance_Status& status)
+{
+	if (status.const_list_status == 1 || status.const_queue_status == 1 || status.dist_list_status == 1 || status.dist_queue_status == 1)
+		return true;
+	return false;
 }
