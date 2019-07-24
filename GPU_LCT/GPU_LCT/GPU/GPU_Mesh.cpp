@@ -818,6 +818,8 @@ namespace GPU
 			if (num_new_points > 0)
 			{
 				m_new_points.set_used_element_count<glm::vec2>(num_new_points);
+				m_new_points.update_buffer(std::vector<vec2>(num_new_points, vec2(FLT_MAX)));
+				//m_new_points.set_used_element_count<glm::vec2>(num_new_points);
 				m_new_points.bind_buffer();
 				// add new points to the point buffers
 				glUseProgram(m_add_new_points_program);
