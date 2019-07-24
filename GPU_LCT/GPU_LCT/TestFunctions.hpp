@@ -8,8 +8,8 @@ void generate_third_test_input(std::string filename_end, std::vector<std::pair<g
 
 void test_range(int iterations, glm::ivec2 start_dims, glm::ivec2 dim_increase, glm::ivec2 start_obstacles, glm::ivec2 obstacle_increase, bool build_lct);
 
-void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int increase_iterations, int iterations, bool test_CPUGPU, bool test_GPU);
+void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int increase_iterations, int iterations, bool test_CPUGPU, bool test_GPU, int version = 2);
 
-void second_test(glm::ivec2 obstacle_amount, int iterations);
+void second_test(glm::ivec2 obstacle_amount, int iterations, int version = 2);
 
-void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool test_GPU);
+void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool test_GPU, int version = 2);
