@@ -438,7 +438,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 		}
 		
 		std::vector<std::string> map_output(maps, "");
-		std::vector<int> map_failed(maps, 0);
+		std::vector<std::pair<bool, std::string>> map_failed(maps, { false, {} });
 		int failed_count = 0;
 
 		for (int map_i = 0; map_i < maps; map_i++)
@@ -463,7 +463,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 					auto status = g_mesh.get_find_dist_status();
 					if (status.const_list_status == 1 || status.const_queue_status == 1 || status.dist_list_status == 1 || status.dist_queue_status == 1)
 					{
-						map_failed[map_i] = true;
+						map_failed[map_i] = { true, get_lct_status_string(status) };
 						failed_count++;
 						break;
 					}
@@ -477,7 +477,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 					auto status = g_mesh.get_find_dist_status();
 					if (status.const_list_status == 1 || status.const_queue_status == 1 || status.dist_list_status == 1 || status.dist_queue_status == 1)
 					{
-						map_failed[map_i] = true;
+						map_failed[map_i] = { true, get_lct_status_string(status) };
 						failed_count++;
 						break;
 					}
@@ -490,9 +490,9 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 		output << "CDT build time, LCT build time \n" + std::to_string(iterations) + ',' + std::to_string(maps- failed_count) + '\n';
 		for (int i = 0; i < maps; i++)
 		{
-			if (map_failed[i] > 0)
+			if (map_failed[i].first == true)
 			{
-				error_file << std::to_string(input_data_maps[i].static_vertices) << ',' << std::to_string(input_data_maps[i].dynamic_vertices.size()) << '\n';
+				error_file << std::to_string(input_data_maps[i].static_vertices) << ',' << std::to_string(input_data_maps[i].dynamic_vertices.size()) << " error: " << map_failed[i].second << '\n';
 			}
 			else
 			{
@@ -502,4 +502,19 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 		output.close();
 		error_file.close();
 	}
+}
+
+std::string get_lct_status_string(GPU::Find_Disturbance_Status & status)
+{
+	std::string ret = "";
+	if (status.const_list_status == 1)
+		ret = "const_list ";
+	if (status.const_queue_status == 1)
+		ret += "const_queue ";
+	if (status.dist_list_status == 1)
+		ret += "dist_list ";
+	if (status.dist_queue_status == 1)
+		ret +="dist_queue ";
+
+	return ret + "overflow";
 }
