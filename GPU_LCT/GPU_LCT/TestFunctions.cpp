@@ -214,6 +214,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					// The GPU needs to be "warmed up" or else the first result will be very slow
 					GPU::GPUMesh gc_mesh;
 					gc_mesh.initiate_buffers({ 45, 45 });
+					gc_mesh.set_version(version);
 					gc_mesh.add_frame_points(gpu_frame.first);
 
 					gc_mesh.build_CDT(data.first, data.second);
@@ -230,6 +231,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 				{
 					GPU::GPUMesh gc_mesh;
 					gc_mesh.initiate_buffers({ 45, 45 });
+					gc_mesh.set_version(version);
 					gc_mesh.add_frame_points(gpu_frame.first);
 
 					build_times[iter].push_back(gc_mesh.build_CDT(data.first, data.second));
@@ -305,12 +307,14 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 			// The GPU needs to be "warmed up" or else the first result will be very slow
 			GPU::GPUMesh mesh;
 			mesh.initiate_buffers({ 45, 45 });
+			mesh.set_version(version);
 			mesh.measure_shaders(data.first, data.second);
 		}
 		else
 		{
 			GPU::GPUMesh mesh;
 			mesh.initiate_buffers({ 45, 45 });
+			mesh.set_version(version);
 
 			total_times[i - 1] = mesh.measure_shaders(data.first, data.second);
 		}
@@ -413,13 +417,16 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 
 			GPU::GCMesh gc_mesh;
 			gc_mesh.load_from_file(input_data_maps[map_i].filename);
+			gc_mesh.set_version(version);
 			GPU::GCMesh gc_mesh_copy = gc_mesh;
+			gc_mesh_copy.set_version(version);
 
 			for (int j = 0; j < iterations; j++)
 			{
 				output << std::to_string(gc_mesh.build_CDT(input_data_maps[map_i].dynamic_vertices, input_data_maps[map_i].dynamic_vertice_indices)) << ',';
 				output << std::to_string(gc_mesh.refine_LCT()) << '\n';
 				gc_mesh = gc_mesh_copy;
+				gc_mesh.set_version(version);
 			}
 			output << '\n';
 		}
@@ -447,9 +454,11 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 			output_string += std::to_string(input_data_maps[map_i].static_vertices) + ',' + std::to_string(input_data_maps[map_i].dynamic_vertices.size()) + '\n';
 			GPU::GPUMesh g_mesh;
 			g_mesh.initiate_buffers({45.f, 45.f});
+			g_mesh.set_version(version);
 			g_mesh.load_from_file(input_data_maps[map_i].filename);
 			GPU::GPUMesh g_mesh_copy;
 			g_mesh_copy = g_mesh;
+			g_mesh_copy.set_version(version);
 
 			for (int j = 0; j < iterations + 1; j++)
 			{
@@ -459,6 +468,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 					g_mesh.build_CDT(input_data_maps[map_i].dynamic_vertices, input_data_maps[map_i].dynamic_vertice_indices);
 					g_mesh.refine_LCT();
 					g_mesh = g_mesh_copy;
+					g_mesh.set_version(version);
 
 					auto status = g_mesh.get_find_dist_status();
 					if (status.const_list_status == 1 || status.const_queue_status == 1 || status.dist_list_status == 1 || status.dist_queue_status == 1)
@@ -473,6 +483,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 					output_string += std::to_string(g_mesh.build_CDT(input_data_maps[map_i].dynamic_vertices, input_data_maps[map_i].dynamic_vertice_indices)) + ',';
 					output_string += std::to_string(g_mesh.refine_LCT()) + '\n';
 					g_mesh = g_mesh_copy;
+					g_mesh.set_version(version);
 
 					auto status = g_mesh.get_find_dist_status();
 					if (status.const_list_status == 1 || status.const_queue_status == 1 || status.dist_list_status == 1 || status.dist_queue_status == 1)
