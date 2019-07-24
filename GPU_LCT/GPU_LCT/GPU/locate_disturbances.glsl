@@ -1,10 +1,10 @@
 #version 430
 #define FLT_MAX 3.402823466e+38
 layout(local_size_x = 1, local_size_y= 1) in;
-#define CONSTRAINT_STACK_SIZE 12
-#define CONSTRAINT_TRI_LIST_SIZE 12
-#define DISTURBANCE_STACK_SIZE 12
-#define DISTURBANCE_TRI_LIST_SIZE 24
+#define CONSTRAINT_STACK_SIZE 24
+#define CONSTRAINT_TRI_LIST_SIZE 100
+#define DISTURBANCE_STACK_SIZE 24
+#define DISTURBANCE_TRI_LIST_SIZE 125
 
 struct SymEdge{
 	int nxt;
