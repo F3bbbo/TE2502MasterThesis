@@ -289,6 +289,9 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 
 	std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
 
+	bool failed = false;
+	std::string fail_string = "";
+
 	for (int i = 0; i < iterations + 1; i++)
 	{
 		if (i == 0)
@@ -298,15 +301,40 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 			mesh.initiate_buffers({ 45, 45 });
 			mesh.set_version(version);
 			mesh.measure_shaders(data.first, data.second);
+
+			auto status = mesh.get_find_dist_status();
+			if (lct_failed(status))
+			{
+				failed = true;
+				fail_string = get_lct_status_string(status);
+				break;
+			}
 		}
 		else
 		{
 			GPU::GPUMesh mesh;
 			mesh.initiate_buffers({ 45, 45 });
 			mesh.set_version(version);
-
 			total_times[i - 1] = mesh.measure_shaders(data.first, data.second);
+
+			auto status = mesh.get_find_dist_status();
+			if (lct_failed(status))
+			{
+				failed = true;
+				fail_string = get_lct_status_string(status);
+				break;
+			}
+			LOG_ND("Second Test iteration: " + std::to_string(i) + '\n');
 		}
+	}
+
+	if (failed == true)
+	{
+		std::ofstream error_file("Output files/Error_file_test_2-" + std::to_string(obstacle_amount.x) + '-' + std::to_string(obstacle_amount.y) + ".txt");
+		error_file << fail_string;
+		error_file.close();
+		LOG("Test 2 failed with the sizes: " + std::to_string(obstacle_amount.x) + '-' + std::to_string(obstacle_amount.y));
+		return;
 	}
 
 	unsigned int total_obstacles = obstacle_amount.x * obstacle_amount.y;
