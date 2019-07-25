@@ -457,6 +457,10 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 	input.close();
 	// done reading input data
 	
+	std::vector<std::string> map_output(maps, "");
+	std::vector<std::pair<bool, std::string>> map_failed(maps, { false, {} });
+	int failed_count = 0;
+
 	if (test_CPUGPU)
 	{
 		std::string output_filename = "Output files/third_test_CPUGPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) +  "-v" + std::to_string(version) + ".txt";
@@ -467,12 +471,11 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 			LOG_T(WARNING, "can not open file:" + output_filename);
 			return;
 		}
-
-		output << "CDT build time, LCT build time \n" + std::to_string(iterations) + ',' + std::to_string(maps) + '\n';
 		
 		for (int map_i = 0; map_i < maps; map_i++)
 		{
-			output << std::to_string(input_data_maps[map_i].static_vertices) + ',' + std::to_string(input_data_maps[map_i].dynamic_vertices.size()) + '\n';
+			std::string output_string = "";
+			output_string += std::to_string(input_data_maps[map_i].static_vertices) + ',' + std::to_string(input_data_maps[map_i].dynamic_vertices.size()) + '\n';
 
 			GPU::GCMesh gc_mesh;
 			gc_mesh.load_from_file(input_data_maps[map_i].filename);
@@ -482,14 +485,43 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 
 			for (int j = 0; j < iterations; j++)
 			{
-				output << std::to_string(gc_mesh.build_CDT(input_data_maps[map_i].dynamic_vertices, input_data_maps[map_i].dynamic_vertice_indices)) << ',';
-				output << std::to_string(gc_mesh.refine_LCT()) << '\n';
+				output_string += std::to_string(gc_mesh.build_CDT(input_data_maps[map_i].dynamic_vertices, input_data_maps[map_i].dynamic_vertice_indices)) + ',';
+				output_string += std::to_string(gc_mesh.refine_LCT()) + '\n';
+
+				auto status = gc_mesh.get_find_dist_status();
+				if (status.const_list_status == 1 || status.const_queue_status == 1 || status.dist_list_status == 1 || status.dist_queue_status == 1)
+				{
+					map_failed[map_i] = { true, get_lct_status_string(status) };
+					failed_count++;
+					break;
+				}
 				gc_mesh = gc_mesh_copy;
 				gc_mesh.set_version(version);
 			}
-			output << '\n';
+			map_output[map_i] = output_string + '\n';
+		}
+
+		std::string error_filename = "Output files/Error_file_third_test-CPUGPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
+		std::ofstream error_file(error_filename);
+		output << "CDT build time, LCT build time \n" + std::to_string(iterations) + ',' + std::to_string(maps - failed_count) + '\n';
+		for (int i = 0; i < maps; i++)
+		{
+			if (map_failed[i].first == true)
+			{
+				error_file << std::to_string(input_data_maps[i].static_vertices) << ',' << std::to_string(input_data_maps[i].dynamic_vertices.size()) << " error: " << map_failed[i].second << '\n';
+			}
+			else
+			{
+				output << map_output[i];
+			}
 		}
 		output.close();
+		error_file.close();
+
+		if (0 == failed_count)
+			remove(error_filename.c_str());
+		if (maps == failed_count)
+			remove(output_filename.c_str());
 	}
 
 	if (test_GPU)
@@ -503,9 +535,9 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 			return;
 		}
 		
-		std::vector<std::string> map_output(maps, "");
-		std::vector<std::pair<bool, std::string>> map_failed(maps, { false, {} });
-		int failed_count = 0;
+		std::fill(map_output.begin(), map_output.end(), "");
+		std::fill(map_failed.begin(), map_failed.end(), std::make_pair(false, ""));
+		failed_count = 0;
 
 		for (int map_i = 0; map_i < maps; map_i++)
 		{
@@ -556,8 +588,9 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 			map_output[map_i] = output_string + '\n';
 		}
 
-		std::ofstream error_file("Output files/Error_file_third_test-GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt");
-		output << "CDT build time, LCT build time \n" + std::to_string(iterations) + ',' + std::to_string(maps- failed_count) + '\n';
+		std::string error_filename = "Output files/Error_file_third_test-GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
+		std::ofstream error_file(error_filename);
+		output << "CDT build time, LCT build time \n" + std::to_string(iterations) + ',' + std::to_string(maps - failed_count) + '\n';
 		for (int i = 0; i < maps; i++)
 		{
 			if (map_failed[i].first == true)
@@ -571,6 +604,11 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 		}
 		output.close();
 		error_file.close();
+
+		if (0 == failed_count)
+			remove(error_filename.c_str());
+		if (maps == failed_count)
+			remove(output_filename.c_str());
 	}
 }
 
