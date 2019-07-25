@@ -353,7 +353,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 
 	if (failed == true)
 	{
-		std::ofstream error_file("Output files/Error_file_test_2-" + std::to_string(obstacle_amount.x) + '-' + std::to_string(obstacle_amount.y) + ".txt");
+		std::ofstream error_file("Output files/Error_file_second_test-" + std::to_string(obstacle_amount.x) + '-' + std::to_string(obstacle_amount.y) + ".txt");
 		error_file << fail_string;
 		error_file.close();
 		LOG("Test 2 failed with the sizes: " + std::to_string(obstacle_amount.x) + '-' + std::to_string(obstacle_amount.y));
@@ -361,7 +361,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 	}
 
 	unsigned int total_obstacles = obstacle_amount.x * obstacle_amount.y;
-	std::string filename = "Output files/second_test-" + std::to_string(total_obstacles) +  "-v" + std::to_string(version) + ".txt";
+	std::string filename = "Output files/second_test-" + std::to_string(obstacle_amount.x) + '-' + std::to_string(obstacle_amount.y) + ".txt";
 	std::ofstream output(filename.c_str(), std::ofstream::out);
 	if (!output.is_open())
 	{
