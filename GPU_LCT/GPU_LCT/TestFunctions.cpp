@@ -5,6 +5,8 @@ void generate_third_test_input(std::string filename_end, std::vector<std::pair<g
 	std::string filename = "Output files/third_test_input-" + filename_end;
 
 	std::ofstream output (filename.c_str(), std::ofstream::out | std::ofstream::binary);
+	std::vector<std::string> saved_files(total_obstacle_amount.size(), "");
+
 	if (output.is_open())
 	{
 		int num = total_obstacle_amount.size();
@@ -49,12 +51,18 @@ void generate_third_test_input(std::string filename_end, std::vector<std::pair<g
 			if (failed)
 			{
 				LOG("Error during creation of input with index: " + std::to_string(i));
+				output.close();
+				remove(filename.c_str());
+
+				for (int j = 0; j < i; j++)
+					remove(saved_files[j].c_str());
 				return;
 			}
 
 			auto dynamic_obstacle_data = test_map.get_GPU_dynamic_obstacles();
 			std::string mesh_filename = g_mesh.save_to_file(false, static_obstacle_data.first.size());
-			
+			saved_files[i] = mesh_filename;
+
 			// save filename of mesh
 			num = sizeof(char) * mesh_filename.size();
 			output.write((char*)&num, sizeof(int));
@@ -182,8 +190,8 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		int new_obstacle_amount = (obstacle_amount.x + obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + obstacle_increase.y * (increase_iterations - 1));
 		std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) +  "-v" + std::to_string(version) + ".txt";
 		std::ofstream output(filename.c_str(), std::ofstream::out);
-		std::ofstream error_file("Output files/Error_file_first_test-CPUGPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt");
-
+		std::string error_filename = "Output files/Error_file_first_test-CPUGPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt";
+		std::ofstream error_file(error_filename);
 		if (output.is_open())
 		{
 			output << "CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations - failed_count) << '\n';
@@ -199,6 +207,11 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		}
 		output.close();
 		error_file.close();
+
+		if (0 == failed_count)
+			remove(error_filename.c_str());
+		if (increase_iterations == failed_count)
+			remove(filename.c_str());
 
 		build_times.clear();
 		build_times.resize(increase_iterations);
@@ -267,7 +280,8 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		int new_obstacle_amount = (obstacle_amount.x + obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + obstacle_increase.y * (increase_iterations - 1));
 		std::string filename = "Output files/first_test_GPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) +  "-v" + std::to_string(version) + ".txt";
 		std::ofstream output(filename.c_str(), std::ofstream::out);
-		std::ofstream error_file("Output files/Error_file_first_test-GPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt");
+		std::string error_filename = "Output files/Error_file_first_test-GPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt";
+		std::ofstream error_file(error_filename);
 
 		if (output.is_open())
 		{
@@ -284,6 +298,11 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		}
 		output.close();
 		error_file.close();
+
+		if (0 == failed_count)
+			remove(error_filename.c_str());
+		if (increase_iterations == failed_count)
+			remove(filename.c_str());
 	}
 }
 
