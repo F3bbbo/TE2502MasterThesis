@@ -140,11 +140,11 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 	// Results
 
 	std::vector<std::string> build_times(increase_iterations, "");
-
+	std::vector<std::pair<bool, std::string>> iteration_failed(increase_iterations, {false, ""});
+	int failed_count = 0;
+	std::vector<int> vertice_counts(increase_iterations, 0);
 	if (test_CPUGPU)
 	{
-		std::vector<int> vertice_counts;
-		vertice_counts.resize(increase_iterations);
 		for (int iter = 0; iter < increase_iterations; iter++)
 		{
 			TestMap test_map;
@@ -163,31 +163,51 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 				gc_mesh.set_version(version);
 				gc_mesh.initiate_buffers({ 45, 45 });
 
-				build_times[iter] += std::to_string(gc_mesh.build_CDT(data.first, data.second)) + ',' + std::to_string(gc_mesh.refine_LCT()) + '\n';
+				auto cdt_time = gc_mesh.build_CDT(data.first, data.second);
+				auto lct_time = gc_mesh.refine_LCT();
+
+				build_times[iter] += std::to_string(cdt_time) + ',' + std::to_string(lct_time) + '\n';
+				auto status = gc_mesh.get_find_dist_status();
+				if (lct_failed(status))
+				{
+					iteration_failed[iter] = {true, get_lct_status_string(status)};
+					failed_count++;
+					LOG_T(WARNING, "first test, GPUCPU, LCT refinement of map index: " + std::to_string(iter) + " failed. Skipping map...");
+					break;
+				}
 				LOG_ND("First Test CPUGPU iteration: " + std::to_string(i + 1) + '\n');
 			}
 		}
 
 		int new_obstacle_amount = (obstacle_amount.x + obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + obstacle_increase.y * (increase_iterations - 1));
-		std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + "-v" + std::to_string(version) + ".txt";
+		std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) +  "-v" + std::to_string(version) + ".txt";
 		std::ofstream output(filename.c_str(), std::ofstream::out);
+		std::ofstream error_file("Output files/Error_file_first_test-CPUGPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt");
 
 		if (output.is_open())
 		{
-			output << "CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations) << '\n';
+			output << "CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations - failed_count) << '\n';
 			for (int iter = 0; iter < increase_iterations; iter++)
+			{
+				if (iteration_failed[iter].first == true)
+				{
+					error_file << std::to_string((obstacle_amount.x + obstacle_increase.x * iter) * (obstacle_amount.y + obstacle_increase.y * iter)) << " error: " << iteration_failed[iter].second << '\n';
+					continue;
+				}
 				output << std::to_string(vertice_counts[iter]) << '\n' << build_times[iter] << '\n';
+			}
 		}
 		output.close();
+		error_file.close();
+
 		build_times.clear();
 		build_times.resize(increase_iterations);
 	}
 	if (test_GPU)
 	{
-		std::vector<int> vertice_counts;
-		std::vector<std::pair<bool, std::string>> iteration_failed(increase_iterations, {false, ""});
-		int failed_count = 0;
-		vertice_counts.resize(increase_iterations);
+		std::fill(vertice_counts.begin(), vertice_counts.end(), 0);
+		std::fill(iteration_failed.begin(), iteration_failed.end(), std::make_pair(false, ""));
+		failed_count = 0;
 		for (int iter = 0; iter < increase_iterations; iter++)
 		{
 			TestMap test_map;
@@ -217,6 +237,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					{
 						iteration_failed[iter] = {true, get_lct_status_string(status)};
 						failed_count++;
+						LOG_T(WARNING, "first test, GPU, LCT refinement of map index: " + std::to_string(iter) + " failed. Skipping map...");
 						break;
 					}
 				}
@@ -234,6 +255,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					{
 						iteration_failed[iter] = {true, get_lct_status_string(status)};
 						failed_count++;
+						LOG_T(WARNING, "first test, GPU, LCT refinement of map index: " + std::to_string(iter) + " failed. Skipping map...");
 						break;
 					}
 
@@ -261,6 +283,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 			}
 		}
 		output.close();
+		error_file.close();
 	}
 }
 
