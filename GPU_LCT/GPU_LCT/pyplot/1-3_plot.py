@@ -4,8 +4,8 @@ import math
 import sys
 
 # process input arguments
-if (len(sys.argv) != 5):
-    print("provide three arguments [1,3] [G,C] [START_NUM] [END_NUM]")
+if (len(sys.argv) != 6):
+    print("provide five arguments [1,3] [G,C] [START_NUM] [END_NUM] [1,2]")
     sys.exit(1)
 
 # first parameter
@@ -52,8 +52,17 @@ except ValueError:
     sys.exit(1)
 
 LCT = int(sys.argv[4])
+
+# fifth parameter
+try:
+    int(sys.argv[5])
+except ValueError:
+    print("fifth argument has to be an integer")
+    sys.exit(1)
+
+version = str(sys.argv[5])
 # end processing of input
-filename += str(CDT) + '-' + str(LCT) + ".txt"
+filename += str(CDT) + '-' + str(LCT) + "-v" + version + ".txt"
 
 Matrix = None
 xlabels = None
@@ -116,7 +125,7 @@ width = 0.35         # the width of the bars
 p1 = ax.bar(ind, Matrix[0], width, bottom=0, yerr=Matrix[1], edgecolor="blue")
 p2 = ax.bar(ind + width, Matrix[2], width, bottom=0, yerr=Matrix[3], edgecolor="orange")
 
-ax.set_title('Time to build CDT and LCT')
+ax.set_title('Time to build CDT and LCT using version ' + version)
 ax.set_xticks(ind + width / 2)
 ax.set_xticklabels(xlabels)
 if (type == 1):
