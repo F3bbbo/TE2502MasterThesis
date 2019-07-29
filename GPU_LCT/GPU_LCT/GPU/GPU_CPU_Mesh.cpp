@@ -177,7 +177,7 @@ namespace GPU
 			//glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			//cont = m_status[0];
 		} while (status == 1);
-		LOG(std::string("Frame insertion number of iterations: ") + std::to_string(counter));
+		//LOG(std::string("Frame insertion number of iterations: ") + std::to_string(counter));
 	}
 
 	long long GCMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
@@ -286,15 +286,15 @@ namespace GPU
 		// points
 		timer.stop();
 
-		LOG(std::string("Number of iterations: ") + std::to_string(counter));
-		LOG(std::string("Elapsed time in ms: ") + std::to_string(timer.elapsed_time()));
-		auto labels_3 = find_equal(edge_label, 3);
-		LOG("Label_3: " + std::to_string(labels_3.size()));
-		auto labels_2 = find_equal(edge_label, 2);
-		LOG("Label_2: " + std::to_string(labels_2.size()));
-		auto labels_1 = find_equal(edge_label, 1);
-		LOG("Label_1: " + std::to_string(labels_1.size()));
-		LOG("Num points: " + std::to_string(point_inserted.size()));
+		//LOG(std::string("Number of iterations: ") + std::to_string(counter));
+		//LOG(std::string("Elapsed time in ms: ") + std::to_string(timer.elapsed_time()));
+		//auto labels_3 = find_equal(edge_label, 3);
+		//LOG("Label_3: " + std::to_string(labels_3.size()));
+		//auto labels_2 = find_equal(edge_label, 2);
+		//LOG("Label_2: " + std::to_string(labels_2.size()));
+		//auto labels_1 = find_equal(edge_label, 1);
+		//LOG("Label_1: " + std::to_string(labels_1.size()));
+		//LOG("Num points: " + std::to_string(point_inserted.size()));
 		/*glUseProgram(m_insert_in_edge_program);
 		glDispatchCompute((GLuint)256, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);*/
@@ -449,10 +449,10 @@ namespace GPU
 			}
 		} while (true);
 		timer.stop();
-		LOG(std::string("Find_dist.const_list_status: ") + std::to_string(find_dist_status.const_list_status));
-		LOG(std::string("Find_dist.const_queue_status: ") + std::to_string(find_dist_status.const_queue_status));
-		LOG(std::string("Find_dist.dist_list_status: ") + std::to_string(find_dist_status.dist_list_status));
-		LOG(std::string("Find_dist.dist_queue_status: ") + std::to_string(find_dist_status.dist_queue_status));
+		//LOG(std::string("Find_dist.const_list_status: ") + std::to_string(find_dist_status.const_list_status));
+		//LOG(std::string("Find_dist.const_queue_status: ") + std::to_string(find_dist_status.const_queue_status));
+		//LOG(std::string("Find_dist.dist_list_status: ") + std::to_string(find_dist_status.dist_list_status));
+		//LOG(std::string("Find_dist.dist_queue_status: ") + std::to_string(find_dist_status.dist_queue_status));
 
 		return timer.elapsed_time();
 	}

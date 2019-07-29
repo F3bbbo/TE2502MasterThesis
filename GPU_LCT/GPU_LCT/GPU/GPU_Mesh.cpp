@@ -300,7 +300,7 @@ namespace GPU
 			cont = m_status.get_buffer_data<int>()[0];
 		} while (cont == 1);
 		auto point_data_inserted = m_point_bufs.inserted.get_buffer_data<int>();
-		LOG(std::string("Frame insertion number of iterations: ") + std::to_string(counter));
+		//LOG(std::string("Frame insertion number of iterations: ") + std::to_string(counter));
 }
 
 	long long GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
@@ -418,8 +418,8 @@ namespace GPU
 		// points
 		timer.stop();
 
-		LOG(std::string("Number of iterations: ") + std::to_string(counter));
-		LOG(std::string("Elapsed time in ms: ") + std::to_string(timer.elapsed_time()));
+		//LOG(std::string("Number of iterations: ") + std::to_string(counter));
+		//LOG(std::string("Elapsed time in ms: ") + std::to_string(timer.elapsed_time()));
 
 		//return timer.elapsed_time();
 		/*glUseProgram(m_insert_in_edge_program);
