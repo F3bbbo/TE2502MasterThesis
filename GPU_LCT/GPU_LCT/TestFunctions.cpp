@@ -217,8 +217,17 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		build_times.clear();
 		build_times.resize(increase_iterations);
 	}
-	if (test_GPU)
+	
+	int new_obstacle_amount = (obstacle_amount.x + obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + obstacle_increase.y * (increase_iterations - 1));
+	std::string filename = "Output files/first_test_GPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) +  "-v" + std::to_string(version) + ".txt";
+	std::ofstream output(filename.c_str(), std::ofstream::out);
+	std::string error_filename = "Output files/Error_file_first_test-GPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt";
+	std::ofstream error_file(error_filename);
+
+	if (test_GPU && output.is_open())
 	{
+		output << "CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations) << '\n';
+
 		std::fill(vertice_counts.begin(), vertice_counts.end(), 0);
 		std::fill(iteration_failed.begin(), iteration_failed.end(), std::make_pair(false, ""));
 		failed_count = 0;
@@ -276,27 +285,15 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					LOG_ND("First Test GPU " + std::to_string( map_size.x * map_size.y ) + " iteration: " + std::to_string(i) + '\n');
 				}
 			}
-		}
-
-		int new_obstacle_amount = (obstacle_amount.x + obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + obstacle_increase.y * (increase_iterations - 1));
-		std::string filename = "Output files/first_test_GPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) +  "-v" + std::to_string(version) + ".txt";
-		std::ofstream output(filename.c_str(), std::ofstream::out);
-		std::string error_filename = "Output files/Error_file_first_test-GPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt";
-		std::ofstream error_file(error_filename);
-
-		if (output.is_open())
-		{
-			output << "CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations - failed_count) << '\n';
-			for (int iter = 0; iter < increase_iterations; iter++)
+			if (iteration_failed[iter].first == true)
 			{
-				if (iteration_failed[iter].first == true)
-				{
-					error_file << std::to_string((obstacle_amount.x + obstacle_increase.x * iter) * (obstacle_amount.y + obstacle_increase.y * iter)) << " error: " << iteration_failed[iter].second << '\n';
-					continue;
-				}
-				output << std::to_string(vertice_counts[iter]) << '\n' << build_times[iter] << '\n';
+				error_file << std::to_string((obstacle_amount.x + obstacle_increase.x * iter) * (obstacle_amount.y + obstacle_increase.y * iter)) << " error: " << iteration_failed[iter].second << '\n';
+				error_file.flush();
 			}
+			output << std::to_string(vertice_counts[iter]) << '\n' << build_times[iter] << '\n';
+			output.flush();
 		}
+
 		output.close();
 		error_file.close();
 
@@ -529,14 +526,16 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 	{
 		std::string output_filename = "Output files/third_test_GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) +  "-v" + std::to_string(version) + ".txt";
 		std::ofstream output(output_filename.c_str(), std::ifstream::out);
+		std::string error_filename = "Output files/Error_file_third_test-GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
+		std::ofstream error_file(error_filename);
+		output << "CDT build time, LCT build time \n" + std::to_string(iterations) + ',' + std::to_string(maps) + '\n';
 
-		if (!output.is_open())
+		if (!output.is_open() || !error_file.is_open())
 		{
-			LOG_T(WARNING, "can not open file:" + output_filename);
+			LOG_T(WARNING, "can not open output file or error file");
 			return;
 		}
 		
-		std::fill(map_output.begin(), map_output.end(), "");
 		std::fill(map_failed.begin(), map_failed.end(), std::make_pair(false, ""));
 		failed_count = 0;
 
@@ -586,21 +585,16 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 					}
 				}
 			}
-			map_output[map_i] = output_string + '\n';
-		}
 
-		std::string error_filename = "Output files/Error_file_third_test-GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
-		std::ofstream error_file(error_filename);
-		output << "CDT build time, LCT build time \n" + std::to_string(iterations) + ',' + std::to_string(maps - failed_count) + '\n';
-		for (int i = 0; i < maps; i++)
-		{
-			if (map_failed[i].first == true)
+			if (map_failed[map_i].first == true)
 			{
-				error_file << std::to_string(input_data_maps[i].static_vertices) << ',' << std::to_string(input_data_maps[i].dynamic_vertices.size()) << " error: " << map_failed[i].second << '\n';
+				error_file << std::to_string(input_data_maps[map_i].static_vertices) << ',' << std::to_string(input_data_maps[map_i].dynamic_vertices.size()) << " error: " << map_failed[map_i].second << '\n';
+				error_file.flush();
 			}
 			else
 			{
-				output << map_output[i];
+				output << output_string + '\n';
+				output.flush();
 			}
 		}
 		output.close();
