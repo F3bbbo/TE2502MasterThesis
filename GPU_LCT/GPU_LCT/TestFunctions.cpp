@@ -18,10 +18,13 @@ void generate_third_test_input(std::string filename_end, std::vector<std::pair<g
 			test_map.set_static_quota(total_obstacle_amount[i].second);
 			test_map.set_dynamic_quota(1.f); // We want all of the dynamic objects
 			test_map.set_map_size({ 45, 45 }, { -45, -45 });
+			
+			auto gpu_frame = test_map.get_GPU_frame();
 
 			GPU::GPUMesh g_mesh;
 			g_mesh.initiate_buffers({ 45.f, 45.f });
 			auto static_obstacle_data = test_map.get_GPU_static_obstacles();
+			g_mesh.add_frame_points(gpu_frame.first);
 			g_mesh.build_CDT(static_obstacle_data.first, static_obstacle_data.second);
 			g_mesh.refine_LCT();
 
@@ -171,6 +174,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 				GPU::GCMesh gc_mesh;
 				gc_mesh.set_version(version);
 				gc_mesh.initiate_buffers({ 45, 45 });
+				gc_mesh.add_frame_points(gpu_frame.first);
 
 				auto cdt_time = gc_mesh.build_CDT(data.first, data.second);
 				auto lct_time = gc_mesh.refine_LCT();
@@ -327,6 +331,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 	test_map.set_static_quota(1.f);
 	test_map.set_dynamic_quota(1.f);
 
+	auto gpu_frame = test_map.get_GPU_frame();
 	std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
 
 	bool failed = false;
@@ -340,6 +345,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 			GPU::GPUMesh mesh;
 			mesh.initiate_buffers({ 45, 45 });
 			mesh.set_version(version);
+			mesh.add_frame_points(gpu_frame.first);
 			mesh.measure_shaders(data.first, data.second);
 
 			auto status = mesh.get_find_dist_status();
@@ -355,6 +361,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 			GPU::GPUMesh mesh;
 			mesh.initiate_buffers({ 45, 45 });
 			mesh.set_version(version);
+			mesh.add_frame_points(gpu_frame.first);
 			total_times[i - 1] = mesh.measure_shaders(data.first, data.second);
 
 			auto status = mesh.get_find_dist_status();
