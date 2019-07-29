@@ -380,7 +380,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 	}
 
 	unsigned int total_obstacles = obstacle_amount.x * obstacle_amount.y;
-	std::string filename = "Output files/second_test-" + std::to_string(obstacle_amount.x) + '-' + std::to_string(obstacle_amount.y) + "-v" + std::to_string(version) + ".txt";
+	std::string filename = "Output files/second_test-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + "-v" + std::to_string(version) + ".txt";
 	std::ofstream output(filename.c_str(), std::ofstream::out);
 	if (!output.is_open())
 	{

@@ -5,7 +5,7 @@ import sys
 
 # process input arguments
 if (len(sys.argv) != 6):
-    print("provide five arguments [1,3] [G,C] [START_NUM] [END_NUM] [1,2]")
+    print("provide five arguments [1,3] [C,GC,G] [START_NUM] [END_NUM] [0,1,2]")
     sys.exit(1)
 
 # first parameter
@@ -27,12 +27,14 @@ else:
     filename = "third_test_";
 
 # second parameter
-if (sys.argv[2] == "G" or sys.argv[2] == "g"):
-    filename += "GPU-";
-elif (sys.argv[2] == "C" or sys.argv[2] == "c"):
+if (sys.argv[2] == "C" or sys.argv[2] == "c"):
+    filename += "CPU-";
+elif (len(sys.argv[2]) == 2 and (sys.argv[2][0] == "G" or sys.argv[2][0] == "g") and (sys.argv[2][1] == "C" or sys.argv[2][1] == "c")):
     filename += "CPUGPU-";
+elif (sys.argv[2] == "G" or sys.argv[2] == "g"):
+    filename += "GPU-";
 else:
-    print("Second argument has to be [Gg] or [Cc]]")
+    print("Second argument has to be [Cc], [Gg,Cc] or [Gg]]")
     sys.exit(1)
 
 # third parameter

@@ -4,17 +4,25 @@ import math
 import sys
 
 # process input arguments
-if (len(sys.argv) != 2):
-    print("provide one argument [NUM]")
+if (len(sys.argv) != 3):
+    print("provide two arguments [NUM], [1,2]")
     sys.exit(1)
 
 try:
     int(sys.argv[1])
 except ValueError:
-    print("Argument has to be an integer")
+    print("first argument has to be an integer")
     sys.exit(1)
 
-filename = "second_test-" + str(sys.argv[1]) + ".txt"
+try:
+    int(sys.argv[2])
+except ValueError:
+    print("second argument has to be an integer")
+    sys.exit(1)
+
+version = str(sys.argv[2])
+
+filename = "second_test-" + str(sys.argv[1]) + "-v" + version + ".txt"
 
 iterations = None
 num_vertices = None
@@ -52,7 +60,7 @@ for shader in range(num_CDT_shaders + num_LCT_shaders):
 # plotting starts here
 fig, axs = plt.subplots(1, 2)
 
-plt.suptitle('Construction of LCT with ' + str(num_vertices) + ' vertices')
+plt.suptitle('Construction of LCT with ' + str(num_vertices) + ' vertices using version: ' + str(version))
 # CDT plotting
 ind = np.arange(num_CDT_shaders)    # the x locations for the groups
 width = 0.75         # the width of the bars
