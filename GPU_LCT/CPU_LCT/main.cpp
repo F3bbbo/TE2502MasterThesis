@@ -100,7 +100,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 
 	int new_obstacle_amount = (obstacle_amount.x + obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + obstacle_increase.y * (increase_iterations - 1));
 
-	std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + ".txt";
+	std::string filename = "Output files/first_test_CPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) + "-v0.txt";
 	std::ofstream output(filename.c_str(), std::ofstream::out);
 
 	if (output.is_open())
@@ -139,7 +139,7 @@ void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float 
 		auto static_polygons = test_map.get_CPU_static_obstacles();
 		auto dynamic_polygons = test_map.get_CPU_dynamic_obstacles();
 
-		vertice_counts[iter] = { static_polygons.size(), dynamic_polygons.size() };
+		vertice_counts[iter] = { static_polygons.size() * 3, dynamic_polygons.size() * 3 };
 		// insert all the static obstacles and create the LCT
 		for (auto& polygon : static_polygons)
 			tp_lct_insert_polygonfv(lct, (float*)polygon.data(), polygon.size(), TpClosedPolygon);
@@ -180,7 +180,7 @@ void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float 
 		LOG_ND("Third Test completed map: " + std::to_string(iter + 1) + '\n');
 	}
 
-	std::string output_filename = "Output files/third_test_CPUGPU-" + std::to_string(vertice_counts.front().first + (int)vertice_counts.front().second) + '-' + std::to_string(vertice_counts.back().first + (int)vertice_counts.back().second) + ".txt";
+	std::string output_filename = "Output files/third_test_CPU-" + std::to_string(vertice_counts.front().first + (int)vertice_counts.front().second) + '-' + std::to_string(vertice_counts.back().first + (int)vertice_counts.back().second) + "-v0.txt";
 	std::ofstream output(output_filename.c_str(), std::ifstream::out);
 
 	if (!output.is_open())

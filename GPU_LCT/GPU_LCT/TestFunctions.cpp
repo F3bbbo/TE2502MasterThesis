@@ -69,7 +69,7 @@ void generate_third_test_input(std::string filename_end, std::vector<std::pair<g
 			output.write(mesh_filename.c_str(), num);
 			
 			// save number of static obstacle vertices
-			num = g_mesh.get_num_vertices();
+			num = static_obstacle_data.first.size();
 			output.write((char*)&num, sizeof(int));
 
 			// save dynamic vertices 
@@ -380,7 +380,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 	}
 
 	unsigned int total_obstacles = obstacle_amount.x * obstacle_amount.y;
-	std::string filename = "Output files/second_test-" + std::to_string(obstacle_amount.x) + '-' + std::to_string(obstacle_amount.y) + ".txt";
+	std::string filename = "Output files/second_test-" + std::to_string(obstacle_amount.x) + '-' + std::to_string(obstacle_amount.y) + "-v" + std::to_string(version) + ".txt";
 	std::ofstream output(filename.c_str(), std::ofstream::out);
 	if (!output.is_open())
 	{
