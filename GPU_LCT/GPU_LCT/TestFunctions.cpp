@@ -159,6 +159,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 			test_map.set_map_size({ 45, 45 }, { -45, -45 });
 			test_map.set_num_obsticles(obstacle_amount + obstacle_increase * iter);
 			test_map.set_static_quota(1.f);
+			auto map_size = (obstacle_amount + obstacle_increase * iter);
 			auto gpu_frame = test_map.get_GPU_frame();
 
 			std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
@@ -183,7 +184,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					LOG_T(WARNING, "first test, GPUCPU, LCT refinement of map index: " + std::to_string(iter) + " failed. Skipping map...");
 					break;
 				}
-				LOG_ND("First Test CPUGPU iteration: " + std::to_string(i + 1) + '\n');
+				LOG_ND("First Test CPUGPU " + std::to_string( map_size.x * map_size.y ) + " iteration: " + std::to_string(i + 1) + '\n');
 			}
 		}
 
@@ -227,6 +228,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 			test_map.set_map_size({ 45, 45 }, { -45, -45 });
 			test_map.set_num_obsticles(obstacle_amount + obstacle_increase * iter);
 			test_map.set_static_quota(1.f);
+			auto map_size = (obstacle_amount + obstacle_increase * iter);
 			auto gpu_frame = test_map.get_GPU_frame();
 
 			std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
@@ -271,8 +273,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 						LOG_T(WARNING, "first test, GPU, LCT refinement of map index: " + std::to_string(iter) + " failed. Skipping map...");
 						break;
 					}
-
-					LOG_ND("First Test GPU iteration: " + std::to_string(i) + '\n');
+					LOG_ND("First Test GPU " + std::to_string( map_size.x * map_size.y ) + " iteration: " + std::to_string(i) + '\n');
 				}
 			}
 		}
