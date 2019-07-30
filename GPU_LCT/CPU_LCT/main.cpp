@@ -16,6 +16,7 @@
 #include "../GPU_LCT/Timer.hpp"
 #include "../GPU_LCT/TestMap.hpp"
 #include "../GPU_LCT/Log.hpp"
+#include "../GPU_LCT/TestFunctions.hpp"
 
 void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int increase_iterations, int iterations);
 void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float static_percentage, int increase_iterations, int iterations);
@@ -27,8 +28,8 @@ int main()
 	tp_verify_license_file(licfile); // first check if license file is there
 	tp_activate(licfile); // ok, load and activate
 	
-	first_test({ 45, 45 }, {5, 5}, 2, 10);
-	third_test({ 45, 45 }, {5, 5}, 0.1, 2, 10);
+	first_test({ 10, 10 }, {10, 10}, 20, 10);
+	third_test({ 10, 10 }, {10, 10}, 0.5, 20, 10);
 
 	LOG_ND("Finished testing");
 	getchar();
@@ -45,7 +46,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 	for (int iter = 0; iter < increase_iterations; iter++)
 	{
 		TestMap test_map;
-		test_map.set_map_size({ 45, 45 }, { -45, -45 });
+		test_map.set_map_size({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y }, { -TEST_MAP_SIZE_X, -TEST_MAP_SIZE_Y });
 		test_map.set_num_obsticles(obstacle_amount + obstacle_increase * iter);
 		test_map.set_static_quota(1.f);
 
@@ -61,7 +62,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 			{
 				// Warmup run, otherwise the first result will be significantly slower than the rest.
 				tpLct* lct = tp_lct_newref(0.001f);
-				tp_lct_init(lct, -45, -45, 45, 45, 0);
+				tp_lct_init(lct, -TEST_MAP_SIZE_X, -TEST_MAP_SIZE_Y, TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y, 0);
 
 				// Only build CDT
 				tp_lct_mode(lct, TpRefMode::TpRefGlobal, TpRemMode::TpRemFull);
@@ -75,7 +76,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 			else
 			{
 				tpLct* lct = tp_lct_newref(0.001f);
-				tp_lct_init(lct, -45, -45, 45, 45, 0);
+				tp_lct_init(lct, -TEST_MAP_SIZE_X, -TEST_MAP_SIZE_Y, TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y, 0);
 
 				// Only build CDT
 				tp_lct_mode(lct, TpRefMode::TpRefGlobal, TpRemMode::TpRemFull);
@@ -128,10 +129,10 @@ void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float 
 	for (int iter = 0; iter < increase_iterations; iter++)
 	{
 		tpLct* lct = tp_lct_newref(0.001f);
-		tp_lct_init(lct, -45, -45, 45, 45, 0);
+		tp_lct_init(lct, -TEST_MAP_SIZE_X, -TEST_MAP_SIZE_Y, TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y, 0);
 
 		TestMap test_map;
-		test_map.set_map_size({ 45, 45 }, { -45, -45 });
+		test_map.set_map_size({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y }, { -TEST_MAP_SIZE_X, -TEST_MAP_SIZE_Y });
 		test_map.set_num_obsticles(obstacle_amount + obstacle_increase * iter);
 		test_map.set_static_quota(static_percentage);
 		test_map.set_dynamic_quota(1.f);
