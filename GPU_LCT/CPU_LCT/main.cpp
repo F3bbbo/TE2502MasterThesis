@@ -12,6 +12,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <fstream>
+#include <sstream>
 
 #include "../GPU_LCT/Timer.hpp"
 #include "../GPU_LCT/TestMap.hpp"
@@ -27,9 +28,12 @@ int main()
 	const char* licfile = "triplannerlic.txt";
 	tp_verify_license_file(licfile); // first check if license file is there
 	tp_activate(licfile); // ok, load and activate
-	
-	first_test({ 10, 10 }, {10, 10}, 20, 10);
-	third_test({ 10, 10 }, {10, 10}, 0.5, 20, 10);
+	float iterations = 10;
+	float number_of_increase = 20;
+	first_test({ 10, 10 }, {10, 10}, number_of_increase, iterations);
+	third_test({ 10, 10 }, {10, 10}, 0.25, number_of_increase, iterations);
+	third_test({ 10, 10 }, {10, 10}, 0.5, number_of_increase, iterations);
+	third_test({ 10, 10 }, {10, 10}, 0.75, number_of_increase, iterations);
 
 	LOG_ND("Finished testing");
 	getchar();
@@ -182,8 +186,10 @@ void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float 
 		tp_lct_unref(lct);
 		LOG_ND("Third Test completed map: " + std::to_string(iter + 1) + '\n');
 	}
-
-	std::string output_filename = "Output files/third_test_CPU-" + std::to_string(vertice_counts.front().first + (int)vertice_counts.front().second) + '-' + std::to_string(vertice_counts.back().first + (int)vertice_counts.back().second) + "-v0.txt";
+	std::ostringstream static_quota_stream;
+	static_quota_stream.precision(2);
+	static_quota_stream << std::fixed << static_percentage;
+	std::string output_filename = "Output files/third_test_CPU-" + std::to_string(vertice_counts.front().first + (int)vertice_counts.front().second) + '-' + std::to_string(vertice_counts.back().first + (int)vertice_counts.back().second) + "-v0-" + static_quota_stream.str() + ".txt";
 	std::ofstream output(output_filename.c_str(), std::ifstream::out);
 
 	if (!output.is_open())
