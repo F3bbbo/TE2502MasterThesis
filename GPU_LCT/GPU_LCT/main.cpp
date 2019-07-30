@@ -133,10 +133,10 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	LOG("GPU const_queue_status: " + std::to_string(stat.const_queue_status));
 	LOG("GPU dist_list_status: " + std::to_string(stat.dist_list_status));
 	LOG("GPU dist_queue_status: " + std::to_string(stat.dist_queue_status));
-	m.set_version(vers);
-	m.add_frame_points(gpu_frame.first);
-	m.build_CDT(gpu_map.first, gpu_map.second);
-	m.refine_LCT();
+	//m.set_version(vers);
+	//m.add_frame_points(gpu_frame.first);
+	//m.build_CDT(gpu_map.first, gpu_map.second);
+	//m.refine_LCT();
 
 	//g_m.build_CDT(dynamic_obj.first, dynamic_obj.second);
 
@@ -167,7 +167,7 @@ int main()
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
 	float scale = 490.0f;
-	int num_object_multi = 20;
+	int num_object_multi = 110;
 	glm::vec2 map_scaling = { scale, scale };
 	glm::ivec2 num_objects = { num_object_multi, num_object_multi };
 	GPU::GPUMesh g_mesh;
@@ -192,9 +192,9 @@ int main()
 
 	//lct_example(m, g_mesh);
 
-	test_test_map(gc_mesh, g_mesh, map_scaling, num_objects);
+	//test_test_map(gc_mesh, g_mesh, map_scaling, num_objects);
 
-	//first_test({ 5, 5 }, {10, 10}, 3, 10, true, true );
+	first_test({ 10, 10 }, {10, 10}, 20, 10, false, true, 2 );
 	//second_test({ 5, 5 }, 10);
 	//generate_third_test_input("test", { {{5, 5}, 0.25f}, {{100, 100}, 0.25f}, {{10, 10}, 0.25f} });
 	//third_test("test", 10, false, true);
