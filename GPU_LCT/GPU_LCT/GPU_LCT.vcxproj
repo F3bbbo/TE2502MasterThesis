@@ -203,6 +203,7 @@
     <ClInclude Include="Shapes.hpp" />
     <ClInclude Include="TestFunctions.hpp" />
     <ClInclude Include="TestMap.hpp" />
+    <ClInclude Include="TestParameters.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="trig_functions.hpp" />
   </ItemGroup>

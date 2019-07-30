@@ -3,9 +3,8 @@
 #include "GPU/GPU_CPU_Mesh.hpp"
 #include "TestMap.hpp"
 #include "Timer.hpp"
+#include "TestParameters.hpp"
 
-#define TEST_MAP_SIZE_X 49.0f
-#define TEST_MAP_SIZE_Y 49.0f
 
 void generate_third_test_input(std::string filename_end, std::vector<std::pair<glm::ivec2, float>> total_obstacle_amount);
 

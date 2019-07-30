@@ -170,6 +170,9 @@
     <ClInclude Include="TestFunctions.hpp">
       <Filter>Header Files\Test</Filter>
     </ClInclude>
+    <ClInclude Include="TestParameters.hpp">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="GPU\locate_disturbances.glsl">
