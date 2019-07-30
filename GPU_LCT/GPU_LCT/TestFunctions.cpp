@@ -17,12 +17,12 @@ void generate_third_test_input(std::string filename_end, std::vector<std::pair<g
 			test_map.set_num_obsticles(total_obstacle_amount[i].first);
 			test_map.set_static_quota(total_obstacle_amount[i].second);
 			test_map.set_dynamic_quota(1.f); // We want all of the dynamic objects
-			test_map.set_map_size({ 45, 45 }, { -45, -45 });
+			test_map.set_map_size({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y }, { -TEST_MAP_SIZE_X, -TEST_MAP_SIZE_Y });
 			
 			auto gpu_frame = test_map.get_GPU_frame();
 
 			GPU::GPUMesh g_mesh;
-			g_mesh.initiate_buffers({ 45.f, 45.f });
+			g_mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y});
 			auto static_obstacle_data = test_map.get_GPU_static_obstacles();
 			g_mesh.add_frame_points(gpu_frame.first);
 			g_mesh.build_CDT(static_obstacle_data.first, static_obstacle_data.second);
@@ -159,7 +159,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		for (int iter = 0; iter < increase_iterations; iter++)
 		{
 			TestMap test_map;
-			test_map.set_map_size({ 45, 45 }, { -45, -45 });
+			test_map.set_map_size({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y }, { -TEST_MAP_SIZE_X, -TEST_MAP_SIZE_Y});
 			test_map.set_num_obsticles(obstacle_amount + obstacle_increase * iter);
 			test_map.set_static_quota(1.f);
 			auto map_size = (obstacle_amount + obstacle_increase * iter);
@@ -173,7 +173,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 			{
 				GPU::GCMesh gc_mesh;
 				gc_mesh.set_version(version);
-				gc_mesh.initiate_buffers({ 45, 45 });
+				gc_mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y });
 				gc_mesh.add_frame_points(gpu_frame.first);
 
 				auto cdt_time = gc_mesh.build_CDT(data.first, data.second);
@@ -238,7 +238,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		for (int iter = 0; iter < increase_iterations; iter++)
 		{
 			TestMap test_map;
-			test_map.set_map_size({ 45, 45 }, { -45, -45 });
+			test_map.set_map_size({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y }, { -TEST_MAP_SIZE_X, -TEST_MAP_SIZE_Y});
 			test_map.set_num_obsticles(obstacle_amount + obstacle_increase * iter);
 			test_map.set_static_quota(1.f);
 			auto map_size = (obstacle_amount + obstacle_increase * iter);
@@ -254,7 +254,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 				{
 					// The GPU needs to be "warmed up" or else the first result will be very slow
 					GPU::GPUMesh gc_mesh;
-					gc_mesh.initiate_buffers({ 45, 45 });
+					gc_mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y });
 					gc_mesh.set_version(version);
 					gc_mesh.add_frame_points(gpu_frame.first);
 
@@ -272,7 +272,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 				else
 				{
 					GPU::GPUMesh gc_mesh;
-					gc_mesh.initiate_buffers({ 45, 45 });
+					gc_mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y });
 					gc_mesh.set_version(version);
 					gc_mesh.add_frame_points(gpu_frame.first);
 
@@ -326,7 +326,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 	
 	// Record performance of each shader stage
 	TestMap test_map;
-	test_map.set_map_size({ 45, 45 }, { -45, -45 });
+	test_map.set_map_size({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y }, { -TEST_MAP_SIZE_X, -TEST_MAP_SIZE_Y});
 	test_map.set_num_obsticles(obstacle_amount);
 	test_map.set_static_quota(1.f);
 	test_map.set_dynamic_quota(1.f);
@@ -343,7 +343,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 		{
 			// The GPU needs to be "warmed up" or else the first result will be very slow
 			GPU::GPUMesh mesh;
-			mesh.initiate_buffers({ 45, 45 });
+			mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y });
 			mesh.set_version(version);
 			mesh.add_frame_points(gpu_frame.first);
 			mesh.measure_shaders(data.first, data.second);
@@ -359,7 +359,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 		else
 		{
 			GPU::GPUMesh mesh;
-			mesh.initiate_buffers({ 45, 45 });
+			mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y });
 			mesh.set_version(version);
 			mesh.add_frame_points(gpu_frame.first);
 			total_times[i - 1] = mesh.measure_shaders(data.first, data.second);
@@ -551,7 +551,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 			std::string output_string = "";
 			output_string += std::to_string(input_data_maps[map_i].static_vertices) + ',' + std::to_string(input_data_maps[map_i].dynamic_vertices.size()) + '\n';
 			GPU::GPUMesh g_mesh;
-			g_mesh.initiate_buffers({45.f, 45.f});
+			g_mesh.initiate_buffers({TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y});
 			g_mesh.set_version(version);
 			g_mesh.load_from_file(input_data_maps[map_i].filename);
 			GPU::GPUMesh g_mesh_copy;
