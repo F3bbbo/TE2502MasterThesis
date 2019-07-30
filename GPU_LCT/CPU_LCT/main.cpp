@@ -28,7 +28,7 @@ int main()
 	tp_activate(licfile); // ok, load and activate
 	
 	first_test({ 45, 45 }, {5, 5}, 2, 10);
-	third_test({ 45, 45 }, {5, 5}, 0.6, 2, 10);
+	third_test({ 45, 45 }, {5, 5}, 0.1, 2, 10);
 
 	LOG_ND("Finished testing");
 	getchar();
@@ -146,7 +146,8 @@ void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float 
 
 		tp_lct_mode(lct, TpRefMode::TpRefGlobal, TpRemMode::TpRemFull);
 
-		tpLct* lct_copy = lct;
+		std::string filename = "Output files/test_3_input";
+		tp_lct_save(lct, filename.c_str());
 
 		for (int j = 0; j < iterations + 1; j++)
 		{
@@ -157,7 +158,7 @@ void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float 
 					tp_lct_insert_polygonfv(lct, (float*)polygon.data(), polygon.size(), TpClosedPolygon);
 
 				tp_lct_refine(lct);
-				lct = lct_copy;
+				tp_lct_load(lct, filename.c_str());
 			}
 			else
 			{
@@ -174,9 +175,10 @@ void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float 
 				timer.stop();
 				build_times[iter].push_back(timer.elapsed_time());
 
-				lct = lct_copy;
+				tp_lct_load(lct, filename.c_str());
 			}
 		}
+		tp_lct_unref(lct);
 		LOG_ND("Third Test completed map: " + std::to_string(iter + 1) + '\n');
 	}
 
