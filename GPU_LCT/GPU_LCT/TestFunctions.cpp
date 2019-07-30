@@ -276,7 +276,9 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					gc_mesh.set_version(version);
 					gc_mesh.add_frame_points(gpu_frame.first);
 
-					build_times[iter] += std::to_string(gc_mesh.build_CDT(data.first, data.second)) + ',' + std::to_string(gc_mesh.refine_LCT()) + '\n';
+					auto cdt_time = gc_mesh.build_CDT(data.first, data.second);
+					auto lct_time = gc_mesh.refine_LCT();
+					build_times[iter] += std::to_string(cdt_time) + ',' + std::to_string(lct_time) + '\n';
 
 					auto status = gc_mesh.get_find_dist_status();
 					if (lct_failed(status))
