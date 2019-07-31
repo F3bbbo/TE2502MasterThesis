@@ -14,7 +14,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 
 void second_test(glm::ivec2 obstacle_amount, int iterations, int version = 2);
 
-void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool test_GPU, int version = 2);
+void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool test_GPU, float static_quota, int version = 2);
 
 std::string get_lct_status_string(GPU::Find_Disturbance_Status& status);
 

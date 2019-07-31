@@ -1,4 +1,5 @@
 #include "TestFunctions.hpp"
+#include <sstream>
 
 void generate_third_test_input(std::string filename_end, std::vector<std::pair<glm::ivec2, float>> total_obstacle_amount)
 {
@@ -414,7 +415,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 	output.close();
 }
 
-void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool test_GPU, int version)
+void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool test_GPU, float static_quota, int version)
 {
 	// Test: 3
 	// Record building from prebuilt map with dynamic objects, save:
@@ -463,6 +464,9 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 	}
 	input.close();
 	// done reading input data
+	std::ostringstream static_quota_stream;
+	static_quota_stream.precision(2);
+	static_quota_stream << std::fixed << static_quota;
 	
 	std::vector<std::string> map_output(maps, "");
 	std::vector<std::pair<bool, std::string>> map_failed(maps, { false, {} });
@@ -470,7 +474,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 
 	if (test_CPUGPU)
 	{
-		std::string output_filename = "Output files/third_test_CPUGPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) +  "-v" + std::to_string(version) + ".txt";
+		std::string output_filename = "Output files/third_test_CPUGPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) +  "-v" + std::to_string(version) + "-" + static_quota_stream.str() + ".txt";
 		std::ofstream output(output_filename.c_str(), std::ifstream::out);
 
 		if (!output.is_open())
@@ -533,7 +537,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 
 	if (test_GPU)
 	{
-		std::string output_filename = "Output files/third_test_GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) +  "-v" + std::to_string(version) + ".txt";
+		std::string output_filename = "Output files/third_test_GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) +  "-v" + std::to_string(version) +"-" + static_quota_stream.str() + ".txt";
 		std::ofstream output(output_filename.c_str(), std::ifstream::out);
 		std::string error_filename = "Output files/Error_file_third_test-GPU-" + std::to_string(input_data_maps.front().static_vertices + (int)input_data_maps.front().dynamic_vertices.size()) + '-' + std::to_string(input_data_maps.back().static_vertices + (int)input_data_maps.back().dynamic_vertices.size()) + ".txt";
 		std::ofstream error_file(error_filename);
