@@ -196,8 +196,10 @@ int main()
 
 	//first_test({ 10, 10 }, {10, 10}, 30, 10, false, true, 1 );
 	//second_test({ 5, 5 }, 10);
-	generate_third_test_input("test", { {{5, 5}, 0.25f}, {{100, 100}, 0.25f}, {{10, 10}, 0.25f} });
-	third_test("test", 10, false, true, 0.25f);
+
+	//auto object_list = gen_obstacle_range({ 1, 1 }, { 2, 2 }, 5, 0.2);
+	//generate_third_test_input("test", { {{5, 5}, 0.25f}, {{100, 100}, 0.25f}, {{10, 10}, 0.25f} });
+	//third_test("test", 10, false, true, 0.25f);
 	//gc_mesh.load_from_file("Output files/throwGC_150_155");
 	//g_mesh.load_from_file("Output files/throwGC_150_155");
 

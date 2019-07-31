@@ -641,3 +641,24 @@ bool lct_failed(GPU::Find_Disturbance_Status& status)
 		return true;
 	return false;
 }
+
+std::vector<std::pair<glm::ivec2, float>> gen_obstacle_range(glm::ivec2 start_dims, glm::ivec2 dim_increase, int maps, float static_percentage)
+{
+	std::vector<std::pair<glm::ivec2, float>> ret(maps);
+	for (int i = 0; i < maps; i++)
+		ret[i] = std::make_pair(start_dims + dim_increase * i, static_percentage);
+	return ret;
+}
+
+std::vector<std::pair<glm::ivec2, float>> gen_obstacle_range(glm::ivec2 start_dims, glm::ivec2 dim_increase, int maps, std::vector<float> static_percentage)
+{
+	if (maps != (int)static_percentage.size())
+	{
+		LOG("Length of static_percentages is not equal to the nr of maps");
+		return std::vector<std::pair<glm::ivec2, float>>();
+	}
+	std::vector<std::pair<glm::ivec2, float>> ret(maps);
+	for (int i = 0; i < maps; i++)
+		ret[i] = std::make_pair(start_dims + dim_increase * i, static_percentage[i]);
+	return ret;
+}
