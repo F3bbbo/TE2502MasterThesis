@@ -198,8 +198,27 @@ int main()
 	//second_test({ 5, 5 }, 10);
 
 	//auto object_list = gen_obstacle_range({ 1, 1 }, { 2, 2 }, 5, 0.2);
-	//generate_third_test_input("test", { {{5, 5}, 0.25f}, {{100, 100}, 0.25f}, {{10, 10}, 0.25f} });
-	//third_test("test", 10, false, true, 0.25f);
+	int number_of_increases = 9;
+	int iterations = 1;
+	int start = 200;
+	int steps = 10;
+	// Third test, 25 %
+	auto test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.25f);
+	generate_third_test_input("test", test1);
+	third_test("test", iterations, false, true, 0.25f);
+
+	// Third test, 50 %
+	test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.5f);
+	generate_third_test_input("test", test1);
+	third_test("test", iterations, false, true, 0.5f);
+
+	// Third test, 75 %
+	test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.75f);
+	generate_third_test_input("test", test1);
+	third_test("test", iterations, false, true, 0.75f);
+
+
+
 	//gc_mesh.load_from_file("Output files/throwGC_150_155");
 	//g_mesh.load_from_file("Output files/throwGC_150_155");
 

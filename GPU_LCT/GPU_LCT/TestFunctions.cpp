@@ -86,6 +86,7 @@ void generate_third_test_input(std::string filename_end, std::vector<std::pair<g
 			output.write((char*)dynamic_obstacle_data.second.data(), num);
 		}
 		output.close();
+		LOG_ND("Done generating maps.\n");
 	}
 }
 
@@ -485,6 +486,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 		
 		for (int map_i = 0; map_i < maps; map_i++)
 		{
+			LOG_ND("Testing map: " + std::to_string(map_i) + "\n");
 			std::string output_string = "";
 			output_string += std::to_string(input_data_maps[map_i].static_vertices) + ',' + std::to_string(input_data_maps[map_i].dynamic_vertices.size()) + '\n';
 
@@ -554,6 +556,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 
 		for (int map_i = 0; map_i < maps; map_i++)
 		{
+			LOG_ND("Testing map: " + std::to_string(map_i) + "\n");
 			std::string output_string = "";
 			output_string += std::to_string(input_data_maps[map_i].static_vertices) + ',' + std::to_string(input_data_maps[map_i].dynamic_vertices.size()) + '\n';
 			GPU::GPUMesh g_mesh;
