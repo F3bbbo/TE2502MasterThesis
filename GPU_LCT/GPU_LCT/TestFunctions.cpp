@@ -157,42 +157,6 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 	std::vector<int> vertice_counts(increase_iterations, 0);
 	if (test_CPUGPU)
 	{
-		for (int iter = 0; iter < increase_iterations; iter++)
-		{
-			TestMap test_map;
-			test_map.set_map_size({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y }, { -TEST_MAP_SIZE_X, -TEST_MAP_SIZE_Y});
-			test_map.set_num_obsticles(obstacle_amount + obstacle_increase * iter);
-			test_map.set_static_quota(1.f);
-			auto map_size = (obstacle_amount + obstacle_increase * iter);
-			auto gpu_frame = test_map.get_GPU_frame();
-
-			std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
-
-			vertice_counts[iter] = data.first.size();
-			// test CPUGPU solution
-			for (int i = 0; i < iterations; i++)
-			{
-				GPU::GCMesh gc_mesh;
-				gc_mesh.set_version(version);
-				gc_mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y });
-				gc_mesh.add_frame_points(gpu_frame.first);
-
-				auto cdt_time = gc_mesh.build_CDT(data.first, data.second);
-				auto lct_time = gc_mesh.refine_LCT();
-
-				build_times[iter] += std::to_string(cdt_time) + ',' + std::to_string(lct_time) + '\n';
-				auto status = gc_mesh.get_find_dist_status();
-				if (lct_failed(status))
-				{
-					iteration_failed[iter] = {true, get_lct_status_string(status)};
-					failed_count++;
-					LOG_T(WARNING, "first test, GPUCPU, LCT refinement of map index: " + std::to_string(iter) + " failed. Skipping map...");
-					break;
-				}
-				LOG_ND("First Test CPUGPU " + std::to_string( map_size.x * map_size.y ) + " iteration: " + std::to_string(i + 1) + '\n');
-			}
-		}
-
 		int new_obstacle_amount = (obstacle_amount.x + obstacle_increase.x * (increase_iterations - 1)) * (obstacle_amount.y + obstacle_increase.y * (increase_iterations - 1));
 		std::string filename = "Output files/first_test_CPUGPU-" + std::to_string(obstacle_amount.x * obstacle_amount.y) + '-' + std::to_string(new_obstacle_amount) +  "-v" + std::to_string(version) + ".txt";
 		std::ofstream output(filename.c_str(), std::ofstream::out);
@@ -201,14 +165,50 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 		if (output.is_open())
 		{
 			output << "CDT build time, LCT build time \n" << std::to_string(iterations) << ',' << std::to_string(increase_iterations - failed_count) << '\n';
+
 			for (int iter = 0; iter < increase_iterations; iter++)
 			{
+				TestMap test_map;
+				test_map.set_map_size({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y }, { -TEST_MAP_SIZE_X, -TEST_MAP_SIZE_Y });
+				test_map.set_num_obsticles(obstacle_amount + obstacle_increase * iter);
+				test_map.set_static_quota(1.f);
+				auto map_size = (obstacle_amount + obstacle_increase * iter);
+				auto gpu_frame = test_map.get_GPU_frame();
+
+				std::pair<std::vector<glm::vec2>, std::vector<glm::ivec2>> data = test_map.get_GPU_obstacles();
+
+				vertice_counts[iter] = data.first.size();
+				// test CPUGPU solution
+				for (int i = 0; i < iterations; i++)
+				{
+					GPU::GCMesh gc_mesh;
+					gc_mesh.set_version(version);
+					gc_mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y });
+					gc_mesh.add_frame_points(gpu_frame.first);
+
+					auto cdt_time = gc_mesh.build_CDT(data.first, data.second);
+					auto lct_time = gc_mesh.refine_LCT();
+
+					build_times[iter] += std::to_string(cdt_time) + ',' + std::to_string(lct_time) + '\n';
+					auto status = gc_mesh.get_find_dist_status();
+					if (lct_failed(status))
+					{
+						iteration_failed[iter] = { true, get_lct_status_string(status) };
+						failed_count++;
+						LOG_T(WARNING, "first test, GPUCPU, LCT refinement of map index: " + std::to_string(iter) + " failed. Skipping map...");
+						break;
+					}
+					LOG_ND("First Test CPUGPU " + std::to_string(map_size.x * map_size.y) + " iteration: " + std::to_string(i + 1) + '\n');
+				}
+
 				if (iteration_failed[iter].first == true)
 				{
 					error_file << std::to_string((obstacle_amount.x + obstacle_increase.x * iter) * (obstacle_amount.y + obstacle_increase.y * iter)) << " error: " << iteration_failed[iter].second << '\n';
+					error_file.flush();
 					continue;
 				}
 				output << std::to_string(vertice_counts[iter]) << '\n' << build_times[iter] << '\n';
+				output.flush();
 			}
 		}
 		output.close();
