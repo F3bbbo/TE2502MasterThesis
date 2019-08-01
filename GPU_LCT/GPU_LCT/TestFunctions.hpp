@@ -19,3 +19,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 std::string get_lct_status_string(GPU::Find_Disturbance_Status& status);
 
 bool lct_failed(GPU::Find_Disturbance_Status& status);
+
+std::vector<std::pair<glm::ivec2, float>> gen_obstacle_range(glm::ivec2 start_dims, glm::ivec2 dim_increase, int maps, float static_percentage);
+
+std::vector<std::pair<glm::ivec2, float>> gen_obstacle_range(glm::ivec2 start_dims, glm::ivec2 dim_increase, int maps, std::vector<float> static_percentage);
