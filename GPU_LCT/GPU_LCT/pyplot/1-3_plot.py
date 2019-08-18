@@ -4,8 +4,9 @@ import math
 import sys
 
 # process input arguments
-if (len(sys.argv) != 6):
-    print("provide five arguments [1,3] [C,GC,G] [START_NUM] [END_NUM] [0,1,2]")
+if (not(len(sys.argv) == 6 or len(sys.argv) == 7)):
+    print("provide six arguments [1,3] [C,GC,G] [START_NUM] [END_NUM] [0,1,2] [x.xx]")
+    print("Ignore the last parameter if you are using test one")
     sys.exit(1)
 
 # first parameter
@@ -63,8 +64,19 @@ except ValueError:
     sys.exit(1)
 
 version = str(sys.argv[5])
+
+# sixth parameter
+perc = ""
+if (sys.argv[1] == "3"):
+    if (len(sys.argv) == 6):
+        print("Missing one argument")
+        sys.exit(1)
+    if (len(sys.argv[6]) != 4):
+        print("percentage needs to be on the form x.xx")
+        sys.exit(1)
+    perc = "-" + sys.argv[6]
 # end processing of input
-filename += str(CDT) + '-' + str(LCT) + "-v" + version + ".txt"
+filename += str(CDT) + '-' + str(LCT) + "-v" + version + perc + ".txt"
 
 Matrix = None
 xlabels = None
