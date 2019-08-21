@@ -95,7 +95,15 @@ def get_results_from_file(file_name):
 
     return y_labels, y_groups,  x_labels, std_dev
 
-
+def make_line_plot(save_file, y_labels_list, x_labels_list, std_dev_list, algorithm_names, y_axis_label="", x_axis_label=""):
+    fig, ax = plt.subplots()
+    ax.set_ylabel(y_axis_label)
+    ax.set_xlabel(x_axis_label)
+    for y_labels, x_labels, std_dev, alg_name in zip(y_labels_list, x_labels_list, std_dev_list, algorithm_names):
+        ax.errorbar(x_labels, y_labels, yerr=std_dev, label=alg_name)
+    plt.legend()
+    plt.show()
+    return
 
 def process_parameter(start_i):
     global plots
@@ -158,10 +166,19 @@ while (curr_i != -1):
 # First plot
 if(plots.get(1) is not None):
     first_CG_results = get_results_from_file(abs_path("first_test_CPUGPU-9-3600-v2.txt"))
-    print(first_CG_results)
-    first_CG_file = open(abs_path("first_test_CPUGPU-9-3600-v2.txt"), "r")
-    first_G_file = open(abs_path("first_test_CPUGPU-100-90000-v2.txt"), "r")
-    first_Kall_file = open(abs_path("first_test_CPU-100-90000-v0.txt", False), "r")
+    first_G_results = get_results_from_file(abs_path("first_test_GPU-100-90000-v2.txt"))
+    first_kall_results = get_results_from_file(abs_path("first_test_CPU-100-90000-v0.txt", False))
+
+    test_type = first_CG_results[1][1]
+    #print(first_CG_results[2][test_type])
+    y_labels_list = [first_CG_results[0][test_type], first_G_results[0][test_type], first_kall_results[0][test_type]]
+    x_labels_list = [first_CG_results[2], first_G_results[2], first_kall_results[2]]
+    std_dev_list = [first_CG_results[3][test_type], first_G_results[3][test_type], first_kall_results[3][test_type]]
+    alg_names = ["CPUGPU", "GPU", "Kallmann"]
+    make_line_plot("", y_labels_list, x_labels_list, std_dev_list, alg_names)
+    #first_CG_file = open(abs_path("first_test_CPUGPU-9-3600-v2.txt"), "r")
+    #first_G_file = open(abs_path("first_test_CPUGPU-100-90000-v2.txt"), "r")
+    #first_Kall_file = open(abs_path("first_test_CPU-100-90000-v0.txt", False), "r")
 # Second plot
 
 
