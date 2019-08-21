@@ -27,7 +27,7 @@ def all_plots():
 
 plots = all_plots()
 in_folder = "..\\Output files"
-out_folder = ""
+out_folder = "Thesis_plots"
 work_folder = ""
 kallmann_folder = "..\\..\\CPU_LCT\\Output files"
 out_file_name = "Result_plots"
@@ -40,15 +40,16 @@ def abs_path(fileName, is_gpu = True, is_input = True):
     script_dir = os.path.dirname(os.path.abspath(__file__)) #<-- absolute dir the script is in
     #print("script dir: " + script_dir)
     if(is_gpu):
+        abs_file_path = os.path.join(script_dir, work_folder)
         if(is_input):
-            rel_path = os.path.join(in_folder,fileName)
+            abs_file_path = os.path.join(abs_file_path, in_folder)
         else:
-            rel_path = os.path.join(out_folder, fileName)
-        rel_path = os.path.join(work_folder, rel_path)
-        abs_file_path = os.path.join(script_dir, rel_path)
+            abs_file_path = os.path.join(abs_file_path, out_folder)
+        if not os.path.exists(abs_file_path):
+            os.makedirs(abs_file_path)
     else:
         abs_file_path = os.path.join(script_dir, kallmann_folder)
-        abs_file_path = os.path.join(abs_file_path, fileName)
+    abs_file_path = os.path.join(abs_file_path, fileName)
     return abs_file_path;
 
 def get_results_from_file(file_name):
@@ -102,7 +103,10 @@ def make_line_plot(save_file, y_labels_list, x_labels_list, std_dev_list, algori
     for y_labels, x_labels, std_dev, alg_name in zip(y_labels_list, x_labels_list, std_dev_list, algorithm_names):
         ax.errorbar(x_labels, y_labels, yerr=std_dev, label=alg_name)
     plt.legend()
-    plt.show()
+    if(save_file == ""):
+        plt.show()
+    else:
+        plt.savefig(save_file)
     return
 
 def process_parameter(start_i):
@@ -169,13 +173,24 @@ if(plots.get(1) is not None):
     first_G_results = get_results_from_file(abs_path("first_test_GPU-100-90000-v2.txt"))
     first_kall_results = get_results_from_file(abs_path("first_test_CPU-100-90000-v0.txt", False))
 
+    test_type = first_CG_results[1][0]
+    #print(first_CG_results[2][test_type])
+    y_labels_list = [ first_G_results[0][test_type], first_kall_results[0][test_type]]
+    x_labels_list = [first_G_results[2], first_kall_results[2]]
+    std_dev_list = [first_G_results[3][test_type], first_kall_results[3][test_type]]
+    alg_names = [ "GPU", "Kallmann"]
+    save_file_name = abs_path("First_test_CDT_GPU_Kallmann.png", True, False)
+    make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names)
+
     test_type = first_CG_results[1][1]
     #print(first_CG_results[2][test_type])
     y_labels_list = [first_CG_results[0][test_type], first_G_results[0][test_type], first_kall_results[0][test_type]]
     x_labels_list = [first_CG_results[2], first_G_results[2], first_kall_results[2]]
     std_dev_list = [first_CG_results[3][test_type], first_G_results[3][test_type], first_kall_results[3][test_type]]
     alg_names = ["CPUGPU", "GPU", "Kallmann"]
-    make_line_plot("", y_labels_list, x_labels_list, std_dev_list, alg_names)
+    save_file_name = abs_path("First_test_LCT_GPU_Kallmann.png", True, False)
+    make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names)
+
     #first_CG_file = open(abs_path("first_test_CPUGPU-9-3600-v2.txt"), "r")
     #first_G_file = open(abs_path("first_test_CPUGPU-100-90000-v2.txt"), "r")
     #first_Kall_file = open(abs_path("first_test_CPU-100-90000-v0.txt", False), "r")
