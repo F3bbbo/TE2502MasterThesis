@@ -53,7 +53,7 @@ def abs_path(fileName, is_gpu = True, is_input = True):
     abs_file_path = os.path.join(abs_file_path, fileName)
     return abs_file_path;
 
-def get_results_from_file(file_name):
+def get_results_from_file(file_name, max_vertex_count = -1):
     with open(file_name, "r") as file:
         y_groups = file.readline().split(',')
         meta_data = file.readline().split(',')
@@ -76,7 +76,8 @@ def get_results_from_file(file_name):
                 iter_values = dict()
                 iter_values[y_groups[0]] = list()
                 iter_values[y_groups[1]] = list()
-
+                if (max_vertex_count > -1) and max_vertex_count < num_vertices:
+                    break;
                 counter += 1
             elif(counter > iterations):
                 # add the average values to y_labels ans std_dev
