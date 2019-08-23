@@ -100,6 +100,33 @@ def get_results_from_file(file_name, max_vertex_count = -1):
 
     return y_labels, y_groups,  x_labels, std_dev
 
+def get_second_result_from_file(file_name):
+    with open(file_name, "r") as file:
+        file.readline()
+        file.readline()
+        file.readline()
+        first_shader_times = file.readline().split(',')
+        iteration_times = list()
+        # add the amount of lists needed for all the stages of the algorithm
+        for i in range(0, len(first_shader_times)):
+            iteration_times.append(list())
+        # add the first time values to the iteration list
+        for save_list, shader_time in zip(iteration_times, first_shader_times):
+            save_list.append(float(shader_time))
+        # add the rest of test times of the file
+        for line in file:
+            shader_times = line.split(',')
+            for save_list, shader_time in zip(iteration_times, shader_times):
+                if(shader_time is not '\n'):
+                    save_list.append(float(shader_time))
+        #  calculate the mean values and std_dev
+        y_label = list()
+        std_dev = list()
+        for iters in iteration_times:
+            y_label.append(np.mean(iters))
+            std_dev.append(np.std(iters))
+    return y_label, std_dev
+
 def make_line_plot(save_file, y_labels_list, x_labels_list, std_dev_list, algorithm_names, y_axis_label="", x_axis_label=""):
     fig, ax = plt.subplots()
     ax.set_ylabel(y_axis_label)
@@ -107,6 +134,42 @@ def make_line_plot(save_file, y_labels_list, x_labels_list, std_dev_list, algori
     for y_labels, x_labels, std_dev, alg_name in zip(y_labels_list, x_labels_list, std_dev_list, algorithm_names):
         ax.errorbar(x_labels, y_labels, yerr=std_dev, label=alg_name)
     plt.legend()
+    if(save_file == ""):
+        plt.show()
+    else:
+        plt.savefig(save_file)
+    return
+def make_second_test_plot(save_file, y_labels, std_dev, title1="CDT Shaders Performance", title2 = "LCT Shaders Performance", y_axis_label = "Execution time(ms)", x_axis_label = ""):
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax1 = fig.add_subplot(2, 1, 1)
+    ax2 = fig.add_subplot(2, 1, 2)
+
+    # Turn off axis lines and ticks of the big subplot
+    ax.spines['top'].set_color(None)
+    ax.spines['bottom'].set_color(None)
+    ax.spines['left'].set_color(None)
+    ax.spines['right'].set_color(None)
+    ax.tick_params(labelcolor='w', top=False, bottom=False, left=False, right=False)
+    # Set common axis settings
+    fig.tight_layout()
+    ax.set_xlabel(x_axis_label)
+    ax.set_ylabel(y_axis_label)
+    plt.subplots_adjust(bottom=0.25, hspace=0.95)
+    #figure 1
+    shader_names = ["Locate\nStep 1", "Locate\nStep 2", "Marking\nStep 1", "Marking\nStep 2", "Flipping\nStep 1", "Flipping\nStep 2", "Flipping\nStep 3"]
+    ax1.title.set_text(title1)
+    ax1.bar(shader_names, y_labels[:7], yerr=std_dev[:7])
+    # fix x_labels settings
+    plt.setp(ax1.xaxis.get_majorticklabels(), rotation=70)
+    #figure 2
+    shader_names = ["Locate\nDisturbance", "Add new\npoints", "Locate Point\nTriangle", "Validate\nEdges", "Insert\n in Edge", "Marking\nStep 2", "Flipping\nStep 1", "Flipping\nStep 2", "Flipping\nStep 3"]
+    ax2.title.set_text(title2)
+    ax2.bar(shader_names, y_labels[7:], yerr=std_dev[7:])
+    # fix x_labels settings
+    plt.setp(ax2.xaxis.get_majorticklabels(), rotation=70)
+
     if(save_file == ""):
         plt.show()
     else:
@@ -200,8 +263,10 @@ if(plots.get(1) is not None):
     #first_G_file = open(abs_path("first_test_CPUGPU-100-90000-v2.txt"), "r")
     #first_Kall_file = open(abs_path("first_test_CPU-100-90000-v0.txt", False), "r")
 # Second plot
-
-
+if (plots.get(2) is not None):
+    second_test_results = get_second_result_from_file(abs_path("second_test-12100-v2.txt"))
+    save_file_name = abs_path("Second_test_results_12100", True, False)
+    make_second_test_plot(save_file_name, second_test_results[0], second_test_results[1])
 # Third plot
 if(plots.get(3) is not None):
         third_CG_25_results = get_results_from_file(abs_path("third_test_CPUGPU-300-7500-v2-0.25.txt"))
