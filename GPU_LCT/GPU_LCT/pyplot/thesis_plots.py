@@ -56,17 +56,21 @@ def abs_path(fileName, is_gpu = True, is_input = True):
 def get_results_from_file(file_name, max_vertex_count = -1):
     with open(file_name, "r") as file:
         y_groups = file.readline().split(',')
+        y_groups.append("combined")
         meta_data = file.readline().split(',')
         iterations = int(meta_data[0])
         increase_iterations = int(meta_data[1])
+
         # Create base of return values
         y_labels = dict()
         y_labels[y_groups[0]] = list()
         y_labels[y_groups[1]] = list()
+        y_labels[y_groups[2]] = list()
         x_labels = list()
         std_dev = dict()
         std_dev[y_groups[0]] = list()
         std_dev[y_groups[1]] = list()
+        std_dev[y_groups[2]] = list()
         counter = 0
         for line in file:
             if(counter == 0):
@@ -76,6 +80,7 @@ def get_results_from_file(file_name, max_vertex_count = -1):
                 iter_values = dict()
                 iter_values[y_groups[0]] = list()
                 iter_values[y_groups[1]] = list()
+                iter_values[y_groups[2]] = list()
                 if (max_vertex_count > -1) and max_vertex_count < num_vertices:
                     break;
                 counter += 1
@@ -90,12 +95,16 @@ def get_results_from_file(file_name, max_vertex_count = -1):
                 y_labels[y_groups[1]].append(np.mean(iter_values[y_groups[1]]))
                 std_dev[y_groups[1]].append(np.std(iter_values[y_groups[1]]))
 
+                # Calculate average and std of third group
+                y_labels[y_groups[2]].append(np.mean(iter_values[y_groups[2]]))
+                std_dev[y_groups[2]].append(np.std(iter_values[y_groups[2]]))
                 # Reset counter var
                 counter = 0
             else:
                 l = line.split(',')
                 iter_values[y_groups[0]].append(float(l[0]))
                 iter_values[y_groups[1]].append(float(l[1]))
+                iter_values[y_groups[2]].append(float(l[0]) + float(l[1]))
                 counter += 1
 
     return y_labels, y_groups,  x_labels, std_dev
