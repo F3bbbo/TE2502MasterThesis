@@ -1325,8 +1325,8 @@ void main(void)
 						{
 							NewPoint tmp;
 							tmp.pos = calc_pos;
-							//tmp.index = atomicAdd(status, 1);
-							tmp.index = status++;
+							tmp.index = atomicAdd(status, 1);
+							//tmp.index = status++;
 							tmp.face_i = sym_edges[c_edge_i[i]].face;
 							refine_points[disturb] = tmp;
 						}
@@ -1346,8 +1346,8 @@ void main(void)
 						{
 							NewPoint tmp;
 							tmp.pos = calc_pos;
-							//tmp.index = atomicAdd(status, 1);
-							tmp.index = status++;
+							tmp.index = atomicAdd(status, 1);
+							//tmp.index = status++;
 							tmp.face_i = sym_edges[c_edge_i[i]].face;
 							refine_points[disturb] = tmp;
 						}
