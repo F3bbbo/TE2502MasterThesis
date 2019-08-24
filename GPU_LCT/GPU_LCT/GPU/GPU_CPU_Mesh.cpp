@@ -1180,11 +1180,9 @@ namespace GPU
 					{
 						int start_index = tri_symedges[point_tri_index[seg_endpoint_indices[index].x]].x;
 						int starting_symedge = oriented_walk_point(start_index, seg_endpoint_indices[index].x);
-						int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y);
 						// update the points triangle indexes
 						point_tri_index[sym_edges[starting_symedge].vertex] = sym_edges[starting_symedge].face;
-						point_tri_index[sym_edges[ending_symedge].vertex] = sym_edges[ending_symedge].face;
-						int connecting_edge = points_connected(starting_symedge, ending_symedge);
+						int connecting_edge = points_connected(starting_symedge, seg_endpoint_indices[index].y);
 						if (connecting_edge != -1)
 						{
 							edge_is_constrained[connecting_edge] = index;
@@ -1194,6 +1192,9 @@ namespace GPU
 						}
 						else
 						{
+							int ending_symedge = oriented_walk_point(starting_symedge, seg_endpoint_indices[index].y);
+							point_tri_index[sym_edges[ending_symedge].vertex] = sym_edges[ending_symedge].face;
+
 							straight_walk(index, get_symedge(starting_symedge), seg_endpoint_indices[index].y);
 							straight_walk(index, get_symedge(ending_symedge), seg_endpoint_indices[index].x);
 						}
@@ -1938,11 +1939,10 @@ namespace GPU
 		return -1;
 	}
 
-	int GCMesh::points_connected(int e1, int e2)
+	int GCMesh::points_connected(int e1, int other_vertex)
 	{
 		int curr_e = e1;
 		bool reverse_direction = false;
-		int other_vertex = get_symedge(e2).vertex;
 
 		while (true)
 		{
