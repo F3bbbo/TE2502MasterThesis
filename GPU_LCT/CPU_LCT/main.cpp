@@ -28,10 +28,10 @@ int main()
 	const char* licfile = "triplannerlic.txt";
 	tp_verify_license_file(licfile); // first check if license file is there
 	tp_activate(licfile); // ok, load and activate
-	float iterations = 10;
-	float number_of_increase = 100;
-	int start = 3;
-	int increase = 3;
+	float iterations = 100;
+	float number_of_increase = 30;
+	int start = 10;
+	int increase = 10;
 	first_test({ start, start }, {increase, increase}, number_of_increase, iterations);
 	third_test({ start, start }, {increase, increase}, 0.25, number_of_increase, iterations);
 	third_test({ start, start }, {increase, increase}, 0.5, number_of_increase, iterations);
