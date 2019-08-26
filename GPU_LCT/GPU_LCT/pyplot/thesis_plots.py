@@ -396,6 +396,40 @@ if(plots.get(3) is not None):
         title = ""
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
+        # Full LCT
+        test_type = first_CG_results[1][2]
+        # create  25% plot
+        y_labels_list = [third_CG_25_results[0][test_type], third_G_25_results[0][test_type], third_kall_25_results[0][test_type]]
+        x_labels_list = [third_CG_25_results[2], third_G_25_results[2], third_kall_25_results[2]]
+        std_dev_list = [third_CG_25_results[3][test_type], third_G_25_results[3][test_type], third_kall_25_results[3][test_type]]
+        alg_names = ["CPUGPU", "GPU", "Kallmann"]
+        save_file_name = abs_path("Third_test_Full_LCT_CPU_GPU_Kallmann_0.25.png", True, False)
+        title = ""
+        make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
+
+        # create 50% plot
+        y_labels_list = [third_CG_50_results[0][test_type], third_G_50_results[0][test_type], third_kall_50_results[0][test_type]]
+        x_labels_list = [third_CG_50_results[2], third_G_50_results[2], third_kall_50_results[2]]
+        std_dev_list = [third_CG_50_results[3][test_type], third_G_50_results[3][test_type], third_kall_50_results[3][test_type]]
+        alg_names = ["CPUGPU", "GPU", "Kallmann"]
+        save_file_name = abs_path("Third_test_Full_LCT_CPU_GPU_Kallmann_0.50.png", True, False)
+        title = ""
+        make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
+
+
+        # create 75% plot
+        y_labels_list = [third_CG_75_results[0][test_type], third_G_75_results[0][test_type], third_kall_75_results[0][test_type]]
+        x_labels_list = [third_CG_75_results[2], third_G_75_results[2], third_kall_75_results[2]]
+        std_dev_list = [third_CG_75_results[3][test_type], third_G_75_results[3][test_type], third_kall_75_results[3][test_type]]
+        alg_names = ["CPUGPU", "GPU", "Kallmann"]
+        save_file_name = abs_path("Third_test_Full_LCT_CPU_GPU_Kallmann_0.75.png", True, False)
+        title = ""
+        make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
+
+        #----------------------------------------------------
+        # LARGE PLOTS
+        #----------------------------------------------------
+
         third_G_25_results = get_results_from_file(abs_path("third_test_GPU-300-108300-v2-0.25.txt"))
         third_G_50_results = get_results_from_file(abs_path("third_test_GPU-300-108300-v2-0.50.txt"))
         third_G_75_results = get_results_from_file(abs_path("third_test_GPU-300-108300-v2-0.75.txt"))
@@ -459,5 +493,35 @@ if(plots.get(3) is not None):
         std_dev_list = [third_G_75_results[3][test_type], third_kall_75_results[3][test_type]]
         alg_names = ["GPU", "Kallmann"]
         save_file_name = abs_path("Third_test_LCT_GPU_Kallmann_0.75.png", True, False)
+        title = ""
+        make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
+
+        # Full LCT
+        test_type = first_CG_results[1][2]
+        # create  25% plot
+        y_labels_list = [third_G_25_results[0][test_type], third_kall_25_results[0][test_type]]
+        x_labels_list = [third_G_25_results[2], third_kall_25_results[2]]
+        std_dev_list = [third_G_25_results[3][test_type], third_kall_25_results[3][test_type]]
+        alg_names = ["GPU", "Kallmann"]
+        save_file_name = abs_path("Third_test_Full_LCT_GPU_Kallmann_0.25.png", True, False)
+        title = ""
+        make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
+
+        # create 50% plot
+        y_labels_list = [third_G_50_results[0][test_type], third_kall_50_results[0][test_type]]
+        x_labels_list = [third_G_50_results[2], third_kall_50_results[2]]
+        std_dev_list = [third_G_50_results[3][test_type], third_kall_50_results[3][test_type]]
+        alg_names = ["GPU", "Kallmann"]
+        save_file_name = abs_path("Third_test_Full_LCT_GPU_Kallmann_0.50.png", True, False)
+        title = ""
+        make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
+
+
+        # create 75% plot
+        y_labels_list = [third_G_75_results[0][test_type], third_kall_75_results[0][test_type]]
+        x_labels_list = [third_G_75_results[2], third_kall_75_results[2]]
+        std_dev_list = [third_G_75_results[3][test_type], third_kall_75_results[3][test_type]]
+        alg_names = ["GPU", "Kallmann"]
+        save_file_name = abs_path("Third_test_Full_LCT_GPU_Kallmann_0.75.png", True, False)
         title = ""
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
