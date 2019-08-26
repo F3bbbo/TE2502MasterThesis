@@ -105,6 +105,11 @@ namespace GPU
 		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
 		m_status.update_buffer<int>({ 0 });
 
+		this->set_version(other.version);
+		this->set_epsilon(other.m_epsilon);
+
+		this->m_semaphores.set_used_element_count<GLuint>(other.m_semaphores.get_allocated_element_count<GLuint>());
+
 		return *this;
 	}
 

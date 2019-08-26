@@ -181,6 +181,12 @@ public:
 		glNamedBufferData(m_buf, sizeof(Data) * data.size(), data.data(), m_usage);
 		m_valid = true;
 	};
+
+	template <typename Data>
+	int get_allocated_element_count()
+	{
+		return m_buffer_size / sizeof(Data);
+	}
 private:
 	GLuint m_type;
 	GLuint m_buf = 0;
