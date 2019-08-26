@@ -104,7 +104,7 @@ namespace GPU
 
 		m_nr_of_symedges.update_buffer<int>({ m_sym_edges.element_count() });
 		m_status.update_buffer<int>({ 0 });
-
+		glFinish();
 		return *this;
 	}
 
