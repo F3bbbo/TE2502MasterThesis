@@ -23,8 +23,8 @@ namespace GPU
 		~GCMesh();
 		void initiate_buffers(glm::vec2 scale = { 1.f, 1.f });
 		void add_frame_points(std::vector<glm::vec2> points);
-		long long build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
-		long long refine_LCT();
+		double build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
+		double refine_LCT();
 		Find_Disturbance_Status get_find_dist_status();
 		std::vector<glm::vec2> get_vertices();
 		size_t get_num_vertices();

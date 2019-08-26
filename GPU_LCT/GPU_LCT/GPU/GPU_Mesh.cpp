@@ -303,7 +303,7 @@ namespace GPU
 		//LOG(std::string("Frame insertion number of iterations: ") + std::to_string(counter));
 }
 
-	long long GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
+	double GPUMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
 	{
 		int num_old_points = m_point_bufs.positions.element_count();
 		m_point_bufs.positions.append_to_buffer(points);
@@ -479,7 +479,7 @@ namespace GPU
 		return timer.elapsed_time();
 	}
 
-	long long GPUMesh::refine_LCT()
+	double GPUMesh::refine_LCT()
 	{
 		int i = 0;
 		int num_new_points;

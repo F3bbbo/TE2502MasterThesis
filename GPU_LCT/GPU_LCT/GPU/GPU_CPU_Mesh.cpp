@@ -180,7 +180,7 @@ namespace GPU
 		//LOG(std::string("Frame insertion number of iterations: ") + std::to_string(counter));
 	}
 
-	long long GCMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
+	double GCMesh::build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
 	{
 		int num_old_points = point_positions.size();
 		append_vec(point_positions, points);
@@ -325,7 +325,7 @@ namespace GPU
 		return timer.elapsed_time();
 	}
 
-	long long GCMesh::refine_LCT()
+	double GCMesh::refine_LCT()
 	{
 		//reset find disturbance status
 		find_dist_status = { 0,0,0,0 };

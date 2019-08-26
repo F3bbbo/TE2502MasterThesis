@@ -13,7 +13,7 @@ public:
 	void start();
 	void stop();
 
-	long long elapsed_time();
+	double elapsed_time();
 
 private:
 	TimePoint m_start;

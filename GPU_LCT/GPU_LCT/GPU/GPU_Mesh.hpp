@@ -19,8 +19,8 @@ namespace GPU
 		GPUMesh(const GPUMesh &other) = delete; 
 		void initiate_buffers(glm::vec2 scale = { 1.f, 1.f });
 		void add_frame_points(std::vector<glm::vec2> points);
-		long long build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
-		long long refine_LCT();
+		double build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
+		double refine_LCT();
 		std::vector<long long> measure_shaders(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
 		std::vector<glm::vec2> get_vertices();
 		int get_num_vertices();

@@ -21,7 +21,8 @@ void Timer::stop()
 	m_stop = Clock::now();
 }
 
-long long Timer::elapsed_time()
+double Timer::elapsed_time()
 {
-	return std::chrono::duration_cast<std::chrono::milliseconds>(m_stop - m_start).count();
+	auto mili_time = std::chrono::duration_cast<std::chrono::microseconds>(m_stop - m_start).count();
+	return  mili_time / 1000.0f;
 }
