@@ -354,7 +354,7 @@ int main()
 	// GPU v2
 	//--------------------------------------------------------------------------
 	number_of_increases = 18;
-	iterations = 10;
+	iterations = 100;
 	start = 10;
 	steps = 10;
 	test_CPU = false;

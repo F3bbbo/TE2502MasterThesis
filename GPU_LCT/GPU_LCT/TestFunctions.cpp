@@ -1,5 +1,8 @@
 #include "TestFunctions.hpp"
 #include <sstream>
+#include <chrono>
+#include <thread>
+#define WAIT_TIME_MILLI 2000
 
 void generate_third_test_input(std::string filename_end, std::vector<std::pair<glm::ivec2, float>> total_obstacle_amount)
 {
@@ -186,6 +189,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					gc_mesh.set_version(version);
 					gc_mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y });
 					gc_mesh.add_frame_points(gpu_frame.first);
+					
 
 					auto cdt_time = gc_mesh.build_CDT(data.first, data.second);
 					auto lct_time = gc_mesh.refine_LCT();
@@ -252,6 +256,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 			// test GPU solution
 			for (int i = 0; i < iterations + 1; i++)
 			{
+				
 				if (i == 0)
 				{
 					// The GPU needs to be "warmed up" or else the first result will be very slow
@@ -259,6 +264,8 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					gc_mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y });
 					gc_mesh.set_version(version);
 					gc_mesh.add_frame_points(gpu_frame.first);
+
+					
 
 					gc_mesh.build_CDT(data.first, data.second);
 					gc_mesh.refine_LCT();
@@ -277,6 +284,8 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					gc_mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y });
 					gc_mesh.set_version(version);
 					gc_mesh.add_frame_points(gpu_frame.first);
+
+					std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME_MILLI));
 
 					auto cdt_time = gc_mesh.build_CDT(data.first, data.second);
 					auto lct_time = gc_mesh.refine_LCT();
@@ -350,6 +359,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 			mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y });
 			mesh.set_version(version);
 			mesh.add_frame_points(gpu_frame.first);
+			std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME_MILLI));
 			mesh.measure_shaders(data.first, data.second);
 
 			auto status = mesh.get_find_dist_status();
@@ -366,6 +376,7 @@ void second_test(glm::ivec2 obstacle_amount, int iterations, int version)
 			mesh.initiate_buffers({ TEST_MAP_SIZE_X, TEST_MAP_SIZE_Y });
 			mesh.set_version(version);
 			mesh.add_frame_points(gpu_frame.first);
+			std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME_MILLI));
 			total_times[i - 1] = mesh.measure_shaders(data.first, data.second);
 
 			auto status = mesh.get_find_dist_status();
@@ -569,6 +580,7 @@ void third_test(std::string input_file, int iterations, bool test_CPUGPU, bool t
 
 			for (int j = 0; j < iterations + 1; j++)
 			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME_MILLI));
 				if (j == 0)
 				{
 					// The GPU needs to be "warmed up" or else the first result will be very slow
