@@ -375,7 +375,50 @@ int main()
 	generate_third_test_input("test", test1);
 	third_test("test", iterations, test_CPU, test_GPU, 0.75f, version);
 
+	number_of_increases = 20;
+	iterations = 100;
+	start = 3;
+	steps = 3;
+	test_CPU = false;
+	test_GPU = true;
+	version = 2;
+	// Third test, 25 %
+	test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.25f);
+	generate_third_test_input("test", test1);
+	third_test("test", iterations, test_CPU, test_GPU, 0.25f, version);
 
+	// Third test, 50 %
+	test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.5f);
+	generate_third_test_input("test", test1);
+	third_test("test", iterations, test_CPU, test_GPU, 0.5f, version);
+
+	// Third test, 75 %
+	test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.75f);
+	generate_third_test_input("test", test1);
+	third_test("test", iterations, test_CPU, test_GPU, 0.75f, version);
+
+	//--------------------------------------------------------------------------
+	// GPU v2 First test
+	//--------------------------------------------------------------------------
+	number_of_increases = 20;
+	iterations = 100;
+	start = 3;
+	steps = 3;
+	test_CPU = false;
+	test_GPU = true;
+	version = 2;
+
+	first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
+
+	number_of_increases = 25;
+	iterations = 100;
+	start = 10;
+	steps = 10;
+	test_CPU = false;
+	test_GPU = true;
+	version = 2;
+
+	first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
 
 
 	//gc_mesh.load_from_file("Output files/throwGC_150_155");
