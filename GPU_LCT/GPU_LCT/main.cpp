@@ -353,27 +353,27 @@ int main()
 	//--------------------------------------------------------------------------
 	// GPU v2
 	//--------------------------------------------------------------------------
-	//number_of_increases = 40;
-	//iterations = 10;
-	//start = 3;
-	//steps = 3;
-	//test_CPU = false;
-	//test_GPU = true;
-	//version = 2;
+	number_of_increases = 18;
+	iterations = 10;
+	start = 10;
+	steps = 10;
+	test_CPU = false;
+	test_GPU = true;
+	version = 2;
 	// Third test, 25 %
-	//test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.25f);
-	//generate_third_test_input("test", test1);
-	//third_test("test", iterations, test_CPU, test_GPU, 0.25f, version);
+	test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.25f);
+	generate_third_test_input("test", test1);
+	third_test("test", iterations, test_CPU, test_GPU, 0.25f, version);
 
 	// Third test, 50 %
-	//test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.5f);
-	//generate_third_test_input("test", test1);
-	//third_test("test", iterations, test_CPU, test_GPU, 0.5f, version);
+	test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.5f);
+	generate_third_test_input("test", test1);
+	third_test("test", iterations, test_CPU, test_GPU, 0.5f, version);
 
 	// Third test, 75 %
-/*	test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.75f);
+	test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.75f);
 	generate_third_test_input("test", test1);
-	third_test("test", iterations, test_CPU, test_GPU, 0.75f, version)*/;
+	third_test("test", iterations, test_CPU, test_GPU, 0.75f, version);
 
 
 
