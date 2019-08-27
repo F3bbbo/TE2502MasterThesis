@@ -3,6 +3,24 @@
 
 namespace GPU
 {
+	// initilize shaders to 0
+	// CDT shaders
+	 GLuint GPUMesh::m_location_program = 0;
+	 GLuint GPUMesh::m_location_tri_program = 0;
+	 GLuint GPUMesh::m_insertion_program = 0;
+	 GLuint GPUMesh::m_marking_part_one_program = 0;
+	 GLuint GPUMesh::m_marking_part_two_program = 0;
+	 GLuint GPUMesh::m_flip_edges_part_one_program = 0;
+	 GLuint GPUMesh::m_flip_edges_part_two_program = 0;
+	 GLuint GPUMesh::m_flip_edges_part_three_program = 0;
+
+	// LCT shaders
+	 GLuint GPUMesh::m_locate_disturbances_program = 0;
+	 GLuint GPUMesh::m_add_new_points_program = 0;
+	 GLuint GPUMesh::m_locate_point_triangle_program = 0;
+	 GLuint GPUMesh::m_validate_edges_program = 0;
+	 GLuint GPUMesh::m_insert_in_edge_program = 0;
+
 	GPUMesh::GPUMesh()
 	{
 		setup_compute_shaders();
@@ -11,6 +29,7 @@ namespace GPU
 
 	GPUMesh::~GPUMesh()
 	{
+	
 	}
 
 	GPUMesh& GPUMesh::operator=(GPUMesh& other)
@@ -1322,21 +1341,34 @@ namespace GPU
 	void GPUMesh::setup_compute_shaders()
 	{
 		// CDT
-		compile_cs(m_location_program, "GPU/location_step.glsl");
-		compile_cs(m_location_tri_program, "GPU/location_step_triangle.glsl");
-		compile_cs(m_insertion_program, "GPU/insertion_step.glsl");
-		compile_cs(m_marking_part_one_program, "GPU/marking_step_part_one.glsl");
-		compile_cs(m_marking_part_two_program, "GPU/marking_step_part_two.glsl");
-		compile_cs(m_flip_edges_part_one_program, "GPU/flipping_part_one.glsl");
-		compile_cs(m_flip_edges_part_two_program, "GPU/flipping_part_two.glsl");
-		compile_cs(m_flip_edges_part_three_program, "GPU/flipping_part_three.glsl");
+		if(m_location_program == 0)
+			compile_cs(m_location_program, "GPU/location_step.glsl");
+		if(m_location_tri_program == 0)
+			compile_cs(m_location_tri_program, "GPU/location_step_triangle.glsl");
+		if(m_insertion_program == 0)
+			compile_cs(m_insertion_program, "GPU/insertion_step.glsl");
+		if(m_marking_part_one_program == 0)
+			compile_cs(m_marking_part_one_program, "GPU/marking_step_part_one.glsl");
+		if(m_marking_part_two_program == 0)
+			compile_cs(m_marking_part_two_program, "GPU/marking_step_part_two.glsl");
+		if(m_flip_edges_part_one_program == 0)
+			compile_cs(m_flip_edges_part_one_program, "GPU/flipping_part_one.glsl");
+		if(m_flip_edges_part_two_program == 0)
+			compile_cs(m_flip_edges_part_two_program, "GPU/flipping_part_two.glsl");
+		if(m_flip_edges_part_three_program == 0)
+			compile_cs(m_flip_edges_part_three_program, "GPU/flipping_part_three.glsl");
 
 		// LCT
-		compile_cs(m_locate_disturbances_program, "GPU/locate_disturbances.glsl");
-		compile_cs(m_add_new_points_program, "GPU/add_new_points.glsl");
-		compile_cs(m_locate_point_triangle_program, "GPU/locate_point_triangle.glsl");
-		compile_cs(m_validate_edges_program, "GPU/validate_edges.glsl");
-		compile_cs(m_insert_in_edge_program, "GPU/insert_in_edge.glsl");
+		if(m_locate_disturbances_program == 0)
+			compile_cs(m_locate_disturbances_program, "GPU/locate_disturbances.glsl");
+		if(m_add_new_points_program == 0)
+			compile_cs(m_add_new_points_program, "GPU/add_new_points.glsl");
+		if(m_locate_point_triangle_program == 0)
+			compile_cs(m_locate_point_triangle_program, "GPU/locate_point_triangle.glsl");
+		if(m_validate_edges_program == 0)
+			compile_cs(m_validate_edges_program, "GPU/validate_edges.glsl");
+		if(m_insert_in_edge_program == 0)
+			compile_cs(m_insert_in_edge_program, "GPU/insert_in_edge.glsl");
 	}
 
 	void GPUMesh::compile_cs(GLuint & program, const char * path, int work_group_size)

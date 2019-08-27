@@ -14,7 +14,7 @@ namespace GPU
 	{
 	public:
 		GPUMesh();
-		~GPUMesh();
+		virtual ~GPUMesh();
 		GPUMesh& operator=(GPUMesh& other);
 		GPUMesh(const GPUMesh &other) = delete; 
 		void initiate_buffers(glm::vec2 scale = { 1.f, 1.f });
@@ -34,6 +34,23 @@ namespace GPU
 		std::string save_to_file(bool upload, int inserted_objects = -1);
 		void load_from_file(std::string filename);
 		Find_Disturbance_Status get_find_dist_status();
+		// CDT shaders
+		static GLuint m_location_program;
+		static GLuint m_location_tri_program;
+		static GLuint m_insertion_program;
+		static GLuint m_marking_part_one_program;
+		static GLuint m_marking_part_two_program;
+		static GLuint m_flip_edges_part_one_program;
+		static GLuint m_flip_edges_part_two_program;
+		static GLuint m_flip_edges_part_three_program;
+
+		// LCT shaders
+		static GLuint m_locate_disturbances_program;
+		static GLuint m_add_new_points_program;
+		static GLuint m_locate_point_triangle_program;
+		static GLuint m_validate_edges_program;
+		static GLuint m_insert_in_edge_program;
+
 	private:
 		bool m_buffers_initated = false;
 		glm::ivec2 m_scale;
@@ -56,22 +73,7 @@ namespace GPU
 		float m_epsilon = 0.0001f;
 		int version = 2;
 
-		// CDT shaders
-		GLuint m_location_program;
-		GLuint m_location_tri_program;
-		GLuint m_insertion_program;
-		GLuint m_marking_part_one_program;
-		GLuint m_marking_part_two_program;
-		GLuint m_flip_edges_part_one_program;
-		GLuint m_flip_edges_part_two_program;
-		GLuint m_flip_edges_part_three_program;
 
-		// LCT shaders
-		GLuint m_locate_disturbances_program;
-		GLuint m_add_new_points_program;
-		GLuint m_locate_point_triangle_program;
-		GLuint m_validate_edges_program;
-		GLuint m_insert_in_edge_program;
 
 		template<typename T>
 		std::vector<int> find_equal(std::vector<T> arr, T e)
