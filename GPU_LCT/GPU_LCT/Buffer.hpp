@@ -12,7 +12,7 @@ class Buffer
 {
 public:
 	Buffer();
-	~Buffer();
+	virtual ~Buffer();
 
 	template <typename Data>
 	void create_buffer(GLuint type, std::vector<Data> data, GLuint usage, GLuint location = 0, GLuint preallocate_size = 0)
