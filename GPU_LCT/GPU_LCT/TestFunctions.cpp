@@ -2,7 +2,8 @@
 #include <sstream>
 #include <chrono>
 #include <thread>
-#define WAIT_TIME_MILLI 2000
+#include <glm/glm.hpp>
+#define WAIT_TIME_MILLI 0
 
 void generate_third_test_input(std::string filename_end, std::vector<std::pair<glm::ivec2, float>> total_obstacle_amount)
 {
@@ -265,7 +266,8 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					gc_mesh.set_version(version);
 					gc_mesh.add_frame_points(gpu_frame.first);
 
-					
+					glFinish();
+					std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME_MILLI));
 
 					gc_mesh.build_CDT(data.first, data.second);
 					gc_mesh.refine_LCT();
@@ -285,6 +287,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 					gc_mesh.set_version(version);
 					gc_mesh.add_frame_points(gpu_frame.first);
 
+					glFinish();
 					std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME_MILLI));
 
 					auto cdt_time = gc_mesh.build_CDT(data.first, data.second);
