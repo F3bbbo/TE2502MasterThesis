@@ -11,6 +11,7 @@ TestMap::TestMap()
 TestMap::~TestMap()
 {
 	clear_shapes();
+	delete m_wall;
 }
 
 void TestMap::generate_map()

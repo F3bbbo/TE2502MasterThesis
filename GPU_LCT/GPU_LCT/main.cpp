@@ -13,6 +13,10 @@
 
 #include "TestFunctions.hpp"
 
+//#define _CRTDBG_MAP_ALLOC
+//#include <stdlib.h>
+//#include <crtdbg.h>
+
 void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 {
 	/*glm::vec2 point = { 0.4f, -0.4f };
@@ -164,6 +168,7 @@ bool check_for_sliver_tri(std::array<vec2, 3> tri, float epsi = EPSILON)
 }
 int main()
 {
+	//_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
 	float scale = 490.0f;

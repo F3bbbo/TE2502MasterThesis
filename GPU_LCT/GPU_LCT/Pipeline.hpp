@@ -23,7 +23,7 @@ class Pipeline
 {
 public:
 	Pipeline();
-	~Pipeline();
+	virtual ~Pipeline();
 	
 	bool is_valid();
 	void add_pass(int type, ShaderPath&& input);

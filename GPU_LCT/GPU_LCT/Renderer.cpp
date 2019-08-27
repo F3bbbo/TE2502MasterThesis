@@ -54,6 +54,7 @@ Renderer::Renderer(glm::ivec2 screen_res)
 
 Renderer::~Renderer()
 {
+	glfwTerminate();
 }
 
 void Renderer::set_camera_base_zoom(glm::vec2 dimensions, float padding)
