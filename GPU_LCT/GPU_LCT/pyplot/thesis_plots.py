@@ -327,9 +327,9 @@ if (plots.get(2) is not None):
     make_second_test_plot(save_file_name, second_test_results[0], second_test_results[1])
 # Third plot
 if(plots.get(3) is not None):
-        third_CG_25_results = get_results_from_file(abs_path("third_test_CPUGPU-300-7500-v2-0.25.txt"))
-        third_CG_50_results = get_results_from_file(abs_path("third_test_CPUGPU-300-7500-v2-0.50.txt"))
-        third_CG_75_results = get_results_from_file(abs_path("third_test_CPUGPU-300-7500-v2-0.75.txt"))
+        third_CG_25_results = get_results_from_file(abs_path("third_test_CPUGPU-27-6075-v2-0.25.txt"))
+        third_CG_50_results = get_results_from_file(abs_path("third_test_CPUGPU-27-6075-v2-0.50.txt"))
+        third_CG_75_results = get_results_from_file(abs_path("third_test_CPUGPU-27-6075-v2-0.75.txt"))
         third_G_25_results = get_results_from_file(abs_path("third_test_GPU-300-108300-v2-0.25.txt"), third_CG_25_results[2][-1])
         third_G_50_results = get_results_from_file(abs_path("third_test_GPU-300-108300-v2-0.50.txt"), third_CG_50_results[2][-1])
         third_G_75_results = get_results_from_file(abs_path("third_test_GPU-300-108300-v2-0.75.txt"), third_CG_75_results[2][-1])
@@ -337,7 +337,7 @@ if(plots.get(3) is not None):
         third_kall_50_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.50.txt", False), third_CG_50_results[2][-1])
         third_kall_75_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.75.txt", False), third_CG_75_results[2][-1])
         # CDT
-        test_type = first_CG_results[1][0]
+        test_type = third_CG_25_results[1][0]
         # create  25% plot
         y_labels_list = [third_CG_25_results[0][test_type], third_G_25_results[0][test_type], third_kall_25_results[0][test_type]]
         x_labels_list = [third_CG_25_results[2], third_G_25_results[2], third_kall_25_results[2]]
@@ -367,7 +367,7 @@ if(plots.get(3) is not None):
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
         # LCT
-        test_type = first_CG_results[1][1]
+        test_type = third_CG_25_results[1][1]
         # create  25% plot
         y_labels_list = [third_CG_25_results[0][test_type], third_G_25_results[0][test_type], third_kall_25_results[0][test_type]]
         x_labels_list = [third_CG_25_results[2], third_G_25_results[2], third_kall_25_results[2]]
@@ -397,7 +397,7 @@ if(plots.get(3) is not None):
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
         # Full LCT
-        test_type = first_CG_results[1][2]
+        test_type = third_CG_25_results[1][2]
         # create  25% plot
         y_labels_list = [third_CG_25_results[0][test_type], third_G_25_results[0][test_type], third_kall_25_results[0][test_type]]
         x_labels_list = [third_CG_25_results[2], third_G_25_results[2], third_kall_25_results[2]]
@@ -437,7 +437,7 @@ if(plots.get(3) is not None):
         third_kall_50_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.50.txt", False), third_G_50_results[2][-1])
         third_kall_75_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.75.txt", False), third_G_75_results[2][-1])
         # CDT
-        test_type = first_CG_results[1][0]
+        test_type = third_G_25_results[1][0]
         # create  25% plot
         y_labels_list = [third_G_25_results[0][test_type], third_kall_25_results[0][test_type]]
         x_labels_list = [third_G_25_results[2], third_kall_25_results[2]]
@@ -467,7 +467,7 @@ if(plots.get(3) is not None):
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
         # LCT
-        test_type = first_CG_results[1][1]
+        test_type = third_G_25_results[1][1]
         # create  25% plot
         y_labels_list = [third_G_25_results[0][test_type], third_kall_25_results[0][test_type]]
         x_labels_list = [third_G_25_results[2], third_kall_25_results[2]]
@@ -497,7 +497,7 @@ if(plots.get(3) is not None):
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
         # Full LCT
-        test_type = first_CG_results[1][2]
+        test_type = third_G_25_results[1][2]
         # create  25% plot
         y_labels_list = [third_G_25_results[0][test_type], third_kall_25_results[0][test_type]]
         x_labels_list = [third_G_25_results[2], third_kall_25_results[2]]
