@@ -983,6 +983,8 @@ namespace GPU
 					}
 				}
 
+				point_tri_index[index] = sym_edges[curr_e].face;
+
 				int face = sym_edges[curr_e].face;
 				std::array<glm::vec2, 3> tri_points;
 				get_face(face, tri_points);
@@ -1851,9 +1853,7 @@ namespace GPU
 				int e_sym = sym(curr_e);
 				if (e_sym > -1)
 				{
-					std::array<vec2, 3> tri_points;
-					get_face(sym_edges[e_sym].face, tri_points);
-					if (point_ray_test(tri_points[0], tri_points[1], tri_points[2]))
+					if (check_for_sliver_tri(e_sym))
 					{
 						return false;
 					}
