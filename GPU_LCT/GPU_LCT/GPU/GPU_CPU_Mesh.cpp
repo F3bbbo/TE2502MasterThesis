@@ -2653,7 +2653,7 @@ namespace GPU
 		float b_prim = dot(dir, R[1]);
 		R[2] = R[1] + (dir * (c_prim - b_prim));
 		int first_disturb = -1;
-		if (!point_equal(R[2], R[0]))
+		if (!point_equal(R[2], R[0]) && !point_equal(R[2], R[1]))
 		{
 			// Loop through points trying to find disturbance to current traversal
 			float best_dist = FLT_MAX;

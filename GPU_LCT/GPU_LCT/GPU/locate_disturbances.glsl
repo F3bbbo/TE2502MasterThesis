@@ -1117,7 +1117,7 @@ int find_constraint_disturbance_v2(int constraint_sym_e, int edge_ac, bool right
 	R[2] = R[1] + (dir * (c_prim - b_prim));
 	// Loop through points trying to find disturbance to current traversal
 	int first_disturb = -1;
-	if (!point_equal(R[2], R[0]))
+	if (!point_equal(R[2], R[0]) && !point_equal(R[2], R[1]))
 	{
 		float best_dist = FLT_MAX;
 		float best_dist_b = 0.0f;
