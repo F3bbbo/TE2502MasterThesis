@@ -141,6 +141,11 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	m.add_frame_points(gpu_frame.first);
 	m.build_CDT(gpu_map.first, gpu_map.second);
 	m.refine_LCT();
+	stat = m.get_find_dist_status();
+	LOG("CPU const_list_status: " + std::to_string(stat.const_list_status));
+	LOG("CPU const_queue_status: " + std::to_string(stat.const_queue_status));
+	LOG("CPU dist_list_status: " + std::to_string(stat.dist_list_status));
+	LOG("CPU dist_queue_status: " + std::to_string(stat.dist_queue_status));
 	LOG("Done test with test maps");
 	//g_m.build_CDT(dynamic_obj.first, dynamic_obj.second);
 
