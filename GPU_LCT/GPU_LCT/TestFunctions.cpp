@@ -3,7 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <glm/glm.hpp>
-#define WAIT_TIME_MILLI 0
+#define WAIT_TIME_MILLI 200
 
 void generate_third_test_input(std::string filename_end, std::vector<std::pair<glm::ivec2, float>> total_obstacle_amount)
 {

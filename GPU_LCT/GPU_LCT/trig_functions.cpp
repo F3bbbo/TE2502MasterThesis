@@ -311,6 +311,10 @@ std::array<vec2, 2> ray_circle_intersection(vec2 ray0, vec2 ray1, vec2 center, f
 	if (m_2 > r_2)
 	{
 		hit = false;
+		for (int i = 0; i < 2; i++)
+		{
+			result[i] = { FLT_MAX, FLT_MAX };
+		}
 		return result;
 	}
 	float q = sqrt(r_2 - m_2);
