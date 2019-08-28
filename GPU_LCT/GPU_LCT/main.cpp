@@ -13,9 +13,9 @@
 
 #include "TestFunctions.hpp"
 
-//#define _CRTDBG_MAP_ALLOC
-//#include <stdlib.h>
-//#include <crtdbg.h>
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
 
 void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 {
@@ -121,7 +121,7 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	//}
 
 	// create GPU data
-	g_m.set_epsilon(0.001f);
+	//g_m.set_epsilon(0.001f);
 	auto gpu_frame = test_map.get_GPU_frame();
 	auto gpu_map = test_map.get_GPU_static_obstacles();
 	auto dynamic_obj = test_map.get_GPU_dynamic_obstacles();
@@ -137,11 +137,11 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	LOG("GPU const_queue_status: " + std::to_string(stat.const_queue_status));
 	LOG("GPU dist_list_status: " + std::to_string(stat.dist_list_status));
 	LOG("GPU dist_queue_status: " + std::to_string(stat.dist_queue_status));
-	//m.set_version(vers);
-	//m.add_frame_points(gpu_frame.first);
-	//m.build_CDT(gpu_map.first, gpu_map.second);
-	//m.refine_LCT();
-
+	m.set_version(vers);
+	m.add_frame_points(gpu_frame.first);
+	m.build_CDT(gpu_map.first, gpu_map.second);
+	m.refine_LCT();
+	LOG("Done test with test maps");
 	//g_m.build_CDT(dynamic_obj.first, dynamic_obj.second);
 
 }
@@ -171,8 +171,8 @@ int main()
 	//_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
-	float scale = 490.0f;
-	int num_object_multi = 110;
+	float scale = 49.99f;
+	int num_object_multi = 80;
 	glm::vec2 map_scaling = { scale, scale };
 	glm::ivec2 num_objects = { num_object_multi, num_object_multi };
 	GPU::GPUMesh g_mesh;
@@ -228,9 +228,9 @@ int main()
 	// CPUGPU v2
 	//--------------------------------------------------------------------------
 	//number_of_increases = 20;
-	//iterations = 10;
-	//start = 3;
-	//steps = 3;
+	//iterations = 100;
+	//start = 5;
+	//steps = 5;
 	//test_CPU = true;
 	//test_GPU = false;
 	//version = 2;
@@ -255,9 +255,9 @@ int main()
 	// GPU v2
 	//--------------------------------------------------------------------------
 	//number_of_increases = 20;
-	//iterations = 10;
-	//start = 3;
-	//steps = 3;
+	//iterations = 100;
+	//start = 5;
+	//steps = 5;
 	//test_CPU = false;
 	//test_GPU = true;
 	//version = 2;
@@ -308,10 +308,10 @@ int main()
 	//--------------------------------------------------------------------------
 	// CPUGPU v2
 	//--------------------------------------------------------------------------
-	//number_of_increases = 16;
-	//iterations = 10;
-	//start = 3;
-	//steps = 3;
+	//number_of_increases = 20;
+	//iterations = 100;
+	//start = 5;
+	//steps = 5;
 	//test_CPU = true;
 	//test_GPU = false;
 	//version = 2;
@@ -358,32 +358,32 @@ int main()
 	//--------------------------------------------------------------------------
 	// GPU v2
 	//--------------------------------------------------------------------------
-	number_of_increases = 18;
-	iterations = 100;
-	start = 10;
-	steps = 10;
-	test_CPU = false;
-	test_GPU = true;
-	version = 2;
-	// Third test, 25 %
-	test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.25f);
-	generate_third_test_input("test", test1);
-	third_test("test", iterations, test_CPU, test_GPU, 0.25f, version);
+	//number_of_increases = 18;
+	//iterations = 100;
+	//start = 10;
+	//steps = 10;
+	//test_CPU = false;
+	//test_GPU = true;
+	//version = 2;
+	//// Third test, 25 %
+	//test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.25f);
+	//generate_third_test_input("test", test1);
+	//third_test("test", iterations, test_CPU, test_GPU, 0.25f, version);
 
-	// Third test, 50 %
-	test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.5f);
-	generate_third_test_input("test", test1);
-	third_test("test", iterations, test_CPU, test_GPU, 0.5f, version);
+	//// Third test, 50 %
+	//test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.5f);
+	//generate_third_test_input("test", test1);
+	//third_test("test", iterations, test_CPU, test_GPU, 0.5f, version);
 
-	// Third test, 75 %
-	test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.75f);
-	generate_third_test_input("test", test1);
-	third_test("test", iterations, test_CPU, test_GPU, 0.75f, version);
+	//// Third test, 75 %
+	//test1 = gen_obstacle_range({ start, start }, { steps, steps }, number_of_increases, 0.75f);
+	//generate_third_test_input("test", test1);
+	//third_test("test", iterations, test_CPU, test_GPU, 0.75f, version);
 
 	number_of_increases = 20;
 	iterations = 100;
-	start = 3;
-	steps = 3;
+	start = 5;
+	steps = 5;
 	test_CPU = false;
 	test_GPU = true;
 	version = 2;
@@ -405,25 +405,25 @@ int main()
 	//--------------------------------------------------------------------------
 	// GPU v2 First test
 	//--------------------------------------------------------------------------
-	number_of_increases = 20;
-	iterations = 100;
-	start = 3;
-	steps = 3;
-	test_CPU = false;
-	test_GPU = true;
-	version = 2;
+	//number_of_increases = 16;
+	//iterations = 100;
+	//start = 3;
+	//steps = 3;
+	//test_CPU = false;
+	//test_GPU = true;
+	//version = 2;
 
-	first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
+	//first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
 
-	number_of_increases = 25;
-	iterations = 100;
-	start = 10;
-	steps = 10;
-	test_CPU = false;
-	test_GPU = true;
-	version = 2;
+	//number_of_increases = 25;
+	//iterations = 100;
+	//start = 10;
+	//steps = 10;
+	//test_CPU = false;
+	//test_GPU = true;
+	//version = 2;
 
-	first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
+	//first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
 
 
 	//gc_mesh.load_from_file("Output files/throwGC_150_155");
@@ -560,6 +560,8 @@ int main()
 			//std::cout << "Mouse Location: {" << renderer.get_mouse_pos().x << ", " << renderer.get_mouse_pos().y << "}\n";
 		}
 	}
+
+	_CrtDumpMemoryLeaks();
 	return 0;
 }
 
