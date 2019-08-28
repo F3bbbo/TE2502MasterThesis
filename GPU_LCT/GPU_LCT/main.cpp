@@ -227,15 +227,15 @@ int main()
 	//--------------------------------------------------------------------------
 	// CPUGPU v2
 	//--------------------------------------------------------------------------
-	//number_of_increases = 20;
-	//iterations = 100;
-	//start = 5;
-	//steps = 5;
-	//test_CPU = true;
-	//test_GPU = false;
-	//version = 2;
+	number_of_increases = 20;
+	iterations = 100;
+	start = 10;
+	steps = 10;
+	test_CPU = true;
+	test_GPU = false;
+	version = 2;
 
-	//first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
+	first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
 
 	//--------------------------------------------------------------------------
 	// GPU v1
@@ -415,15 +415,15 @@ int main()
 
 	//first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
 
-	number_of_increases = 22;
-	iterations = 100;
-	start = 10;
-	steps = 10;
-	test_CPU = false;
-	test_GPU = true;
-	version = 2;
+	//number_of_increases = 22;
+	//iterations = 100;
+	//start = 10;
+	//steps = 10;
+	//test_CPU = false;
+	//test_GPU = true;
+	//version = 2;
 
-	first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
+	//first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
 
 
 	//gc_mesh.load_from_file("Output files/throwGC_150_155");
