@@ -38,9 +38,9 @@ int main()
 	third_test({ start, start }, {increase, increase}, 0.75, number_of_increase, iterations);
 
 	iterations = 100;
-	number_of_increase = 16;
-	start = 3;
-	increase = 3;
+	number_of_increase = 20;
+	start = 5;
+	increase = 5;
 
 	first_test({ start, start }, {increase, increase}, number_of_increase, iterations);
 	third_test({ start, start }, {increase, increase}, 0.25, number_of_increase, iterations);
