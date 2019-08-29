@@ -137,16 +137,16 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	LOG("GPU const_queue_status: " + std::to_string(stat.const_queue_status));
 	LOG("GPU dist_list_status: " + std::to_string(stat.dist_list_status));
 	LOG("GPU dist_queue_status: " + std::to_string(stat.dist_queue_status));
-	m.set_version(vers);
-	m.add_frame_points(gpu_frame.first);
-	m.build_CDT(gpu_map.first, gpu_map.second);
-	m.refine_LCT();
-	stat = m.get_find_dist_status();
-	LOG("CPU const_list_status: " + std::to_string(stat.const_list_status));
-	LOG("CPU const_queue_status: " + std::to_string(stat.const_queue_status));
-	LOG("CPU dist_list_status: " + std::to_string(stat.dist_list_status));
-	LOG("CPU dist_queue_status: " + std::to_string(stat.dist_queue_status));
-	LOG("Done test with test maps");
+	//m.set_version(vers);
+	//m.add_frame_points(gpu_frame.first);
+	//m.build_CDT(gpu_map.first, gpu_map.second);
+	//m.refine_LCT();
+	//stat = m.get_find_dist_status();
+	//LOG("CPU const_list_status: " + std::to_string(stat.const_list_status));
+	//LOG("CPU const_queue_status: " + std::to_string(stat.const_queue_status));
+	//LOG("CPU dist_list_status: " + std::to_string(stat.dist_list_status));
+	//LOG("CPU dist_queue_status: " + std::to_string(stat.dist_queue_status));
+	//LOG("Done test with test maps");
 	//g_m.build_CDT(dynamic_obj.first, dynamic_obj.second);
 
 }
@@ -177,7 +177,7 @@ int main()
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
 	float scale = 49.99f;
-	int num_object_multi = 80;
+	int num_object_multi = 320;
 	glm::vec2 map_scaling = { scale, scale };
 	glm::ivec2 num_objects = { num_object_multi, num_object_multi };
 	GPU::GPUMesh g_mesh;
@@ -232,15 +232,15 @@ int main()
 	//--------------------------------------------------------------------------
 	// CPUGPU v2
 	//--------------------------------------------------------------------------
-	number_of_increases = 20;
-	iterations = 100;
-	start = 10;
-	steps = 10;
-	test_CPU = true;
-	test_GPU = false;
-	version = 2;
+	//number_of_increases = 20;
+	//iterations = 100;
+	//start = 10;
+	//steps = 10;
+	//test_CPU = true;
+	//test_GPU = false;
+	//version = 2;
 
-	first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
+	//first_test({ start, start }, {steps, steps}, number_of_increases, iterations, test_CPU, test_GPU, version );
 
 	//--------------------------------------------------------------------------
 	// GPU v1
@@ -259,10 +259,10 @@ int main()
 	//--------------------------------------------------------------------------
 	// GPU v2
 	//--------------------------------------------------------------------------
-	//number_of_increases = 20;
+	//number_of_increases = 40;
 	//iterations = 100;
-	//start = 5;
-	//steps = 5;
+	//start = 10;
+	//steps = 10;
 	//test_CPU = false;
 	//test_GPU = true;
 	//version = 2;
@@ -363,7 +363,7 @@ int main()
 	//--------------------------------------------------------------------------
 	// GPU v2
 	//--------------------------------------------------------------------------
-	//number_of_increases = 18;
+	//number_of_increases = 22;
 	//iterations = 100;
 	//start = 10;
 	//steps = 10;
