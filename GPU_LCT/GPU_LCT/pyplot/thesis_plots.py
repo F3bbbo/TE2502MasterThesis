@@ -4,6 +4,9 @@ import math
 import sys
 import re
 import os
+import scipy.stats
+import scipycopy.stats
+from decimal import Decimal
 
 num_args = len(sys.argv) - 1
 # arguments:
@@ -13,9 +16,10 @@ def print_help():
     options = """   Valid arguments
     -p/ -plots [1 2 3 4 ...] any number of integers seperated by space
         0 : All plots
-        1 : First test plot
-        2 : Second test plot
-        3 : Third test plot
+        1 : First test plots
+        2 : Second test plots
+        3 : Third test plots
+        4 : Mann Whitney plots
     -w / -workfolder "path" set the workspace folder
     -i / -infolder "path" set folder where input is
     -o / -outfolder "path" set folder where output will go
@@ -23,7 +27,7 @@ def print_help():
     """
     print(options)
 def all_plots():
-    return dict({1 : True, 2 : True, 3 : True})
+    return dict({1 : True, 2 : True, 3 : True, 4 : True})
 
 plots = all_plots()
 in_folder = "..\\Output files"
@@ -235,6 +239,63 @@ def process_parameter(start_i):
     else:
         next_i = -1
     return next_i # -1 err
+
+def createWilcoxonTable(sample_list1, sample_list2, map_sizes, tex_file):
+    f = open(tex_file, 'w+')
+    table_head = ('\\begin{table}[]\n'
+            '\\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}\n'
+            '\\hline\n'
+            '\\multirow{2}{*}{Map Size} & \\multicolumn{4}{c|}{Sample 1} & \\multicolumn{4}{c|}{Sample 2} & ' '\\multirow{2}{*}{\\begin{tabular}[c]{@{}c@{}}P-value \\\\ (two-sided)\end{tabular}} \\\\ \\cline{2-9}\n'
+            ' & \\begin{tabular}[c]{@{}c@{}}Sample \\\\ Size\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}Sum of \\\\ Ranks\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}Mean \\\\ Rank\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}U \\\\ Statistic\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}Sample \\\\ Size\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}Sum of \\\\ Ranks\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}Mean \\\\ Rank\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}U \\\\ Statistic\\end{tabular} & \\\\ \\hline')
+    f.write(table_head)
+
+    for list in zip(sample_list1, sample_list2, map_sizes):
+        sample1, sample2, mapsize = list[0], list[1], list[2]
+        n1, ranksumx, rankmeanx, u1, n2, ranksumy, rankmeany, u2, p = scipycopy.stats.mannwhitneyu(sample1, sample2, alternative='two-sided')
+        print('SampleSizeX=%d, RankSumX=%.3f, RankMeanX=%.3f, U1=%.3f, SampleSizeY=%d, RankSumY=%.3f, RankMeanY=%.3f, U2=%.3f, p=%f' % (n1, ranksumx, rankmeanx, u1, n2, ranksumy, rankmeany, u2, p))
+        # Limit signficant digits to 3 for mean ranks
+        rankmeanx = '%s' % float('%.3g' % rankmeanx)
+        rankmeany = '%s' % float('%.3g' % rankmeany)
+        # Convert p to scientific notation or limit significant digits to 3.
+        if(p < 0.001):
+            p = '%.2E' % Decimal(p)
+        else:
+            p = '%s' % float('%.3g' % p)
+        res = [n1, ranksumx, rankmeanx, u1, n2, ranksumy, rankmeany, u2, p]
+        results =[str(i) for i in res]
+        row = str(mapsize) + ' & ' + ' & '.join(results) + '\\\\ \\hline\n'
+        f.write(row)
+    table_end = '\\end{tabular}\n\\end{table}'
+    f.write(table_end)
+    f.close()
+
+def createWilcoxonTableSmall(sample_list1, sample_list2, map_sizes, tex_file):
+    f = open(tex_file, 'w+')
+    table_head = ('\\begin{table}[]\n'
+                '\\begin{tabular}{|c|c|c|c|}'
+                '\\hline'
+                '\\multirow{2}{*}{Map Size} & \\multirow{2}{*}{\\begin{tabular}[c]{@{}c@{}}Mean Rank of \\\\ Sample 1\\end{tabular}} & \\multirow{2}{*}{\\begin{tabular}[c]{@{}c@{}}Mean Rank of\\\\ Sample 2\\end{tabular}} & \\multirow{2}{*}{\\begin{tabular}[c]{@{}c@{}}P-Value \\\\ (two-sided)\\end{tabular}} \\\\'
+                '& & & \\\\ \\hline')
+    f.write(table_head)
+    for list in zip(sample_list1, sample_list2, map_sizes):
+        sample1, sample2, mapsize = list[0], list[1], list[2]
+        n1, ranksumx, rankmeanx, u1, n2, ranksumy, rankmeany, u2, p = scipycopy.stats.mannwhitneyu(sample1, sample2, alternative='two-sided')
+        # Limit signficant digits to 3 for mean ranks
+        rankmeanx = '%s' % float('%.3g' % rankmeanx)
+        rankmeany = '%s' % float('%.3g' % rankmeany)
+        # Convert p to scientific notation or limit significant digits to 3.
+        if(p < 0.001):
+            p = '%.2E' % Decimal(p)
+        else:
+            p = '%s' % float('%.3g' % p)
+        #res = [n1, ranksumx, rankmeanx, u1, n2, ranksumy, rankmeany, u2, p]
+        #results =[str(i) for i in res]
+        row = str(mapsize) + ' & ' + str(rankmeanx)+ ' & ' + str(rankmeany) + ' & '+ str(p) + '\\\\ \\hline\n'
+        f.write(row)
+    table_end = '\\end{tabular}\n\\end{table}'
+    f.write(table_end)
+    f.close()
+
 # check for input parameters
 curr_i = 1
 while (curr_i != -1):
@@ -486,3 +547,15 @@ if(plots.get(3) is not None):
         save_file_name = abs_path("Third_test_Full_LCT_GPU_Kallmann_0.75.png", True, False)
         title = "Third test full LCT execution times(25% of map)"
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
+
+if(plots.get(4) is not None):
+    print('Wilcoxon rank-sum test (aka Mann-Whitney U test)')
+    # Example data
+    datalist1 = [[1,2,1],[1,2,2],[1,2,3],[1,2,4],[1,2,5],[1,2,6],[1,2,7],[1,2,8]]
+    datalist2 = [[2,4,6],[2,4,5],[2,4,4],[2,4,3],[2,4,2],[2,4,1]]
+    map_sizes = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
+    ##############
+    tex_file = 'table.tex'
+    createWilcoxonTable(datalist1, datalist2, map_sizes, tex_file)
+    other_tex_file = 'table2.tex'
+    createWilcoxonTableSmall(datalist1, datalist2, map_sizes, other_tex_file)
