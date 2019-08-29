@@ -76,6 +76,10 @@ def get_results_from_file(file_name, max_vertex_count = -1):
         std_dev[y_groups[1]] = list()
         std_dev[y_groups[2]] = list()
         counter = 0
+        test_data = dict()
+        test_data[y_groups[0]] = list()
+        test_data[y_groups[1]] = list()
+        test_data[y_groups[2]] = list()
         for line in file:
             if(counter == 0):
                 sizes = line.split(',')
@@ -102,6 +106,11 @@ def get_results_from_file(file_name, max_vertex_count = -1):
                 # Calculate average and std of third group
                 y_labels[y_groups[2]].append(np.mean(iter_values[y_groups[2]]))
                 std_dev[y_groups[2]].append(np.std(iter_values[y_groups[2]]))
+                # Add test values to test_data list
+                test_data[y_groups[0]].append(iter_values[y_groups[0]])
+                test_data[y_groups[1]].append(iter_values[y_groups[1]])
+                test_data[y_groups[2]].append(iter_values[y_groups[2]])
+
                 # Reset counter var
                 counter = 0
             else:
@@ -111,7 +120,7 @@ def get_results_from_file(file_name, max_vertex_count = -1):
                 iter_values[y_groups[2]].append(float(l[0]) + float(l[1]))
                 counter += 1
 
-    return y_labels, y_groups,  x_labels, std_dev
+    return y_labels, y_groups,  x_labels, std_dev, test_data
 
 def get_second_result_from_file(file_name):
     with open(file_name, "r") as file:
@@ -310,7 +319,7 @@ x_axis_label = "Number of vertices"
 if(plots.get(1) is not None):
     first_CG_results = get_results_from_file(abs_path("first_test_CPUGPU-100-40000-v2.txt"))
     first_G_results = get_results_from_file(abs_path("first_test_GPU-100-52900-v2.txt"))
-    first_kall_results = get_results_from_file(abs_path("first_test_CPU-100-90000-v0.txt", False), first_G_results[2][-1])
+    first_kall_results = get_results_from_file(abs_path("first_test_CPU-100-84100-v0.txt", False), first_G_results[2][-1])
 
     test_type = first_CG_results[1][0]
     #print(first_CG_results[2][test_type])
@@ -463,13 +472,82 @@ if(plots.get(4) is not None):
     #-------------------------------------------------------------------------
     # First Test
     #-------------------------------------------------------------------------
+    first_CG_results = get_results_from_file(abs_path("first_test_CPUGPU-100-40000-v2.txt"))
+    first_G_results = get_results_from_file(abs_path("first_test_GPU-100-52900-v2.txt"))
+    first_kall_results = get_results_from_file(abs_path("first_test_CPU-100-84100-v0.txt", False), first_G_results[2][-1])
+    # GPU vs Kallmann
+    save_file_name = abs_path("First_test_Full_MannWhitney_Full_LCT_GPU_Kallmann.tex", True, False)
+    test_type = first_G_results[1][2]
+    createWilcoxonTable(first_G_results[4][test_type], first_kall_results[4][test_type], first_G_results[2], save_file_name)
     save_file_name = abs_path("First_test_MannWhitney_Full_LCT_GPU_Kallmann.tex", True, False)
+    createWilcoxonTableSmall(first_G_results[4][test_type], first_kall_results[4][test_type], first_G_results[2], save_file_name)
 
-
+    # CPU vs GPU
+    save_file_name = abs_path("First_test_Full_MannWhitney_Full_LCT_GPU_CPUGPU.tex", True, False)
+    test_type = first_G_results[1][2]
+    createWilcoxonTable(first_G_results[4][test_type], first_CG_results[4][test_type], first_G_results[2], save_file_name)
     save_file_name = abs_path("First_test_MannWhitney_Full_LCT_GPU_CPUGPU.tex", True, False)
+    createWilcoxonTableSmall(first_G_results[4][test_type], first_CG_results[4][test_type], first_G_results[2], save_file_name)
     #-------------------------------------------------------------------------
     # Third Test
     #-------------------------------------------------------------------------
-    save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_Kallmann_0.25.png", True, False)
-    save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_Kallmann_0.50.png", True, False)
-    save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_Kallmann_0.75.png", True, False)
+    third_CG_25_results = get_results_from_file(abs_path("third_test_CPUGPU-300-120000-v2-0.25.txt"))
+    third_CG_50_results = get_results_from_file(abs_path("third_test_CPUGPU-300-120000-v2-0.50.txt"))
+    third_CG_75_results = get_results_from_file(abs_path("third_test_CPUGPU-300-120000-v2-0.75.txt"))
+    third_G_25_results = get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.25.txt"))
+    third_G_50_results = get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.50.txt"))
+    third_G_75_results = get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.75.txt"))
+    third_kall_25_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.25.txt", False), third_G_25_results[2][-1])
+    third_kall_50_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.50.txt", False), third_G_50_results[2][-1])
+    third_kall_75_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.75.txt", False), third_G_75_results[2][-1])
+    #-------------------------------------------------------------------------
+    #  25 %
+    #-------------------------------------------------------------------------
+    # GPU vs Kallmann
+    save_file_name = abs_path("Third_test_Full_MannWhitney_Full_LCT_GPU_Kallmann_0.25.tex", True, False)
+    test_type = third_G_25_results[1][2]
+    createWilcoxonTable(third_G_25_results[4][test_type], third_kall_25_results[4][test_type], third_G_25_results[2], save_file_name)
+    save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_Kallmann_0.25.tex", True, False)
+    createWilcoxonTableSmall(third_G_25_results[4][test_type], third_kall_25_results[4][test_type], third_G_25_results[2], save_file_name)
+
+    # CPU vs GPU
+    save_file_name = abs_path("Third_test_Full_MannWhitney_Full_LCT_GPU_CPUGPU_0.25.tex", True, False)
+    test_type = third_G_25_results[1][2]
+    createWilcoxonTable(third_G_25_results[4][test_type], third_CG_25_results[4][test_type], third_G_25_results[2], save_file_name)
+    save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_CPUGPU_0.25.tex", True, False)
+    createWilcoxonTableSmall(third_G_25_results[4][test_type], third_CG_25_results[4][test_type], third_G_25_results[2], save_file_name)
+
+    #-------------------------------------------------------------------------
+    #  50 %
+    #-------------------------------------------------------------------------
+    # GPU vs Kallmann
+    save_file_name = abs_path("Third_test_Full_MannWhitney_Full_LCT_GPU_Kallmann_0.50.tex", True, False)
+    test_type = third_G_75_results[1][2]
+    createWilcoxonTable(third_G_50_results[4][test_type], third_kall_50_results[4][test_type], third_G_50_results[2], save_file_name)
+    save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_Kallmann_0.50.tex", True, False)
+    createWilcoxonTableSmall(third_G_50_results[4][test_type], third_kall_50_results[4][test_type], third_G_50_results[2], save_file_name)
+
+    # CPU vs GPU
+    save_file_name = abs_path("Third_test_Full_MannWhitney_Full_LCT_GPU_CPUGPU_0.50.tex", True, False)
+    test_type = third_G_75_results[1][2]
+    createWilcoxonTable(third_G_50_results[4][test_type], third_CG_50_results[4][test_type], third_G_50_results[2], save_file_name)
+    save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_CPUGPU_0.50.tex", True, False)
+    createWilcoxonTableSmall(third_G_50_results[4][test_type], third_CG_50_results[4][test_type], third_G_50_results[2], save_file_name)
+
+
+    #-------------------------------------------------------------------------
+    #  75 %
+    #-------------------------------------------------------------------------
+    # GPU vs Kallmann
+    save_file_name = abs_path("Third_test_Full_MannWhitney_Full_LCT_GPU_Kallmann_0.75.tex", True, False)
+    test_type = third_G_75_results[1][2]
+    createWilcoxonTable(third_G_75_results[4][test_type], third_kall_75_results[4][test_type], third_G_75_results[2], save_file_name)
+    save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_Kallmann_0.75.tex", True, False)
+    createWilcoxonTableSmall(third_G_75_results[4][test_type], third_kall_75_results[4][test_type], third_G_75_results[2], save_file_name)
+
+    # CPU vs GPU
+    save_file_name = abs_path("Third_test_Full_MannWhitney_Full_LCT_GPU_CPUGPU_0.75.tex", True, False)
+    test_type = third_G_75_results[1][2]
+    createWilcoxonTable(third_G_75_results[4][test_type], third_CG_75_results[4][test_type], third_G_75_results[2], save_file_name)
+    save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_CPUGPU_0.75.tex", True, False)
+    createWilcoxonTableSmall(third_G_75_results[4][test_type], third_CG_75_results[4][test_type], third_G_75_results[2], save_file_name)
