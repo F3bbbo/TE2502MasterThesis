@@ -29,19 +29,9 @@ int main()
 	tp_verify_license_file(licfile); // first check if license file is there
 	tp_activate(licfile); // ok, load and activate
 	float iterations = 100;
-	float number_of_increase = 20;
+	float number_of_increase = 1;
 	int start = 10;
 	int increase = 10;
-	first_test({ start, start }, {increase, increase}, number_of_increase + 9, iterations);
-	third_test({ start, start }, {increase, increase}, 0.25, number_of_increase, iterations);
-	third_test({ start, start }, {increase, increase}, 0.5, number_of_increase, iterations);
-	third_test({ start, start }, {increase, increase}, 0.75, number_of_increase, iterations);
-
-	iterations = 100;
-	number_of_increase = 20;
-	start = 5;
-	increase = 5;
-
 	first_test({ start, start }, {increase, increase}, number_of_increase, iterations);
 	third_test({ start, start }, {increase, increase}, 0.25, number_of_increase, iterations);
 	third_test({ start, start }, {increase, increase}, 0.5, number_of_increase, iterations);
@@ -54,7 +44,7 @@ int main()
 
 void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int increase_iterations, int iterations)
 {
-	std::vector<std::vector<long long>> build_times;
+	std::vector<std::vector<double>> build_times;
 	build_times.resize(increase_iterations);
 
 	std::vector<int> vertice_counts;
@@ -136,7 +126,7 @@ void first_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, int in
 
 void third_test(glm::ivec2 obstacle_amount, glm::ivec2 obstacle_increase, float static_percentage, int increase_iterations, int iterations)
 {
-	std::vector<std::vector<long long>> build_times;
+	std::vector<std::vector<double>> build_times;
 	build_times.resize(increase_iterations);
 
 	std::vector<std::pair<int,int>> vertice_counts;
