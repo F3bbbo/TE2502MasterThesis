@@ -551,11 +551,25 @@ if(plots.get(3) is not None):
 if(plots.get(4) is not None):
     print('Wilcoxon rank-sum test (aka Mann-Whitney U test)')
     # Example data
-    datalist1 = [[1,2,1],[1,2,2],[1,2,3],[1,2,4],[1,2,5],[1,2,6],[1,2,7],[1,2,8]]
-    datalist2 = [[2,4,6],[2,4,5],[2,4,4],[2,4,3],[2,4,2],[2,4,1]]
-    map_sizes = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
+    #datalist1 = [[1,2,1],[1,2,2],[1,2,3],[1,2,4],[1,2,5],[1,2,6],[1,2,7],[1,2,8]]
+    #datalist2 = [[2,4,6],[2,4,5],[2,4,4],[2,4,3],[2,4,2],[2,4,1]]
+    #map_sizes = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
     ##############
-    tex_file = 'table.tex'
-    createWilcoxonTable(datalist1, datalist2, map_sizes, tex_file)
-    other_tex_file = 'table2.tex'
-    createWilcoxonTableSmall(datalist1, datalist2, map_sizes, other_tex_file)
+    #tex_file = 'table.tex'
+    #createWilcoxonTable(datalist1, datalist2, map_sizes, tex_file)
+    #other_tex_file = 'table2.tex'
+    #createWilcoxonTableSmall(datalist1, datalist2, map_sizes, other_tex_file)
+
+    #-------------------------------------------------------------------------
+    # First Test
+    #-------------------------------------------------------------------------
+    save_file_name = abs_path("First_test_MannWhitney_Full_LCT_GPU_Kallmann.tex", True, False)
+    
+
+    save_file_name = abs_path("First_test_MannWhitney_Full_LCT_GPU_CPUGPU.tex", True, False)
+    #-------------------------------------------------------------------------
+    # Third Test
+    #-------------------------------------------------------------------------
+    save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_Kallmann_0.25.png", True, False)
+    save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_Kallmann_0.50.png", True, False)
+    save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_Kallmann_0.75.png", True, False)
