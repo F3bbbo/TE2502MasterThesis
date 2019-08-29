@@ -21,7 +21,7 @@ namespace GPU
 		void add_frame_points(std::vector<glm::vec2> points);
 		double build_CDT(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
 		double refine_LCT();
-		std::vector<long long> measure_shaders(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
+		std::vector<double> measure_shaders(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments);
 		std::vector<glm::vec2> get_vertices();
 		int get_num_vertices();
 		glm::vec2 get_vertex(int index);

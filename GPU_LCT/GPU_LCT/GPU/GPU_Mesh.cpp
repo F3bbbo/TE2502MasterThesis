@@ -675,7 +675,7 @@ namespace GPU
 		return timer.elapsed_time();
 	}
 
-	std::vector<long long> GPUMesh::measure_shaders(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
+	std::vector<double> GPUMesh::measure_shaders(std::vector<glm::vec2> points, std::vector<glm::ivec2> segments)
 	{
 		// CDT
 		m_point_bufs.positions.append_to_buffer(points);
@@ -735,7 +735,7 @@ namespace GPU
 
 		Timer timer;
 
-		std::vector<long long> build_times;
+		std::vector<double> build_times;
 		build_times.resize(16, 0);
 
 		int cont = 1;
