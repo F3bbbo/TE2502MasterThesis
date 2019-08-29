@@ -247,9 +247,9 @@ y_axis_label = "Execution time(ms)"
 x_axis_label = "Number of vertices"
 # First plot
 if(plots.get(1) is not None):
-    first_CG_results = get_results_from_file(abs_path("first_test_CPUGPU-25-10000-v2.txt"))
-    first_G_results = get_results_from_file(abs_path("first_test_GPU-25-10000-v2.txt"))
-    first_kall_results = get_results_from_file(abs_path("first_test_CPU-25-10000-v0.txt", False))
+    first_CG_results = get_results_from_file(abs_path("first_test_CPUGPU-100-40000-v2.txt"))
+    first_G_results = get_results_from_file(abs_path("first_test_GPU-100-52900-v2.txt"))
+    first_kall_results = get_results_from_file(abs_path("first_test_CPU-100-90000-v0.txt", False))
 
     test_type = first_CG_results[1][0]
     #print(first_CG_results[2][test_type])
@@ -281,45 +281,6 @@ if(plots.get(1) is not None):
     title = "First test full LCT execution times"
     make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
-    #-----------------------------------------
-    # make plots of cpu version
-    #-----------------------------------------
-    first_G_results = get_results_from_file(abs_path("first_test_GPU-100-48400-v2.txt"), first_CG_results[2][-1])
-    first_kall_results = get_results_from_file(abs_path("first_test_CPU-100-90000-v0.txt", False), first_CG_results[2][-1])
-
-    test_type = first_CG_results[1][0]
-    #print(first_CG_results[2][test_type])
-    y_labels_list = [first_CG_results[0][test_type], first_G_results[0][test_type], first_kall_results[0][test_type]]
-    x_labels_list = [first_CG_results[2], first_G_results[2], first_kall_results[2]]
-    std_dev_list = [first_CG_results[3][test_type], first_G_results[3][test_type], first_kall_results[3][test_type]]
-    alg_names = [ "CPUGPU", "GPU", "Kallmann"]
-    save_file_name = abs_path("First_test_CDT_CPU_GPU_Kallmann.png", True, False)
-    title = "First test CDT execution times"
-    make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
-
-    test_type = first_CG_results[1][1]
-    #print(first_CG_results[2][test_type])
-    y_labels_list = [first_CG_results[0][test_type], first_G_results[0][test_type], first_kall_results[0][test_type]]
-    x_labels_list = [first_CG_results[2], first_G_results[2], first_kall_results[2]]
-    std_dev_list = [first_CG_results[3][test_type], first_G_results[3][test_type], first_kall_results[3][test_type]]
-    #alg_names = ["GPU", "Kallmann"]
-    save_file_name = abs_path("First_test_LCT_CPU_GPU_Kallmann.png", True, False)
-    title = "First test LCT execution times"
-    make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
-
-    test_type = first_CG_results[1][2]
-    #print(first_CG_results[2][test_type])
-    y_labels_list = [first_CG_results[0][test_type], first_G_results[0][test_type], first_kall_results[0][test_type]]
-    x_labels_list = [first_CG_results[2], first_G_results[2], first_kall_results[2]]
-    std_dev_list = [first_CG_results[3][test_type], first_G_results[3][test_type], first_kall_results[3][test_type]]
-    #alg_names = ["GPU", "Kallmann"]
-    save_file_name = abs_path("First_test_Full_LCT_CPU_GPU_Kallmann.png", True, False)
-    title = "First test full LCT execution times"
-    make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
-
-    #first_CG_file = open(abs_path("first_test_CPUGPU-9-3600-v2.txt"), "r")
-    #first_G_file = open(abs_path("first_test_CPUGPU-100-90000-v2.txt"), "r")
-    #first_Kall_file = open(abs_path("first_test_CPU-100-90000-v0.txt", False), "r")
 # Second plot
 if (plots.get(2) is not None):
     second_test_results = get_second_result_from_file(abs_path("second_test-12100-v2.txt"))
@@ -327,15 +288,15 @@ if (plots.get(2) is not None):
     make_second_test_plot(save_file_name, second_test_results[0], second_test_results[1])
 # Third plot
 if(plots.get(3) is not None):
-        third_CG_25_results = get_results_from_file(abs_path("third_test_CPUGPU-75-30000-v2-0.25.txt"))
-        third_CG_50_results = get_results_from_file(abs_path("third_test_CPUGPU-75-30000-v2-0.50.txt"))
-        third_CG_75_results = get_results_from_file(abs_path("third_test_CPUGPU-75-30000-v2-0.75.txt"))
-        third_G_25_results = get_results_from_file(abs_path("third_test_GPU-75-30000-v2-0.25.txt"), third_CG_25_results[2][-1])
-        third_G_50_results = get_results_from_file(abs_path("third_test_GPU-75-30000-v2-0.50.txt"), third_CG_50_results[2][-1])
-        third_G_75_results = get_results_from_file(abs_path("third_test_GPU-75-30000-v2-0.75.txt"), third_CG_75_results[2][-1])
-        third_kall_25_results = get_results_from_file(abs_path("third_test_CPU-75-30000-v0-0.25.txt", False), third_CG_25_results[2][-1])
-        third_kall_50_results = get_results_from_file(abs_path("third_test_CPU-75-30000-v0-0.50.txt", False), third_CG_50_results[2][-1])
-        third_kall_75_results = get_results_from_file(abs_path("third_test_CPU-75-30000-v0-0.75.txt", False), third_CG_75_results[2][-1])
+        third_CG_25_results = get_results_from_file(abs_path("third_test_CPUGPU-300-30000-v2-0.25.txt"))
+        third_CG_50_results = get_results_from_file(abs_path("third_test_CPUGPU-300-30000-v2-0.50.txt"))
+        third_CG_75_results = get_results_from_file(abs_path("third_test_CPUGPU-300-30000-v2-0.75.txt"))
+        third_G_25_results = get_results_from_file(abs_path("third_test_GPU-300-97200-v2-0.25.txt"), third_CG_25_results[2][-1])
+        third_G_50_results = get_results_from_file(abs_path("third_test_GPU-300-97200-v2-0.50.txt"), third_CG_50_results[2][-1])
+        third_G_75_results = get_results_from_file(abs_path("third_test_GPU-300-97200-v2-0.75.txt"), third_CG_75_results[2][-1])
+        third_kall_25_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.25.txt", False), third_CG_25_results[2][-1])
+        third_kall_50_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.50.txt", False), third_CG_50_results[2][-1])
+        third_kall_75_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.75.txt", False), third_CG_75_results[2][-1])
         # CDT
         test_type = third_CG_25_results[1][0]
         # create  25% plot
