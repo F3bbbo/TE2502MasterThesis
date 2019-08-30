@@ -29,7 +29,7 @@ int main()
 	tp_verify_license_file(licfile); // first check if license file is there
 	tp_activate(licfile); // ok, load and activate
 	float iterations = 100;
-	float number_of_increase = 1;
+	float number_of_increase = 30;
 	int start = 10;
 	int increase = 10;
 	first_test({ start, start }, {increase, increase}, number_of_increase, iterations);
