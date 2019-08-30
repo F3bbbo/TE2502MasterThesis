@@ -249,12 +249,11 @@ def process_parameter(start_i):
         next_i = -1
     return next_i # -1 err
 
-def createWilcoxonTable(sample_list1, sample_list2, map_sizes, tex_file):
+def createWilcoxonTable(sample_list1, sample_list2, map_sizes, tex_file, sample_name_1 = 'Sample 1', sample_name_2 = 'Sample 2'):
     f = open(tex_file, 'w+')
-    table_head = ('\\begin{table}[]\n'
-            '\\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}\n'
+    table_head = ('\\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}\n'
             '\\hline\n'
-            '\\multirow{2}{*}{Map Size} & \\multicolumn{4}{c|}{Sample 1} & \\multicolumn{4}{c|}{Sample 2} & ' '\\multirow{2}{*}{\\begin{tabular}[c]{@{}c@{}}P-value \\\\ (two-sided)\end{tabular}} \\\\ \\cline{2-9}\n'
+            '\\multirow{2}{*}{Map Size} & \\multicolumn{4}{c|}{' + sample_name_1 +'} & \\multicolumn{4}{c|}{' + sample_name_2 + '} & ' '\\multirow{2}{*}{\\begin{tabular}[c]{@{}c@{}}P-value \\\\ (two-sided)\end{tabular}} \\\\ \\cline{2-9}\n'
             ' & \\begin{tabular}[c]{@{}c@{}}Sample \\\\ Size\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}Sum of \\\\ Ranks\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}Mean \\\\ Rank\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}U \\\\ Statistic\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}Sample \\\\ Size\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}Sum of \\\\ Ranks\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}Mean \\\\ Rank\\end{tabular} & \\begin{tabular}[c]{@{}c@{}}U \\\\ Statistic\\end{tabular} & \\\\ \\hline')
     f.write(table_head)
 
@@ -274,16 +273,15 @@ def createWilcoxonTable(sample_list1, sample_list2, map_sizes, tex_file):
         results =[str(i) for i in res]
         row = str(mapsize) + ' & ' + ' & '.join(results) + '\\\\ \\hline\n'
         f.write(row)
-    table_end = '\\end{tabular}\n\\end{table}'
+    table_end = '\\end{tabular}'
     f.write(table_end)
     f.close()
 
-def createWilcoxonTableSmall(sample_list1, sample_list2, map_sizes, tex_file):
+def createWilcoxonTableSmall(sample_list1, sample_list2, map_sizes, tex_file, sample_name_1 = 'Sample 1', sample_name_2 = 'Sample 2'):
     f = open(tex_file, 'w+')
-    table_head = ('\\begin{table}[]\n'
-                '\\begin{tabular}{|c|c|c|c|}'
+    table_head = ('\\begin{tabular}{|c|c|c|c|}'
                 '\\hline'
-                '\\multirow{2}{*}{Map Size} & \\multirow{2}{*}{\\begin{tabular}[c]{@{}c@{}}Mean Rank of \\\\ Sample 1\\end{tabular}} & \\multirow{2}{*}{\\begin{tabular}[c]{@{}c@{}}Mean Rank of\\\\ Sample 2\\end{tabular}} & \\multirow{2}{*}{\\begin{tabular}[c]{@{}c@{}}P-Value \\\\ (two-sided)\\end{tabular}} \\\\'
+                '\\multirow{2}{*}{Map Size} & \\multirow{2}{*}{\\begin{tabular}[c]{@{}c@{}}Mean Rank of \\\\ '+ sample_name_1 +'\\end{tabular}} & \\multirow{2}{*}{\\begin{tabular}[c]{@{}c@{}}Mean Rank of\\\\ ' + sample_name_2 +'\\end{tabular}} & \\multirow{2}{*}{\\begin{tabular}[c]{@{}c@{}}P-Value \\\\ (two-sided)\\end{tabular}} \\\\'
                 '& & & \\\\ \\hline')
     f.write(table_head)
     for list in zip(sample_list1, sample_list2, map_sizes):
@@ -301,7 +299,7 @@ def createWilcoxonTableSmall(sample_list1, sample_list2, map_sizes, tex_file):
         #results =[str(i) for i in res]
         row = str(mapsize) + ' & ' + str(rankmeanx)+ ' & ' + str(rankmeany) + ' & '+ str(p) + '\\\\ \\hline\n'
         f.write(row)
-    table_end = '\\end{tabular}\n\\end{table}'
+    table_end = '\\end{tabular}\n'
     f.write(table_end)
     f.close()
 
@@ -468,7 +466,9 @@ if(plots.get(4) is not None):
     #createWilcoxonTable(datalist1, datalist2, map_sizes, tex_file)
     #other_tex_file = 'table2.tex'
     #createWilcoxonTableSmall(datalist1, datalist2, map_sizes, other_tex_file)
-
+    GPU_name = "GPU LCT"
+    CPU_name = "CPUGPU LCT"
+    Kallmann_name = "Kallmann LCT"
     #-------------------------------------------------------------------------
     # First Test
     #-------------------------------------------------------------------------
@@ -478,16 +478,16 @@ if(plots.get(4) is not None):
     # GPU vs Kallmann
     save_file_name = abs_path("First_test_Full_MannWhitney_Full_LCT_GPU_Kallmann.tex", True, False)
     test_type = first_G_results[1][2]
-    createWilcoxonTable(first_G_results[4][test_type], first_kall_results[4][test_type], first_G_results[2], save_file_name)
+    createWilcoxonTable(first_G_results[4][test_type], first_kall_results[4][test_type], first_G_results[2], save_file_name, GPU_name, Kallmann_name)
     save_file_name = abs_path("First_test_MannWhitney_Full_LCT_GPU_Kallmann.tex", True, False)
-    createWilcoxonTableSmall(first_G_results[4][test_type], first_kall_results[4][test_type], first_G_results[2], save_file_name)
+    createWilcoxonTableSmall(first_G_results[4][test_type], first_kall_results[4][test_type], first_G_results[2], save_file_name, GPU_name, Kallmann_name)
 
     # CPU vs GPU
     save_file_name = abs_path("First_test_Full_MannWhitney_Full_LCT_GPU_CPUGPU.tex", True, False)
     test_type = first_G_results[1][2]
-    createWilcoxonTable(first_G_results[4][test_type], first_CG_results[4][test_type], first_G_results[2], save_file_name)
+    createWilcoxonTable(first_G_results[4][test_type], first_CG_results[4][test_type], first_G_results[2], save_file_name, GPU_name, CPU_name)
     save_file_name = abs_path("First_test_MannWhitney_Full_LCT_GPU_CPUGPU.tex", True, False)
-    createWilcoxonTableSmall(first_G_results[4][test_type], first_CG_results[4][test_type], first_G_results[2], save_file_name)
+    createWilcoxonTableSmall(first_G_results[4][test_type], first_CG_results[4][test_type], first_G_results[2], save_file_name, GPU_name, CPU_name)
     #-------------------------------------------------------------------------
     # Third Test
     #-------------------------------------------------------------------------
@@ -500,22 +500,23 @@ if(plots.get(4) is not None):
     third_kall_25_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.25.txt", False), third_G_25_results[2][-1])
     third_kall_50_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.50.txt", False), third_G_50_results[2][-1])
     third_kall_75_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.75.txt", False), third_G_75_results[2][-1])
+
     #-------------------------------------------------------------------------
     #  25 %
     #-------------------------------------------------------------------------
     # GPU vs Kallmann
     save_file_name = abs_path("Third_test_Full_MannWhitney_Full_LCT_GPU_Kallmann_0.25.tex", True, False)
     test_type = third_G_25_results[1][2]
-    createWilcoxonTable(third_G_25_results[4][test_type], third_kall_25_results[4][test_type], third_G_25_results[2], save_file_name)
+    createWilcoxonTable(third_G_25_results[4][test_type], third_kall_25_results[4][test_type], third_G_25_results[2], save_file_name, GPU_name, Kallmann_name)
     save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_Kallmann_0.25.tex", True, False)
-    createWilcoxonTableSmall(third_G_25_results[4][test_type], third_kall_25_results[4][test_type], third_G_25_results[2], save_file_name)
+    createWilcoxonTableSmall(third_G_25_results[4][test_type], third_kall_25_results[4][test_type], third_G_25_results[2], save_file_name, GPU_name, Kallmann_name)
 
     # CPU vs GPU
     save_file_name = abs_path("Third_test_Full_MannWhitney_Full_LCT_GPU_CPUGPU_0.25.tex", True, False)
     test_type = third_G_25_results[1][2]
-    createWilcoxonTable(third_G_25_results[4][test_type], third_CG_25_results[4][test_type], third_G_25_results[2], save_file_name)
+    createWilcoxonTable(third_G_25_results[4][test_type], third_CG_25_results[4][test_type], third_G_25_results[2], save_file_name, GPU_name, CPU_name)
     save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_CPUGPU_0.25.tex", True, False)
-    createWilcoxonTableSmall(third_G_25_results[4][test_type], third_CG_25_results[4][test_type], third_G_25_results[2], save_file_name)
+    createWilcoxonTableSmall(third_G_25_results[4][test_type], third_CG_25_results[4][test_type], third_G_25_results[2], save_file_name, GPU_name, CPU_name)
 
     #-------------------------------------------------------------------------
     #  50 %
@@ -523,16 +524,16 @@ if(plots.get(4) is not None):
     # GPU vs Kallmann
     save_file_name = abs_path("Third_test_Full_MannWhitney_Full_LCT_GPU_Kallmann_0.50.tex", True, False)
     test_type = third_G_75_results[1][2]
-    createWilcoxonTable(third_G_50_results[4][test_type], third_kall_50_results[4][test_type], third_G_50_results[2], save_file_name)
+    createWilcoxonTable(third_G_50_results[4][test_type], third_kall_50_results[4][test_type], third_G_50_results[2], save_file_name, GPU_name, Kallmann_name)
     save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_Kallmann_0.50.tex", True, False)
-    createWilcoxonTableSmall(third_G_50_results[4][test_type], third_kall_50_results[4][test_type], third_G_50_results[2], save_file_name)
+    createWilcoxonTableSmall(third_G_50_results[4][test_type], third_kall_50_results[4][test_type], third_G_50_results[2], save_file_name, GPU_name, Kallmann_name)
 
     # CPU vs GPU
     save_file_name = abs_path("Third_test_Full_MannWhitney_Full_LCT_GPU_CPUGPU_0.50.tex", True, False)
     test_type = third_G_75_results[1][2]
-    createWilcoxonTable(third_G_50_results[4][test_type], third_CG_50_results[4][test_type], third_G_50_results[2], save_file_name)
+    createWilcoxonTable(third_G_50_results[4][test_type], third_CG_50_results[4][test_type], third_G_50_results[2], save_file_name, GPU_name, CPU_name)
     save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_CPUGPU_0.50.tex", True, False)
-    createWilcoxonTableSmall(third_G_50_results[4][test_type], third_CG_50_results[4][test_type], third_G_50_results[2], save_file_name)
+    createWilcoxonTableSmall(third_G_50_results[4][test_type], third_CG_50_results[4][test_type], third_G_50_results[2], save_file_name, GPU_name, CPU_name)
 
 
     #-------------------------------------------------------------------------
@@ -541,13 +542,13 @@ if(plots.get(4) is not None):
     # GPU vs Kallmann
     save_file_name = abs_path("Third_test_Full_MannWhitney_Full_LCT_GPU_Kallmann_0.75.tex", True, False)
     test_type = third_G_75_results[1][2]
-    createWilcoxonTable(third_G_75_results[4][test_type], third_kall_75_results[4][test_type], third_G_75_results[2], save_file_name)
+    createWilcoxonTable(third_G_75_results[4][test_type], third_kall_75_results[4][test_type], third_G_75_results[2], save_file_name, GPU_name, Kallmann_name)
     save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_Kallmann_0.75.tex", True, False)
-    createWilcoxonTableSmall(third_G_75_results[4][test_type], third_kall_75_results[4][test_type], third_G_75_results[2], save_file_name)
+    createWilcoxonTableSmall(third_G_75_results[4][test_type], third_kall_75_results[4][test_type], third_G_75_results[2], save_file_name, GPU_name, Kallmann_name)
 
     # CPU vs GPU
     save_file_name = abs_path("Third_test_Full_MannWhitney_Full_LCT_GPU_CPUGPU_0.75.tex", True, False)
     test_type = third_G_75_results[1][2]
-    createWilcoxonTable(third_G_75_results[4][test_type], third_CG_75_results[4][test_type], third_G_75_results[2], save_file_name)
+    createWilcoxonTable(third_G_75_results[4][test_type], third_CG_75_results[4][test_type], third_G_75_results[2], save_file_name, GPU_name, CPU_name)
     save_file_name = abs_path("Third_test_MannWhitney_Full_LCT_GPU_CPUGPU_0.75.tex", True, False)
-    createWilcoxonTableSmall(third_G_75_results[4][test_type], third_CG_75_results[4][test_type], third_G_75_results[2], save_file_name)
+    createWilcoxonTableSmall(third_G_75_results[4][test_type], third_CG_75_results[4][test_type], third_G_75_results[2], save_file_name, GPU_name, CPU_name)
