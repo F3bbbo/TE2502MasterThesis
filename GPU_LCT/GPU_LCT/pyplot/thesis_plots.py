@@ -372,7 +372,7 @@ if(plots.get(3) is not None):
         x_labels_list = [third_CG_25_results[2], third_G_25_results[2], third_kall_25_results[2]]
         std_dev_list = [third_CG_25_results[3][test_type], third_G_25_results[3][test_type], third_kall_25_results[3][test_type]]
         alg_names = ["CPUGPU", "GPU", "Kallmann"]
-        save_file_name = abs_path("Third_test_CDTn_0.25.png", True, False)
+        save_file_name = abs_path("Third_test_CDTn_0_25.png", True, False)
         title = "Third test CDT execution times(75% of map)"
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
@@ -381,7 +381,7 @@ if(plots.get(3) is not None):
         x_labels_list = [third_CG_50_results[2], third_G_50_results[2], third_kall_50_results[2]]
         std_dev_list = [third_CG_50_results[3][test_type], third_G_50_results[3][test_type], third_kall_50_results[3][test_type]]
         alg_names = ["CPUGPU", "GPU", "Kallmann"]
-        save_file_name = abs_path("Third_test_CDT_0.50.png", True, False)
+        save_file_name = abs_path("Third_test_CDT_0_50.png", True, False)
         title = "Third test CDT execution times(50% of map)"
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
@@ -391,7 +391,7 @@ if(plots.get(3) is not None):
         x_labels_list = [third_CG_75_results[2], third_G_75_results[2], third_kall_75_results[2]]
         std_dev_list = [third_CG_75_results[3][test_type], third_G_75_results[3][test_type], third_kall_75_results[3][test_type]]
         alg_names = ["CPUGPU", "GPU", "Kallmann"]
-        save_file_name = abs_path("Third_test_CDT_0.75.png", True, False)
+        save_file_name = abs_path("Third_test_CDT_0_75.png", True, False)
         title = "Third test CDT execution times(25% of map)"
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
@@ -402,7 +402,7 @@ if(plots.get(3) is not None):
         x_labels_list = [third_CG_25_results[2], third_G_25_results[2], third_kall_25_results[2]]
         std_dev_list = [third_CG_25_results[3][test_type], third_G_25_results[3][test_type], third_kall_25_results[3][test_type]]
         alg_names = ["CPUGPU", "GPU", "Kallmann"]
-        save_file_name = abs_path("Third_test_LCT_0.25.png", True, False)
+        save_file_name = abs_path("Third_test_LCT_0_25.png", True, False)
         title = "Third test LCT execution times(75% of map)"
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
@@ -411,7 +411,7 @@ if(plots.get(3) is not None):
         x_labels_list = [third_CG_50_results[2], third_G_50_results[2], third_kall_50_results[2]]
         std_dev_list = [third_CG_50_results[3][test_type], third_G_50_results[3][test_type], third_kall_50_results[3][test_type]]
         alg_names = ["CPUGPU", "GPU", "Kallmann"]
-        save_file_name = abs_path("Third_test_LCT_0.50.png", True, False)
+        save_file_name = abs_path("Third_test_LCT_0_50.png", True, False)
         title = "Third test LCT execution times(50% of map)"
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
@@ -421,7 +421,7 @@ if(plots.get(3) is not None):
         x_labels_list = [third_CG_75_results[2], third_G_75_results[2], third_kall_75_results[2]]
         std_dev_list = [third_CG_75_results[3][test_type], third_G_75_results[3][test_type], third_kall_75_results[3][test_type]]
         alg_names = ["CPUGPU", "GPU", "Kallmann"]
-        save_file_name = abs_path("Third_test_LCT_0.75.png", True, False)
+        save_file_name = abs_path("Third_test_LCT_0_75.png", True, False)
         title = "Third test LCT execution times(25% of map)"
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
@@ -432,7 +432,7 @@ if(plots.get(3) is not None):
         x_labels_list = [third_CG_25_results[2], third_G_25_results[2], third_kall_25_results[2]]
         std_dev_list = [third_CG_25_results[3][test_type], third_G_25_results[3][test_type], third_kall_25_results[3][test_type]]
         alg_names = ["CPUGPU", "GPU", "Kallmann"]
-        save_file_name = abs_path("Third_test_Full_LCT_0.25.png", True, False)
+        save_file_name = abs_path("Third_test_Full_LCT_0_25.png", True, False)
         title = "Third test full LCT execution times(75% of map)"
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
@@ -441,7 +441,7 @@ if(plots.get(3) is not None):
         x_labels_list = [third_CG_50_results[2], third_G_50_results[2], third_kall_50_results[2]]
         std_dev_list = [third_CG_50_results[3][test_type], third_G_50_results[3][test_type], third_kall_50_results[3][test_type]]
         alg_names = ["CPUGPU", "GPU", "Kallmann"]
-        save_file_name = abs_path("Third_test_Full_LCT_0.50.png", True, False)
+        save_file_name = abs_path("Third_test_Full_LCT_0_50.png", True, False)
         title = "Third test full LCT execution times(50% of map)"
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
@@ -451,7 +451,7 @@ if(plots.get(3) is not None):
         x_labels_list = [third_CG_75_results[2], third_G_75_results[2], third_kall_75_results[2]]
         std_dev_list = [third_CG_75_results[3][test_type], third_G_75_results[3][test_type], third_kall_75_results[3][test_type]]
         alg_names = ["CPUGPU", "GPU", "Kallmann"]
-        save_file_name = abs_path("Third_test_Full_LCT_0.75.png", True, False)
+        save_file_name = abs_path("Third_test_Full_LCT_0_75.png", True, False)
         title = "Third test full LCT execution times(25% of map)"
         make_line_plot(save_file_name, y_labels_list, x_labels_list, std_dev_list, alg_names, title, y_axis_label, x_axis_label)
 
