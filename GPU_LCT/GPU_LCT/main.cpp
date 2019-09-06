@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <crtdbg.h>
 
-void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
+void lct_example(GPU::GCMesh &m, GPU::GPUMesh &g_m)
 {
 	/*glm::vec2 point = { 0.4f, -0.4f };
 	LocateRes lr = m.Locate_point(point);
@@ -37,14 +37,14 @@ void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 
 	//m.insert_constraint(std::move(points), 0);
 
-	points = {
-	{ -0.35f, 0.2f},
-	{ 0.35f, 0.2f},
-	{ 0.4f, 0.1f},
-	{ -0.4f, 0.1f},
-	{ -0.35f, 0.2f} };
+	//points = {
+	//{ -0.35f, 0.2f},
+	//{ 0.35f, 0.2f},
+	//{ 0.4f, 0.1f},
+	//{ -0.4f, 0.1f},
+	//{ -0.35f, 0.2f} };
 
-	m.insert_constraint(std::move(points), 1);
+	//m.insert_constraint(std::move(points), 1);
 
 	/*point = {0.f, -0.2f};
 	lr = m.Locate_point(point);
@@ -54,23 +54,23 @@ void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 	lr = m.Locate_point(point);
 	m.Insert_point_in_edge(point, lr.sym_edge);*/
 
-	points = {
-	{ -0.1f, -0.06f },
-	{ -0.0f, -0.06f },
-	{ -0.0f, -0.4f },
-	{ -0.1f, -0.379f },
-	{ -0.1f, -0.06f } };
+	//points = {
+	//{ -0.1f, -0.06f },
+	//{ -0.0f, -0.06f },
+	//{ -0.0f, -0.4f },
+	//{ -0.1f, -0.379f },
+	//{ -0.1f, -0.06f } };
 
-	m.insert_constraint(std::move(points), 2);
+	//m.insert_constraint(std::move(points), 2);
 
-	points = {
-		{ 0.25f, -0.05f },
-	{ 0.15f, -0.05f },
-	{ 0.15f, -0.3f },
-	{ 0.25f, -0.3f },
-	{ 0.25f, -0.05f } };
+	//points = {
+	//	{ 0.25f, -0.05f },
+	//{ 0.15f, -0.05f },
+	//{ 0.15f, -0.3f },
+	//{ 0.25f, -0.3f },
+	//{ 0.25f, -0.05f } };
 
-	m.insert_constraint(std::move(points), 3);
+	//m.insert_constraint(std::move(points), 3);
 
 	// GPU
 	std::vector<glm::ivec2> segments;
@@ -103,6 +103,10 @@ void lct_example(CPU::Mesh &m, GPU::GPUMesh &g_m)
 	{11,8}
 	};
 	g_m.build_CDT(points, segments);
+	//g_m.refine_LCT();
+
+	//GCPU
+	m.build_CDT(points, segments);
 
 }
 
@@ -131,14 +135,14 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	g_m.set_version(vers);
 	g_m.add_frame_points(gpu_frame.first);
 	g_m.build_CDT(gpu_map.first, gpu_map.second);
-	g_m.refine_LCT();
+	//g_m.refine_LCT();
 	auto stat = g_m.get_find_dist_status();
 	LOG("GPU const_list_status: " + std::to_string(stat.const_list_status));
 	LOG("GPU const_queue_status: " + std::to_string(stat.const_queue_status));
 	LOG("GPU dist_list_status: " + std::to_string(stat.dist_list_status));
 	LOG("GPU dist_queue_status: " + std::to_string(stat.dist_queue_status));
-	//m.set_version(vers);
-	//m.add_frame_points(gpu_frame.first);
+	m.set_version(vers);
+	m.add_frame_points(gpu_frame.first);
 	//m.build_CDT(gpu_map.first, gpu_map.second);
 	//m.refine_LCT();
 	//stat = m.get_find_dist_status();
@@ -176,8 +180,9 @@ int main()
 	//_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
-	float scale = 49.99f;
-	int num_object_multi = 320;
+	//float scale = 49.99f;
+	float scale = 0.5f;
+	int num_object_multi = 10;
 	glm::vec2 map_scaling = { scale, scale };
 	glm::ivec2 num_objects = { num_object_multi, num_object_multi };
 	GPU::GPUMesh g_mesh;
@@ -197,10 +202,10 @@ int main()
 	// testing function
 	//test_range({ 1600, 800 }, 2, { 2, 2 }, { 1, 1 }, { 2, 2 }, { 1, 1 }, false);
 
-	/*CPU::Mesh m;
-	m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });*/
+	//CPU::Mesh m;
+	//m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
 
-	//lct_example(m, g_mesh);
+	lct_example(gc_mesh, g_mesh);
 
 	//test_test_map(gc_mesh, g_mesh, map_scaling, num_objects);
 
@@ -274,7 +279,7 @@ int main()
 	// SECOND TEST
 	//**************************************************************************
 	//--------------------------------------------------------------------------
-	second_test({ 110, 110 }, 100);
+	//second_test({ 110, 110 }, 100);
 
 	//--------------------------------------------------------------------------
 	//**************************************************************************
