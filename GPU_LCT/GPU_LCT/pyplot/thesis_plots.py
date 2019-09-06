@@ -120,7 +120,7 @@ def get_results_from_file(file_name, max_vertex_count = -1):
                 iter_values[y_groups[2]].append(float(l[0]) + float(l[1]))
                 counter += 1
 
-    return y_labels, y_groups,  x_labels, std_dev, test_data
+    return [y_labels, y_groups,  x_labels, std_dev, test_data]
 
 def get_second_result_from_file(file_name):
     with open(file_name, "r") as file:
@@ -181,7 +181,7 @@ def make_second_test_plot(save_file, y_labels, std_dev, title1="CDT Shaders Perf
     ax.set_ylabel(y_axis_label)
     plt.subplots_adjust(bottom=0.25, hspace=0.95)
     #figure 1
-    shader_names = ["Locate\nStep 1", "Locate\nStep 2", "Marking\nStep 1", "Marking\nStep 2", "Flipping\nStep 1", "Flipping\nStep 2", "Flipping\nStep 3"]
+    shader_names = ["Locate\nStep", "Insertion\nStep", "Marking\nStep 1", "Marking\nStep 2", "Flipping\nStep 1", "Flipping\nStep 2", "Flipping\nStep 3"]
     ax1.title.set_text(title1)
     ax1.bar(shader_names, y_labels[:7], yerr=std_dev[:7])
     # fix x_labels settings
@@ -303,6 +303,15 @@ def createWilcoxonTableSmall(sample_list1, sample_list2, map_sizes, tex_file, sa
     f.write(table_end)
     f.close()
 
+def result_rm_end(res, remove = -1):
+    res[2] = res[2][:remove]
+    for test_type in res[1]:
+        res[0][test_type] = res[0][test_type][:remove]
+        res[3][test_type] = res[3][test_type][:remove]
+        res[4][test_type] = res[4][test_type][:remove]
+
+    return res
+
 # check for input parameters
 curr_i = 1
 while (curr_i != -1):
@@ -359,9 +368,9 @@ if(plots.get(3) is not None):
         third_CG_25_results = get_results_from_file(abs_path("third_test_CPUGPU-300-120000-v2-0.25.txt"))
         third_CG_50_results = get_results_from_file(abs_path("third_test_CPUGPU-300-120000-v2-0.50.txt"))
         third_CG_75_results = get_results_from_file(abs_path("third_test_CPUGPU-300-120000-v2-0.75.txt"))
-        third_G_25_results = get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.25.txt"))
-        third_G_50_results = get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.50.txt"))
-        third_G_75_results = get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.75.txt"))
+        third_G_25_results = result_rm_end(get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.25.txt")))
+        third_G_50_results = result_rm_end(get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.50.txt")))
+        third_G_75_results = result_rm_end(get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.75.txt")))
         third_kall_25_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.25.txt", False), third_G_25_results[2][-1])
         third_kall_50_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.50.txt", False), third_G_50_results[2][-1])
         third_kall_75_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.75.txt", False), third_G_75_results[2][-1])
@@ -494,9 +503,9 @@ if(plots.get(4) is not None):
     third_CG_25_results = get_results_from_file(abs_path("third_test_CPUGPU-300-120000-v2-0.25.txt"))
     third_CG_50_results = get_results_from_file(abs_path("third_test_CPUGPU-300-120000-v2-0.50.txt"))
     third_CG_75_results = get_results_from_file(abs_path("third_test_CPUGPU-300-120000-v2-0.75.txt"))
-    third_G_25_results = get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.25.txt"))
-    third_G_50_results = get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.50.txt"))
-    third_G_75_results = get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.75.txt"))
+    third_G_25_results = result_rm_end(get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.25.txt")))
+    third_G_50_results = result_rm_end(get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.50.txt")))
+    third_G_75_results = result_rm_end(get_results_from_file(abs_path("third_test_GPU-300-145200-v2-0.75.txt")))
     third_kall_25_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.25.txt", False), third_G_25_results[2][-1])
     third_kall_50_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.50.txt", False), third_G_50_results[2][-1])
     third_kall_75_results = get_results_from_file(abs_path("third_test_CPU-300-270000-v0-0.75.txt", False), third_G_75_results[2][-1])
