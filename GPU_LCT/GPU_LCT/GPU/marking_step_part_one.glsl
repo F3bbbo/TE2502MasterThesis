@@ -524,6 +524,7 @@ bool polygonal_is_strictly_convex(int num, vec2 p1, vec2 p2, vec2 p3, vec2 p4, v
 	
 	for (int i = 0; i < num; i++)
 	{
+		// New solution
 		vec2 line = point_array[(i + 1) % num] - point_array[i];
 
 		// rotate vector by 90 degrees
@@ -533,11 +534,24 @@ bool polygonal_is_strictly_convex(int num, vec2 p1, vec2 p2, vec2 p3, vec2 p4, v
 			line.y = -tmp;
 		}
 
-		for (int j = 0; j < num - 2; j++)
-		{
-			if (!check_side(line, point_array[(i + 2 + j) % num] - point_array[(i + 1) % num]))
-				return false;
-		}
+		if (check_side(line, point_array[(i + 2) % num] - point_array[(i + 1) % num]))
+			return false;
+
+		// Old solution
+		//vec2 line = point_array[(i + 1) % num] - point_array[i];
+
+		//// rotate vector by 90 degrees
+		//{
+		//	float tmp = line.x;
+		//	line.x = line.y;
+		//	line.y = -tmp;
+		//}
+
+		//for (int j = 0; j < num - 2; j++)
+		//{
+		//	if (!check_side(line, point_array[(i + 2 + j) % num] - point_array[(i + 1) % num]))
+		//		return false;
+		//}
 	}
 	return true;
 }

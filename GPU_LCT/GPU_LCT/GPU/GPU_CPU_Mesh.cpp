@@ -2134,6 +2134,7 @@ namespace GPU
 
 		for (int i = 0; i < num; i++)
 		{
+			// New solution
 			vec2 line = point_array[(i + 1) % num] - point_array[i];
 
 			// rotate vector by 90 degrees
@@ -2143,11 +2144,24 @@ namespace GPU
 				line.y = -tmp;
 			}
 
-			for (int j = 0; j < num - 2; j++)
-			{
-				if (!check_side(line, point_array[(i + 2 + j) % num] - point_array[(i + 1) % num]))
-					return false;
-			}
+			if (check_side(line, point_array[(i + 2) % num] - point_array[(i + 1) % num]))
+				return false;
+
+			// Old solution
+			//vec2 line = point_array[(i + 1) % num] - point_array[i];
+
+			//// rotate vector by 90 degrees
+			//{
+			//	float tmp = line.x;
+			//	line.x = line.y;
+			//	line.y = -tmp;
+			//}
+
+			//for (int j = 0; j < num - 2; j++)
+			//{
+			//	if (!check_side(line, point_array[(i + 2 + j) % num] - point_array[(i + 1) % num]))
+			//		return false;
+			//}
 		}
 		return true;
 	}
