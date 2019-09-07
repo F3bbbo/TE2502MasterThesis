@@ -132,9 +132,10 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	//m.build_CDT(gpu_map.first, gpu_map.second);
 	//m.refine_LCT();
 	int vers = 2;
-	g_m.set_version(vers);
-	g_m.add_frame_points(gpu_frame.first);
-	g_m.build_CDT(gpu_map.first, gpu_map.second);
+	//g_m.set_version(vers);
+	//g_m.add_frame_points(gpu_frame.first);
+	//g_m.build_CDT(gpu_map.first, gpu_map.second);
+	//LOG("GPU CDT done.");
 	//g_m.refine_LCT();
 	auto stat = g_m.get_find_dist_status();
 	LOG("GPU const_list_status: " + std::to_string(stat.const_list_status));
@@ -143,14 +144,14 @@ void test_test_map(GPU::GCMesh &m, GPU::GPUMesh &g_m, glm::vec2 dims, glm::ivec2
 	LOG("GPU dist_queue_status: " + std::to_string(stat.dist_queue_status));
 	m.set_version(vers);
 	m.add_frame_points(gpu_frame.first);
-	//m.build_CDT(gpu_map.first, gpu_map.second);
+	m.build_CDT(gpu_map.first, gpu_map.second);
 	//m.refine_LCT();
-	//stat = m.get_find_dist_status();
-	//LOG("CPU const_list_status: " + std::to_string(stat.const_list_status));
-	//LOG("CPU const_queue_status: " + std::to_string(stat.const_queue_status));
-	//LOG("CPU dist_list_status: " + std::to_string(stat.dist_list_status));
-	//LOG("CPU dist_queue_status: " + std::to_string(stat.dist_queue_status));
-	//LOG("Done test with test maps");
+	stat = m.get_find_dist_status();
+	LOG("CPU const_list_status: " + std::to_string(stat.const_list_status));
+	LOG("CPU const_queue_status: " + std::to_string(stat.const_queue_status));
+	LOG("CPU dist_list_status: " + std::to_string(stat.dist_list_status));
+	LOG("CPU dist_queue_status: " + std::to_string(stat.dist_queue_status));
+	LOG("Done test with test maps");
 	//g_m.build_CDT(dynamic_obj.first, dynamic_obj.second);
 
 }
@@ -180,9 +181,9 @@ int main()
 	//_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 	// Important that the renderer is created first because it initializes OpenGL
 	Renderer renderer({ 1600, 800 });
-	//float scale = 49.99f;
-	float scale = 0.5f;
-	int num_object_multi = 10;
+	float scale = 49.99f;
+	//float scale = 0.5f;
+	int num_object_multi = 70;
 	glm::vec2 map_scaling = { scale, scale };
 	glm::ivec2 num_objects = { num_object_multi, num_object_multi };
 	GPU::GPUMesh g_mesh;
@@ -205,9 +206,9 @@ int main()
 	//CPU::Mesh m;
 	//m.initialize_as_quad({ 0.5f, 0.5f }, { 0.f, 0.f });
 
-	lct_example(gc_mesh, g_mesh);
+	//lct_example(gc_mesh, g_mesh);
 
-	//test_test_map(gc_mesh, g_mesh, map_scaling, num_objects);
+	test_test_map(gc_mesh, g_mesh, map_scaling, num_objects);
 
 	//--------------------------------------------------------------------------
 	//**************************************************************************
@@ -544,7 +545,7 @@ int main()
 	renderer.add_pipeline(std::move(ddp));
 	//set debug edge of renderer
 
-	renderer.set_debug_edge(nullptr, gc_mesh.get_symedge(0));
+	renderer.set_debug_edge(nullptr, gc_mesh.get_symedge(81681));
 	renderer.set_gc_mesh(&gc_mesh);
 	renderer.set_gpu_mesh(&g_mesh);
 

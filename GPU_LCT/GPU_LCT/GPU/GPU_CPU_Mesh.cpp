@@ -228,6 +228,10 @@ namespace GPU
 		while (cont)
 		{
 			counter++;
+			
+			std::cout << counter << std::endl;
+			//if (counter == 15)
+			//	break;
 			status = 0;
 			//m_status.update_buffer<int>({ 0 });
 			//if (counter == 4)
@@ -251,7 +255,8 @@ namespace GPU
 			//if (counter == 10)
 			//	break;
 			//// Marking Step
-
+			if (counter == 9)
+				break;
 			marking_part_one_program();
 			//glUseProgram(m_marking_part_one_program);
 			//glDispatchCompute((GLuint)256, 1, 1);
@@ -403,6 +408,7 @@ namespace GPU
 					//m_status.update_buffer<int>({ 0 });
 					status = 0;
 					counter++;
+					std::cout << counter << std::endl;
 					//// Find out which triangle the point is on the edge of
 					locate_point_triangle_program();
 					//glUseProgram(m_locate_point_triangle_program);

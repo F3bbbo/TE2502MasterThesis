@@ -106,9 +106,17 @@ void DebugObject::build(CPU::Mesh& mesh)
 {
 	std::vector<CPU::VertexRef> const& mesh_verts = mesh.get_vertex_list();
 	std::vector<DrawVertex> vertices;
-
+	int counter = 0;
 	for (auto& vertex : mesh_verts)
-		vertices.push_back({ vertex.vertice, {m_color.r, m_color.g, m_color.b, 1.f} });
+	{
+		if(counter == 13613)
+			vertices.push_back({ vertex.vertice, {0.0f, 1.0f, 0.0f, 1.f} });
+		else if(counter == 81671)
+			vertices.push_back({ vertex.vertice, {0.0f, 0.0f, 1.0f, 1.f} });
+		else
+			vertices.push_back({ vertex.vertice, {m_color.r, m_color.g, m_color.b, 1.f} });
+		counter++;
+	}
 
 	m_vertex_input.create_buffer(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
 	m_vertex_input.bind_buffer();
